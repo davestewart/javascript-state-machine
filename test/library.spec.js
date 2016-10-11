@@ -1,5 +1,5 @@
 import chai from 'chai';
-import StateMachine from '../lib/StateMachine.js';
+import StateMachine from '../src/StateMachine';
 
 chai.expect();
 
@@ -24,7 +24,5 @@ describe('Given an instance of my library', function () {
       expect(fsm.state).to.be.equal('');
     });
   });
-
-
 
 });
