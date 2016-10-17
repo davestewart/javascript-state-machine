@@ -221,26 +221,6 @@ export default
 
         // create
         return new Transition(action, from, to, queue, callbacks);
-    },
-
-    /**
-     * Set the default sort order for transitions
-     *
-     * @param {Array} order
-     */
-    setOrder:function(order)
-    {
-        Transition.order = order || defaultOrder;
-    },
-
-    /**
-     * Get the current sot order for the transitions
-     *
-     * @returns {string[]}
-     */
-    getOrder:function()
-    {
-        return Transition.order;
     }
 
 }

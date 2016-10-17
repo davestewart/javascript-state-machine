@@ -228,6 +228,25 @@ StateMachine.prototype =
                 this.state = config.initial;
             }
 
+            /**
+             * Sets the default order to run transition callbacks in
+             *
+             * start/leave/enter/end  -> event types
+             * to/action              -> targeted handlers (leave:red)
+             * *                      -> global handlers   (leave, or leave:*)
+             *
+             * @type {string[]} type.target
+             */
+            config.order = config.order || [
+                'start:*',
+                'start:action',
+                'leave:from',
+                'leave:*',
+                'enter:*',
+                'enter:to',
+                'end:action',
+                'end:*'
+            ];
         },
 
         /**
