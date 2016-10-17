@@ -4,31 +4,33 @@
     function noop () { }
 
     /**
-     * @prop {string}  type     The Event type; i.e. state or action
-     * @prop {string}  name     The Event subject/name; i.e. intro (state) or next (action)
-     * @prop {string}  verb     The Event verb; i.e. leave/enter (state) or start/end (action)
-     * @prop {string}  from     The from state
-     * @prop {string}  to       The to state
+     * @prop {string}  namespace  The Event namespace; i.e. state or action
+     * @prop {string}  type       The Event type;      i.e. leave/enter (state) or start/end (action)
+     * @prop {string}  target     The Event target;    i.e. intro (state) or next (action)
+     * @prop {string}  from       The from state
+     * @prop {string}  to         The to state
      */
     let event =
     {
-        type    : null,
-        name    : null,
-        verb    : null,
-        from    : null,
-        to      : null,
+        // properties
+        namespace   : null,
+        type        : null,
+        target      : null,
+        from        : null,
+        to          : null,
 
-        pause   : noop,
-        resume  : noop,
-        cancel  : noop,
-        complete: noop
+        // transition callbacks
+        pause       : noop,
+        resume      : noop,
+        cancel      : noop,
+        complete    : noop
     };
 
-    function initialize (event, callbacks, type, name, verb, from, to)
+    function initialize (event, namespace, type, target, from, to, callbacks)
     {
+        event.namespace = namespace;
         event.type      = type;
-        event.name      = name;
-        event.verb      = verb;
+        event.target    = target;
         event.from      = from;
         event.to        = to;
 
@@ -40,12 +42,12 @@
 
     export default
     {
-        create: function(type, callbacks, name, verb, from, to)
+        create: function(namespace, type, target, from, to, callbacks)
         {
-            var fn = type == 'state'
+            var fn = namespace == 'state'
                 ? StateEvent
                 : ActionEvent;
-            return new fn(callbacks, name, verb, from, to);
+            return new fn(type, target, from, to, callbacks);
         }
     }
 
@@ -53,9 +55,9 @@
 // ------------------------------------------------------------------------------------------------
 // ActionEvent
 
-    export function ActionEvent (callbacks, name, verb, from, to)
+    export function ActionEvent (type, target, from, to, callbacks)
     {
-        initialize(this, callbacks, 'action' ,name, verb, from, to);
+        initialize(this, 'action' ,type, target, from, to, callbacks);
     }
     ActionEvent.prototype = event;
 
@@ -63,9 +65,9 @@
 // ------------------------------------------------------------------------------------------------
 // StateEvent
 
-    export function StateEvent (callbacks, name, verb, from, to)
+    export function StateEvent (type, target, from, to, callbacks)
     {
-        initialize(this, callbacks, 'state' ,name, verb, from, to);
+        initialize(this, 'state' ,type, target, from, to, callbacks);
     }
     StateEvent.prototype = event;
 
@@ -80,6 +82,7 @@
 
     SystemEvent.prototype =
     {
+        namespace: 'system',
         type: ''
     };
 
@@ -94,6 +97,7 @@
 
     TransitionEvent.prototype =
     {
+        namespace: 'transition',
         type: ''
     };
 

@@ -6,18 +6,22 @@ import { isFunction } from './utils/utils';
  *
  * Responsible for managing events in the flow from state to state.
  *
- * The default dispatch order for all transitions is:
+ * This adds all handlers for the current action start/end and state from/to to an array:
  *
- * - '*.start'
- * - ':action.start'
- * - ':state.leave'
- * - '*.leave'
- * - '*.enter'
- * - ':state.enter'
- * - ':action.end'
- * - '*.end'
+ * - <namespace>.<target>.<type>[]
  *
- * This can be changed by calling Transition.setOrder( ... )
+ * So going from state "a" to state "b" with action "next" should build:
+ *
+ * - action.*.start[]
+ * - action.next.start[]
+ * - state.a.leave[]
+ * - state.*.leave[]
+ * - state.*.enter[]
+ * - state.b.enter[]
+ * - action.next.end[]
+ * - action.*.end[]
+ *
+ * This can be changed by passing in an order array in fsm.config
  *
  * Event handlers will receive an Event object, along with any passed parameters (from do()) as ...rest parameters.
  *
@@ -27,7 +31,7 @@ import { isFunction } from './utils/utils';
  * - return true to pause the transition
  * - not return a value (the transition continues)
  *
- * All transitions can be paused, resumed, or cancelled by calling
+ * Transitions can also be paused, resumed, or cancelled by calling
  * the appropriate method on, or from:
  *
  * - the event
@@ -43,7 +47,6 @@ import { isFunction } from './utils/utils';
  * @param {string}          to
  * @param {Function[]}      handlers
  * @param {Object}          callbacks
- * @constructor
  */
 function Transition (action, from, to, handlers, callbacks)
 {
@@ -112,22 +115,6 @@ Transition.prototype =
     }
 };
 
-/**
- *
- * @type {string[]} subject.verb
- */
-let defaultOrder = [
-    '*.start',
-    'action.start',
-    'from.leave',
-    '*.leave',
-    '*.enter',
-    'to.enter',
-    'action.end',
-    '*.end'
-];
-
-Transition.order = defaultOrder;
 
 export default
 {
@@ -148,24 +135,10 @@ export default
     create:function (fsm, action, params)
     {
         // transition
+        var queue   = [];
+        var scope   = fsm.scope;
         var from    = fsm.state;
         var to      = fsm.actions.get(action)[from];
-        var target  = fsm.target;
-
-        // handle "to" being a function
-        if(isFunction(to))
-        {
-            let actions = fsm.getActionsFor();
-            let state   = to.apply(target, [actions].concat(params));
-            let action  = fsm.getActionsFor(state);
-            // TODO debug this! It's wrong
-            if( ! action )
-            {
-                throw new Error('Cannot go to state "' +state+ '" from current state "' +from+ '"');
-            }
-        }
-
-        // callbacks
         var callbacks =
         {
             cancel   :fsm.cancel.bind(fsm),
@@ -174,42 +147,57 @@ export default
             end      :fsm.end.bind(fsm)
         };
 
+        // handle "to" being a function
+        if(isFunction(to))
+        {
+            let actions = fsm.getActionsFor();
+            let state   = to.apply(scope, [actions].concat(params));
+            let action  = fsm.getActionsFor(state);
+            // TODO debug this! It's wrong
+            if( ! action )
+            {
+                throw new Error('Cannot go to state "' +state+ '" from current state "' +from+ '"');
+            }
+        }
+
         // build handlers array
-        var queue   = [];
-        Transition.order.map( token =>
+        fsm.config.order.map( token =>
         {
             // determine path variables
-            let [subject, verb]     = token.split('.'); // i.e. *.start, to.enter, action.end
-            let type                = /^(start|end)$/.test(verb) ? 'action' : 'state';
-            let name;
-            if(subject === '*')
+            let [type, source]      = token.split(':'); // i.e. start.*, enter:to, end:action
+            let namespace           = /^(start|end)$/.test(type)
+                                        ? 'action'
+                                        : 'state';
+            let target;
+            if(source === '*')
             {
-                name = '*';
+                target = '*';
             }
-            else if(type == 'action')
+            else if(namespace == 'action')
             {
-                name = action;
+                target = action;
             }
             else
             {
-                name = verb === 'leave'
+                target = type === 'leave'
                     ? from
                     : to;
             }
 
             // get handlers
-            let path = [type, name, verb].join('.');
+            let path = [namespace, target, type].join('.');
+
             let handlers = fsm.handlers.get(path);
             if(handlers)
             {
-                // pre-bind handlers, targets and params
+                // pre-bind handlers, scopes and params
                 // this way scope and params don't need to be passed around
                 handlers = handlers.map( handler =>
                 {
                     return function()
                     {
-                        let event = Events.create(type, callbacks, name, verb, from, to);
-                        handler.apply(target, [event].concat(params));
+                        let event = Events.create(namespace, type, target, from, to, callbacks);
+                        handler.apply(scope, [event].concat(params));
                     }
                 });
 
