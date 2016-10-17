@@ -27,17 +27,16 @@ import { isFunction } from './utils/utils';
  * - return true to pause the transition
  * - not return a value (the transition continues)
  *
- * All transitions can be paused, resumed, cancelled or completed by calling
+ * All transitions can be paused, resumed, or cancelled by calling
  * the appropriate method on, or from:
  *
  * - the event
  * - the transition
  * - the state machine
  *
- * Cancelled transitions will reset teh FSM to the previous "from" state, and completed transitions will advance
- * the FSM to the passed "to" state.
+ * Cancelled transitions will reset the FSM to the previous "from" state
  *
- * When the last callback has fired, the main FSM's complete() handler will be called and the state will update
+ * When the last callback has fired, the main FSM's end() handler will be called and the state will updated
  *
  * @param {string}          action
  * @param {string}          from
@@ -94,7 +93,7 @@ Transition.prototype =
             }
             else
             {
-                this.callbacks.complete();
+                this.callbacks.end();
             }
         }
         return this;
@@ -126,7 +125,7 @@ let defaultOrder = [
     'to.enter',
     'action.end',
     '*.end'
-]
+];
 
 Transition.order = defaultOrder;
 
@@ -153,7 +152,7 @@ export default
         var to      = fsm.actions.get(action)[from];
         var target  = fsm.target;
 
-        // handle to being a function
+        // handle "to" being a function
         if(isFunction(to))
         {
             let actions = fsm.getActionsFor();
@@ -172,8 +171,8 @@ export default
             cancel   :fsm.cancel.bind(fsm),
             pause    :fsm.pause.bind(fsm),
             resume   :fsm.resume.bind(fsm),
-            complete :fsm.complete.bind(fsm)
-        }
+            end      :fsm.end.bind(fsm)
+        };
 
         // build handlers array
         var queue   = [];
@@ -203,7 +202,8 @@ export default
             let handlers = fsm.handlers.get(path);
             if(handlers)
             {
-                // bind handlers, targets and params ready for dispatch
+                // pre-bind handlers, targets and params
+                // this way scope and params don't need to be passed around
                 handlers = handlers.map( handler =>
                 {
                     return function()
