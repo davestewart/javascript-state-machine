@@ -1,1 +1,0 @@
-window.StateMachine = StateMachine.default;

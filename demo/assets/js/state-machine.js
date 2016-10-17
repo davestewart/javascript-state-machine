@@ -80,8 +80,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function StateMachine(target, config) {
-	    this.target = target;
+	function StateMachine(scope, config) {
+	    this.scope = scope;
 	    this.state = '';
 	    this.states = [];
 	    this.transitions = new _ValueMap2.default();
@@ -89,9 +89,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.handlers = new _ValueMap2.default();
 	    if (config) {
 	        this.initialize(config);
-	        this.update('started');
+	        this.update('system', 'initialize');
 	    }
-	    console.log('hello there');
 	}
 	
 	/**
@@ -222,11 +221,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    transition: null,
 	
 	    /**
-	     * The target context in which to call all handlers
+	     * The scope in which to call all handlers
 	     *
 	     * @var {*}
 	     */
-	    target: null,
+	    scope: null,
 	
 	    /**
 	     * The original config object
@@ -250,7 +249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // assign config
 	        this.config = config;
 	
-	        // parse all states
+	        // pre-collate all states
 	        addStates(this, 'from', config.events);
 	        addStates(this, 'to', config.events);
 	
@@ -263,14 +262,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        config.events.map(function (event) {
 	            // shorthand
 	            if ((0, _utils.isString)(event)) {
-	                var _matches = event.match(/(\w+)\s*[\|:=]\s*(\w+)\s*([<>-])\s*(\w.*)/);
+	                var matches = event.match(/(\w+)\s*[\|:=]\s*(\w+)\s*([<>-])\s*(\w.*)/);
 	
-	                var _matches2 = _slicedToArray(_matches, 5);
+	                var _matches = _slicedToArray(matches, 5);
 	
-	                var name = _matches2[1];
-	                var from = _matches2[2];
-	                var op = _matches2[3];
-	                var to = _matches2[4];
+	                var name = _matches[1];
+	                var from = _matches[2];
+	                var op = _matches[3];
+	                var to = _matches[4];
 	
 	                if (op === '-') {
 	                    _this.add(name, from, to);
@@ -294,29 +293,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // add handlers
 	        for (var name in config.handlers) {
 	            if (config.handlers.hasOwnProperty(name)) {
-	                var handler = config.handlers[name];
-	                var matches = name.match(/(\w+)\s*(.*)/);
-	                if (matches) {
-	                    var _matches3 = _slicedToArray(matches, 3);
-	
-	                    var type = _matches3[1];
-	                    var param = _matches3[2];
-	
-	                    switch (type) {
-	                        case 'start':
-	                            this.onStart(param, handler);break;
-	                        case 'end':
-	                            this.onEnd(param, handler);break;
-	                        case 'leave':
-	                            this.onLeave(param, handler);break;
-	                        case 'enter':
-	                            this.onEnter(param, handler);break;
-	                        default:
-	                            this.config.debug && console.warn('Warning processing handlers config: unknown action type "' + type + '"');
-	                    }
-	                } else {
-	                    this.config.debug && console.warn('Warning processing handlers config: unable to parse action key "' + name + '"');
-	                }
+	                this.on(name, config.handlers[name]);
 	            }
 	        }
 	
@@ -324,24 +301,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!config.defer) {
 	            this.state = config.initial;
 	        }
+	
+	        /**
+	         * Sets the default order to run transition callbacks in
+	         *
+	         * start/leave/enter/end  -> event types
+	         * to/action              -> targeted handlers (leave:red)
+	         * *                      -> global handlers   (leave, or leave:*)
+	         *
+	         * @type {string[]} type.target
+	         */
+	        config.order = config.order || ['start:*', 'start:action', 'leave:from', 'leave:*', 'enter:*', 'enter:to', 'end:action', 'end:*'];
 	    },
 	
 	    /**
-	     * Dispatch an update event
+	     * Dispatch an event
 	     *
+	     * @param namespace
 	     * @param type
 	     */
-	    update: function update(type) {
-	        this.config.debug && console.info('StateMachine update "%s"', type);
-	        var handlers = this.handlers.data.change;
-	        if (handlers) {
-	            (function () {
-	                var event = new _Events.ChangeEvent(type);
-	                handlers.map(function (fn) {
-	                    return fn(event);
-	                });
-	            })();
-	        }
+	    update: function update(namespace, type) {
+	        var event = namespace === 'system' ? _Events.SystemEvent : _Events.TransitionEvent;
+	        this.dispatch(namespace + '.' + type, new event(type));
+	        return this;
 	    },
 	
 	    // ------------------------------------------------------------------------------------------------
@@ -363,7 +345,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	
 	            this.transition = _Transition2.default.create(this, action, rest);
-	            this.update('transitioning');
+	            this.update('transition', 'start');
+	            this.update('system', 'update');
 	            this.transition.exec();
 	            return true;
 	        }
@@ -469,7 +452,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        state = state || this.state;
 	        var actions = this.transitions.get(state || this.state);
 	        if (asMap) {
-	            var _ret2 = function () {
+	            var _ret = function () {
 	                var states = {};
 	                actions.map(function (action) {
 	                    states[action] = _this2.actions.get(action + '.' + state);
@@ -479,7 +462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                };
 	            }();
 	
-	            if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+	            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	        } else {
 	            return actions;
 	        }
@@ -510,15 +493,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	
 	    /**
-	     * Test if the FSM is on the "final" state
-	     *
-	     * @returns {boolean}
-	     */
-	    isFinished: function isFinished() {
-	        return this.state === this.config.final;
-	    },
-	
-	    /**
 	     * Test if the FSM is transitioning
 	     *
 	     * @returns {boolean}
@@ -536,6 +510,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return this.transition ? this.transition.paused : false;
 	    },
 	
+	    /**
+	     * Test if the FSM is on the "final" state
+	     *
+	     * @returns {boolean}
+	     */
+	    isComplete: function isComplete() {
+	        return this.state === this.config.final;
+	    },
+	
 	    // ------------------------------------------------------------------------------------------------
 	    // transitions
 	
@@ -547,7 +530,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    pause: function pause() {
 	        if (this.transition) {
 	            this.transition.pause();
-	            this.update('paused');
+	            this.update('transition', 'pause');
+	            this.update('system', 'update');
 	        }
 	        return this;
 	    },
@@ -559,7 +543,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    resume: function resume() {
 	        if (this.transition) {
-	            this.update('resumed');
+	            this.update('transition', 'resume');
+	            this.update('system', 'update');
 	            this.transition.resume();
 	        }
 	        return this;
@@ -575,25 +560,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.state = this.transition.from;
 	            this.transition.clear();
 	            delete this.transition;
-	            this.update('cancelled');
+	            this.update('transition', 'cancel');
+	            this.update('system', 'update');
 	        }
 	        return this;
 	    },
 	
 	    /**
-	     * Complete any current transition, skipping remaining handlers
+	     * End any current transition, skipping remaining handlers
 	     *
 	     * @returns {StateMachine}
 	     */
-	    complete: function complete() {
+	    end: function end() {
 	        if (this.transition) {
 	            this.state = this.transition.to;
 	            this.transition.clear();
 	            delete this.transition;
-	            this.update('transitioned');
-	            if (this.isFinished()) {
-	                this.update('finished');
+	            this.update('system', 'change');
+	            this.update('system', 'update');
+	            if (this.isComplete()) {
+	                this.update('system', 'complete');
 	            }
+	            this.update('transition', 'end');
 	        }
 	        return this;
 	    },
@@ -609,7 +597,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.transition.clear();
 	            delete this.transition;
 	        }
-	        this.update('reset');
+	        this.update('system', 'reset');
 	        return this;
 	    },
 	
@@ -637,35 +625,121 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // ------------------------------------------------------------------------------------------------
 	    // handlers
 	
-	    onChange: function onChange(fn) {
-	        this.handlers.add('change', fn);
+	    /**
+	     * Add an event handler
+	     *
+	     * Event handler signature:
+	     *
+	     * - namespace.type:target1 target2 target3 ...
+	     *
+	     * Valid event signatures:
+	     *
+	     * - system:(change|update|complete|reset)
+	     * - action:(start|end)
+	     * - state:(add|remove|leave|enter)
+	     * - transition:(pause|resume|cancel)
+	     *
+	     * As event types are unique, they can be used without the namespace:
+	     *
+	     * - change
+	     * - pause
+	     * - start
+	     * - end
+	     * - leave:red
+	     * - enter:blue green
+	     * - start:next
+	     * - end:back
+	     *
+	     * You can also just pass action or names to target individual state.leave / action.end events:
+	     *
+	     * - next
+	     * - intro
+	     *
+	     * @param id
+	     * @param fn
+	     * @return {StateMachine}
+	     */
+	    on: function on(id, fn) {
+	        var _this3 = this;
+	
+	        // get initial matches
+	        var matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
+	        if (!matches) {
+	            console.error('Warning adding event handler: invalid signature "%s"', id);
+	            return this;
+	        }
+	
+	        var _matches2 = _slicedToArray(matches, 4);
+	
+	        var namespace = _matches2[1];
+	        var type = _matches2[2];
+	        var target = _matches2[3];
+	
+	        // determine event if not found
+	
+	        if (!namespace) {
+	            // check if shorthand global was passed
+	            namespace = eventNamespaces[type];
+	
+	            // if event is still null, attempt to determine type from existing states or actions
+	            if (!namespace) {
+	                if (this.states.indexOf(type) !== -1) {
+	                    target = type;
+	                    namespace = 'state';
+	                    type = 'enter';
+	                } else if (this.actions.has(type)) {
+	                    target = type;
+	                    namespace = 'action';
+	                    type = 'start';
+	                } else {
+	                    this.config.debug && console.error('Warning adding event handler: unable to map signature "%s" to a valid event or existing entity', id);
+	                    return;
+	                }
+	            }
+	        }
+	
+	        // assign
+	        var targets = target ? target.match(/[*\w]+/g) : ['*'];
+	        targets.map(function (target) {
+	            return addHandler(_this3, namespace, type, target, fn);
+	        });
 	        return this;
 	    },
 	
-	    onStart: function onStart(action, fn) {
-	        addHandler(this, 'action', 'start', action, fn);
+	    off: function off(path, fn) {
 	        return this;
 	    },
 	
-	    onEnd: function onEnd(action, fn) {
-	        addHandler(this, 'action', 'end', action, fn);
-	        return this;
-	    },
-	
-	    onEnter: function onEnter(state, fn) {
-	        addHandler(this, 'state', 'enter', state, fn);
-	        return this;
-	    },
-	
-	    onLeave: function onLeave(state, fn) {
-	        addHandler(this, 'state', 'leave', state, fn);
-	        return this;
-	    },
-	
-	    off: function off(type, target, fn) {
-	        return this;
+	    dispatch: function dispatch(path, event) {
+	        this.config.debug && console.info('StateMachine update "%s"', path);
+	        var handlers = this.handlers.get(path);
+	        if (handlers) {
+	            // do we need to pass additional arguments?
+	            handlers.map(function (fn) {
+	                return fn(event);
+	            });
+	        }
 	    }
 	
+	};
+	
+	var eventNamespaces = {
+	    change: 'system',
+	    update: 'system',
+	    complete: 'system',
+	    reset: 'system',
+	
+	    add: 'state',
+	    remove: 'state',
+	    leave: 'state',
+	    enter: 'state',
+	
+	    start: 'action',
+	    end: 'action',
+	
+	    pause: 'transition',
+	    resume: 'transition',
+	    cancel: 'transition'
 	};
 	
 	/**
@@ -691,56 +765,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Generic function to parse action and add callback
 	 *
 	 * @param {StateMachine}    fsm
+	 * @param {string}          namespace
 	 * @param {string}          type
-	 * @param {string}          verb
-	 * @param {string|Function} rest
+	 * @param {string}          target
+	 * @param {Function}        fn
 	 */
-	function addHandler(fsm, type, verb) {
-	    for (var _len2 = arguments.length, rest = Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
-	        rest[_key2 - 3] = arguments[_key2];
+	function addHandler(fsm, namespace, type, target, fn) {
+	    // warn for invalid actions / states
+	    if (target !== '*') {
+	        if (namespace === 'state' && fsm.states.indexOf(target) === -1) {
+	            fsm.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
+	        } else if (namespace === 'action' && !fsm.actions.has(target)) {
+	            fsm.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
+	        }
 	    }
 	
-	    // params
-	    if (rest.length === 1) {
-	        rest = ['*', rest[0]];
+	    // check handler is a function
+	    if (!(0, _utils.isFunction)(fn)) {
+	        throw new Error('Error assigning ' + namespace + '.' + type + ' handler; callback is not a Function', fn);
 	    }
-	    var _rest = rest;
 	
-	    var _rest2 = _slicedToArray(_rest, 2);
-	
-	    var param = _rest2[0];
-	    var fn = _rest2[1];
-	
-	    // parse states
-	
-	    var states = (0, _utils.isArray)(param) ? param : param == '' ? ['*'] : param.match(/\*|\w+[-\w]+/g);
-	
-	    // assign handlers
-	    states.map(function (subject) {
-	        // warn for invalid actions / states
-	        if (subject !== '*') {
-	            if (type === 'state' && fsm.states.indexOf(subject) === -1) {
-	                fsm.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', verb, subject);
-	            } else if (type === 'action' && !fsm.transitions.has(subject)) {
-	                fsm.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', verb, subject);
-	            }
-	        }
-	
-	        // check handler is a function
-	        if (!(0, _utils.isFunction)(fn)) {
-	            throw new Error('Error assigning ' + verb + '.' + subject + ' handler; callback is not a Function', fn);
-	        }
-	
-	        // assign
-	        fsm.handlers.insert([type, subject, verb].join('.'), fn);
-	    });
+	    // assign
+	    var path = namespace === 'action' || namespace === 'state' ? [namespace, target, type].join('.') : namespace + '.' + type;
+	    fsm.handlers.insert(path, fn);
 	}
-	
-	/*
-	// event libs
-	https://www.npmjs.com/package/event-box
-	https://www.npmjs.com/package/dispatchy
-	*/
 
 /***/ },
 /* 1 */
@@ -1005,18 +1053,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * Responsible for managing events in the flow from state to state.
 	 *
-	 * The default dispatch order for all transitions is:
+	 * This adds all handlers for the current action start/end and state from/to to an array:
 	 *
-	 * - '*.start'
-	 * - ':action.start'
-	 * - ':state.leave'
-	 * - '*.leave'
-	 * - '*.enter'
-	 * - ':state.enter'
-	 * - ':action.end'
-	 * - '*.end'
+	 * - <namespace>.<target>.<type>[]
 	 *
-	 * This can be changed by calling Transition.setOrder( ... )
+	 * So going from state "a" to state "b" with action "next" should build:
+	 *
+	 * - action.*.start[]
+	 * - action.next.start[]
+	 * - state.a.leave[]
+	 * - state.*.leave[]
+	 * - state.*.enter[]
+	 * - state.b.enter[]
+	 * - action.next.end[]
+	 * - action.*.end[]
+	 *
+	 * This can be changed by passing in an order array in fsm.config
 	 *
 	 * Event handlers will receive an Event object, along with any passed parameters (from do()) as ...rest parameters.
 	 *
@@ -1026,24 +1078,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * - return true to pause the transition
 	 * - not return a value (the transition continues)
 	 *
-	 * All transitions can be paused, resumed, cancelled or completed by calling
+	 * Transitions can also be paused, resumed, or cancelled by calling
 	 * the appropriate method on, or from:
 	 *
 	 * - the event
 	 * - the transition
 	 * - the state machine
 	 *
-	 * Cancelled transitions will reset teh FSM to the previous "from" state, and completed transitions will advance
-	 * the FSM to the passed "to" state.
+	 * Cancelled transitions will reset the FSM to the previous "from" state
 	 *
-	 * When the last callback has fired, the main FSM's complete() handler will be called and the state will update
+	 * When the last callback has fired, the main FSM's end() handler will be called and the state will updated
 	 *
 	 * @param {string}          action
 	 * @param {string}          from
 	 * @param {string}          to
 	 * @param {Function[]}      handlers
 	 * @param {Object}          callbacks
-	 * @constructor
 	 */
 	function Transition(action, from, to, handlers, callbacks) {
 	    this.action = action;
@@ -1083,7 +1133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	                this.exec();
 	            } else {
-	                this.callbacks.complete();
+	                this.callbacks.end();
 	            }
 	        }
 	        return this;
@@ -1099,14 +1149,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return this.exec();
 	    }
 	};
-	
-	/**
-	 *
-	 * @type {string[]} subject.verb
-	 */
-	var defaultOrder = ['*.start', 'action.start', 'from.leave', '*.leave', '*.enter', 'to.enter', 'action.end', '*.end'];
-	
-	Transition.order = defaultOrder;
 	
 	exports.default = {
 	    /**
@@ -1125,14 +1167,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    create: function create(fsm, action, params) {
 	        // transition
+	        var queue = [];
+	        var scope = fsm.scope;
 	        var from = fsm.state;
 	        var to = fsm.actions.get(action)[from];
-	        var target = fsm.target;
+	        var callbacks = {
+	            cancel: fsm.cancel.bind(fsm),
+	            pause: fsm.pause.bind(fsm),
+	            resume: fsm.resume.bind(fsm),
+	            end: fsm.end.bind(fsm)
+	        };
 	
-	        // handle to being a function
+	        // handle "to" being a function
 	        if ((0, _utils.isFunction)(to)) {
 	            var actions = fsm.getActionsFor();
-	            var state = to.apply(target, [actions].concat(params));
+	            var state = to.apply(scope, [actions].concat(params));
 	            var _action = fsm.getActionsFor(state);
 	            // TODO debug this! It's wrong
 	            if (!_action) {
@@ -1140,44 +1189,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	
-	        // callbacks
-	        var callbacks = {
-	            cancel: fsm.cancel.bind(fsm),
-	            pause: fsm.pause.bind(fsm),
-	            resume: fsm.resume.bind(fsm),
-	            complete: fsm.complete.bind(fsm)
-	        };
-	
 	        // build handlers array
-	        var queue = [];
-	        Transition.order.map(function (token) {
+	        fsm.config.order.map(function (token) {
 	            // determine path variables
-	            var _token$split = token.split('.');
+	            var _token$split = token.split(':');
 	
 	            var _token$split2 = _slicedToArray(_token$split, 2);
 	
-	            var subject = _token$split2[0];
-	            var verb = _token$split2[1]; // i.e. *.start, to.enter, action.end
+	            var type = _token$split2[0];
+	            var source = _token$split2[1]; // i.e. start.*, enter:to, end:action
 	
-	            var type = /^(start|end)$/.test(verb) ? 'action' : 'state';
-	            var name = void 0;
-	            if (subject === '*') {
-	                name = '*';
-	            } else if (type == 'action') {
-	                name = action;
+	            var namespace = /^(start|end)$/.test(type) ? 'action' : 'state';
+	            var target = void 0;
+	            if (source === '*') {
+	                target = '*';
+	            } else if (namespace == 'action') {
+	                target = action;
 	            } else {
-	                name = verb === 'leave' ? from : to;
+	                target = type === 'leave' ? from : to;
 	            }
 	
 	            // get handlers
-	            var path = [type, name, verb].join('.');
+	            var path = [namespace, target, type].join('.');
+	
 	            var handlers = fsm.handlers.get(path);
 	            if (handlers) {
-	                // bind handlers, targets and params ready for dispatch
+	                // pre-bind handlers, scopes and params
+	                // this way scope and params don't need to be passed around
 	                handlers = handlers.map(function (handler) {
 	                    return function () {
-	                        var event = _Events2.default.create(type, callbacks, name, verb, from, to);
-	                        handler.apply(target, [event].concat(params));
+	                        var event = _Events2.default.create(namespace, type, target, from, to, callbacks);
+	                        handler.apply(scope, [event].concat(params));
 	                    };
 	                });
 	
@@ -1188,24 +1230,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // create
 	        return new Transition(action, from, to, queue, callbacks);
-	    },
-	
-	    /**
-	     * Set the default sort order for transitions
-	     *
-	     * @param {Array} order
-	     */
-	    setOrder: function setOrder(order) {
-	        Transition.order = order || defaultOrder;
-	    },
-	
-	    /**
-	     * Get the current sot order for the transitions
-	     *
-	     * @returns {string[]}
-	     */
-	    getOrder: function getOrder() {
-	        return Transition.order;
 	    }
 	
 	};
@@ -1221,32 +1245,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.ActionEvent = ActionEvent;
 	exports.StateEvent = StateEvent;
-	exports.ChangeEvent = ChangeEvent;
+	exports.SystemEvent = SystemEvent;
+	exports.TransitionEvent = TransitionEvent;
+	// ------------------------------------------------------------------------------------------------
+	// setup
+	
 	function noop() {}
 	
 	/**
-	 * @prop {string}  type     The Event type; i.e. state or action
-	 * @prop {string}  name     The Event subject/name; i.e. intro (state) or next (action)
-	 * @prop {string}  verb     The Event verb; i.e. leave/enter (state) or start/end (action)
-	 * @prop {string}  from     The from state
-	 * @prop {string}  to       The to state
+	 * @prop {string}  namespace  The Event namespace; i.e. state or action
+	 * @prop {string}  type       The Event type;      i.e. leave/enter (state) or start/end (action)
+	 * @prop {string}  target     The Event target;    i.e. intro (state) or next (action)
+	 * @prop {string}  from       The from state
+	 * @prop {string}  to         The to state
 	 */
 	var event = {
+	    // properties
+	    namespace: null,
 	    type: null,
-	    name: null,
-	    verb: null,
+	    target: null,
 	    from: null,
 	    to: null,
 	
+	    // transition callbacks
 	    pause: noop,
 	    resume: noop,
-	    cancel: noop
+	    cancel: noop,
+	    complete: noop
 	};
 	
-	function initialize(event, callbacks, type, name, verb, from, to) {
+	function initialize(event, namespace, type, target, from, to, callbacks) {
+	    event.namespace = namespace;
 	    event.type = type;
-	    event.name = name;
-	    event.verb = verb;
+	    event.target = target;
 	    event.from = from;
 	    event.to = to;
 	
@@ -1256,29 +1287,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	    event.complete = callbacks.complete;
 	}
 	
-	function ActionEvent(callbacks, name, verb, from, to) {
-	    initialize(this, callbacks, 'action', name, verb, from, to);
+	exports.default = {
+	    create: function create(namespace, type, target, from, to, callbacks) {
+	        var fn = namespace == 'state' ? StateEvent : ActionEvent;
+	        return new fn(type, target, from, to, callbacks);
+	    }
+	};
+	
+	// ------------------------------------------------------------------------------------------------
+	// ActionEvent
+	
+	function ActionEvent(type, target, from, to, callbacks) {
+	    initialize(this, 'action', type, target, from, to, callbacks);
 	}
 	ActionEvent.prototype = event;
 	
-	function StateEvent(callbacks, name, verb, from, to) {
-	    initialize(this, callbacks, 'state', name, verb, from, to);
+	// ------------------------------------------------------------------------------------------------
+	// StateEvent
+	
+	function StateEvent(type, target, from, to, callbacks) {
+	    initialize(this, 'state', type, target, from, to, callbacks);
 	}
 	StateEvent.prototype = event;
 	
-	function ChangeEvent(type) {
+	// ------------------------------------------------------------------------------------------------
+	// SystemEvent
+	
+	function SystemEvent(type) {
 	    this.type = type;
 	}
 	
-	ChangeEvent.prototype = {
+	SystemEvent.prototype = {
+	    namespace: 'system',
 	    type: ''
 	};
 	
-	exports.default = {
-	    create: function create(type, callbacks, name, verb, from, to) {
-	        var fn = type == 'state' ? StateEvent : ActionEvent;
-	        return new fn(callbacks, name, verb, from, to);
-	    }
+	// ------------------------------------------------------------------------------------------------
+	// TransitionEvent
+	
+	function TransitionEvent(type) {
+	    this.type = type;
+	}
+	
+	TransitionEvent.prototype = {
+	    namespace: 'transition',
+	    type: ''
 	};
 
 /***/ }

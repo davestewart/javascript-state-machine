@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Branching states</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+
+        #green { border:1px solid green !important; }
+        #green.active {
+            background:green;
+            color:white;
+        }
+
+        #yellow { border:1px solid yellow !important; }
+        #yellow.active {
+            background:yellow;
+        }
+
+        #red { border:1px solid red !important; }
+        #red.active {
+            background:red;
+            color:white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Branching states</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="green">Green</article>
+            <article id="yellow">Yellow</article>
+            <article id="red">Red</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="clear">Clear</button>
+            <button class="btn btn-sm" name="calm">Calm</button>
+            <button class="btn btn-sm" name="warn">Warn</button>
+            <button class="btn btn-sm" name="panic">Panic!</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>This example demonstrates a more complicated flow with more additional actions, and a more state-dependent flow:</p>
+        <ul>
+            <li>From the initial <code>green</code> state, it's possible to enter the <code>yellow</code> or <code>red</code> states via <code>warn</code> or <code>panic</code>.</li>
+            <li>From the <code>yellow</code> state, it's possible to <code>clear</code> or enter the <code>red</code> state by <code>panic</code>ing</li>
+            <li>From the <code>red</code> state it's possible to drop down states via <code>calm</code> or <code>clear</code></li>
+            <li>Exiting the <code>red</code> state also delays execution of the transition by pausing and resuming the transition</li>
+        </ul>
+        <p>This example is a copy of Jake Gordon's <a href="http://codeincomplete.com/posts/javascript-state-machine-v2/demo/">JavaScript State Machine</a>.</p>
+    </section>
+
+    <script>
+
+        var config = {
+
+            initial : null,
+
+            final   : 'final',
+
+            debug   : false,
+
+            start   : true,
+
+            events: [
+                {name: 'warn', from: 'green', to: 'yellow'},
+                {name: 'panic', from: 'green', to: 'red'},
+                {name: 'clear', from: 'yellow', to: 'green'},
+                {name: 'panic', from: 'yellow', to: 'red'},
+                {name: 'clear', from: 'red', to: 'green'},
+                {name: 'calm', from: 'red', to: 'yellow'},
+                {name: 'random', from: 'red', to: function(states, ...rest)
+                {
+                    console.info('RANDOM:', states, rest);
+                    return states[0];
+                }},
+                {name: 'finish', from: 'red', to: 'final'}
+            ],
+
+            handlers: {
+                'enter:green': function (event) {
+                    console.log('enter green', event)
+                },
+                'leave:green': function (event) {
+                    console.log('leave green', event)
+                },
+                'leave:yellow': function (event) {
+                    console.log('leave yellow', event)
+                },
+                'leave:red': function (event) {
+                    console.log('leave red', event)
+                    event.pause();
+                    setTimeout(function(){
+                        event.resume();
+                    }, 1000);
+                },
+                'leave:purple': function (event) {
+                    console.log('leave purple', event)
+                },
+                'leave:*': function validate(event) {
+                    console.log('leave *', event)
+                },
+                'leave': function submit(event) {
+                    console.log('leave', event)
+                },
+                'leave:green yellow red': function (event) {
+                    console.log('leave green yellow red', event)
+                },
+                'start:next': function (event) {
+                    console.log('start next', event)
+                },
+                'end:finish': function (event) {
+                    console.log('end final', event)
+                },
+                'start:warn': function (event) {
+                    console.log('start warn', this.title, event)
+                },
+                'end:*': function (event) {
+                    console.log('end *', event)
+                },
+            },
+
+            other: [
+                'warn   : green     > yellow',
+                'panic  : green     > red',
+                'clear  : yellow    > green',
+                'panic  : yellow    > red',
+                'clear  : red       > green',
+                'calm   : red       > yellow',
+                'finish : red       > end',
+
+                'finish : *         > end',
+                'finish : green red > end',
+
+                {name: 'foo', from: '*', to: 'red'},
+                {name: 'foo', from: 'green yellow', to: 'red'},
+                {name: 'bar', from: ['green', 'yellow'], to: 'red'},
+                {name: 'baz', from: 'green', to: ['yellow', 'red']},
+
+            ]
+
+        };
+
+        fsm = new StateMachine(document, config);
+
+        fsm.on('transition', function(event){
+           console.info(event.type);
+        });
+
+        setup(fsm);
+        console.log(fsm);
+    </script>
+</body>
+</html>
