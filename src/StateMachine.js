@@ -3,9 +3,9 @@ import Transition from './Transition';
 import { SystemEvent, TransitionEvent } from './Events';
 import { isString, isFunction } from './utils/utils';
 
-export default function StateMachine (target, config)
+export default function StateMachine (scope, config)
 {
-    this.target         = target;
+    this.scope          = scope;
     this.state          = '';
     this.states         = [];
     this.transitions    = new ValueMap();
@@ -147,11 +147,11 @@ StateMachine.prototype =
         transition  : null,
 
         /**
-         * The target context in which to call all handlers
+         * The scope in which to call all handlers
          *
          * @var {*}
          */
-        target      : null,
+        scope      : null,
 
         /**
          * The original config object
@@ -233,15 +233,16 @@ StateMachine.prototype =
         /**
          * Dispatch an event
          *
-         * @param name
+         * @param namespace
          * @param type
          */
-        update: function (name, type)
+        update: function (namespace, type)
         {
-            let event = name === 'system'
+            let event = namespace === 'system'
                 ? SystemEvent
                 : TransitionEvent;
-            this.dispatch(name + '.' + type, new event(type));
+            this.dispatch(namespace + '.' + type, new event(type));
+            return this;
         },
 
 
@@ -262,6 +263,7 @@ StateMachine.prototype =
                 this.config.debug && console.info('Doing action "%s"', action);
                 this.transition = Transition.create(this, action, rest);
                 this.update('transition', 'start');
+                this.update('system', 'update');
                 this.transition.exec();
                 return true;
             }
@@ -462,6 +464,7 @@ StateMachine.prototype =
             {
                 this.transition.pause();
                 this.update('transition', 'pause');
+                this.update('system', 'update');
             }
             return this;
         },
@@ -476,6 +479,7 @@ StateMachine.prototype =
             if(this.transition)
             {
                 this.update('transition', 'resume');
+                this.update('system', 'update');
                 this.transition.resume();
             }
             return this;
@@ -494,6 +498,7 @@ StateMachine.prototype =
                 this.transition.clear();
                 delete this.transition;
                 this.update('transition', 'cancel');
+                this.update('system', 'update');
             }
             return this;
         },
@@ -510,12 +515,13 @@ StateMachine.prototype =
                 this.state = this.transition.to;
                 this.transition.clear();
                 delete this.transition;
-                this.update('transition', 'end');
                 this.update('system', 'change');
+                this.update('system', 'update');
                 if(this.isComplete())
                 {
                     this.update('system', 'complete');
                 }
+                this.update('transition', 'end');
             }
             return this;
         },
@@ -568,18 +574,18 @@ StateMachine.prototype =
         /**
          * Add an event handler
          *
-         * Event handler id pattern
+         * Event handler signature:
          *
-         * - family.type:target1 target2 target3 ...
+         * - namespace.type:target1 target2 target3 ...
          *
-         * Valid event id patterns:
+         * Valid event signatures:
          *
-         * - system:(change|update|final|reset)
+         * - system:(change|update|complete|reset)
          * - action:(start|end)
-         * - state:(leave|enter|add|remove)
+         * - state:(add|remove|leave|enter)
          * - transition:(pause|resume|cancel)
          *
-         * As event names are unique, they can be used without the prefix:
+         * As event types are unique, they can be used without the namespace:
          *
          * - change
          * - pause
@@ -608,29 +614,29 @@ StateMachine.prototype =
                 console.error('Warning adding event handler: invalid signature "%s"', id);
                 return this;
             }
-            let [,event, type, target] = matches;
+            let [,namespace, type, target] = matches;
 
             // determine event if not found
-            if(!event)
+            if(!namespace)
             {
                 // check if shorthand global was passed
-                event = eventLookup[type];
+                namespace = eventNamespaces[type];
 
                 // if event is still null, attempt to determine type from existing states or actions
-                if(!event)
+                if(!namespace)
                 {
                     if(this.states.indexOf(type) !== -1)
                     {
-                        target  = type;
-                        event   = 'state';
-                        type    = 'leave';
+                        target      = type;
+                        namespace   = 'state';
+                        type        = 'enter';
 
                     }
                     else if(this.actions.has(type))
                     {
-                        target  = type;
-                        event   = 'action';
-                        type    = 'end';
+                        target      = type;
+                        namespace   = 'action';
+                        type        = 'start';
                     }
                     else
                     {
@@ -642,9 +648,9 @@ StateMachine.prototype =
 
             // assign
             let targets = target
-                ? target.match(/\w+/g)
+                ? target.match(/[*\w]+/g)
                 : ['*'];
-            targets.map( target => addHandler(this, event, type, target, fn) );
+            targets.map( target => addHandler(this, namespace, type, target, fn) );
             return this;
         },
 
@@ -667,19 +673,21 @@ StateMachine.prototype =
 
 };
 
-// hash of family types
-let eventLookup =
+let eventNamespaces =
 {
     change	:'system',
     update	:'system',
     complete:'system',
     reset	:'system',
-    start	:'action',
-    end	    :'action',
-    leave	:'state',
-    enter	:'state',
+
     add	    :'state',
     remove	:'state',
+    leave	:'state',
+    enter	:'state',
+
+    start	:'action',
+    end	    :'action',
+
     pause	:'transition',
     resume	:'transition',
     cancel	:'transition'
@@ -709,21 +717,21 @@ function addState (fsm, state)
  * Generic function to parse action and add callback
  *
  * @param {StateMachine}    fsm
- * @param {string}          event
+ * @param {string}          namespace
  * @param {string}          type
  * @param {string}          target
  * @param {Function}        fn
  */
-function addHandler(fsm, event, type, target, fn)
+function addHandler(fsm, namespace, type, target, fn)
 {
     // warn for invalid actions / states
     if(target !== '*')
     {
-        if(event === 'state' && fsm.states.indexOf(target) === -1)
+        if(namespace === 'state' && fsm.states.indexOf(target) === -1)
         {
             fsm.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
         }
-        else if(event === 'action' && ! fsm.actions.has(target))
+        else if(namespace === 'action' && ! fsm.actions.has(target))
         {
             fsm.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
         }
@@ -732,19 +740,12 @@ function addHandler(fsm, event, type, target, fn)
     // check handler is a function
     if( ! isFunction(fn) )
     {
-        throw new Error('Error assigning ' +event+ '.' +type+ ' handler; callback is not a Function', fn);
+        throw new Error('Error assigning ' +namespace+ '.' +type+ ' handler; callback is not a Function', fn);
     }
 
     // assign
-    let path = event === 'action' || event === 'state'
-        ? [event, target, type].join('.')
-        : event + '.' + type;
+    let path = namespace === 'action' || namespace === 'state'
+        ? [namespace, target, type].join('.')
+        : namespace + '.' + type;
     fsm.handlers.insert(path, fn);
 }
-
-/*
-// event libs
-https://www.npmjs.com/package/event-box
-https://www.npmjs.com/package/dispatchy
-*/
-
