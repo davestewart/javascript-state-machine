@@ -1,12 +1,27 @@
 # State Machine
 
-## Examples
+## Demo
 
-The examples directory contains individual html files for state machine usage from simple to complex.
+The demo directory contains individual html files with API and usage examples.
 
-### Running the examples
+API:
 
-The example files run using 
+- Flows
+- States
+- Events
+- Handlers
 
+Examples:
 
-### Compiling the 
+- Sign-up forms
+- Game states
+- Animating views
+- etc.
+
+Run `index.html` directly in browser, or for development:
+ 
+```
+npm run dev | npm run demo
+```
+ 
+The development build will run and watch, and the demo server will launch and in turn watch the demo build for changes.

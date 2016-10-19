@@ -30,7 +30,6 @@
 
                     <fieldset>
 
-                        <!-- Text input-->
                         <div class="form-group">
                             <label class="col-md-3 control-label" for="email">Email</label>
                             <div class="col-md-9">
@@ -38,7 +37,6 @@
                             </div>
                         </div>
 
-                        <!-- Password input-->
                         <div class="form-group">
                             <label class="col-md-3 control-label" for="password">Password</label>
                             <div class="col-md-9">
@@ -46,7 +44,6 @@
                             </div>
                         </div>
 
-                        <!-- Multiple Checkboxes (inline) -->
                         <div class="form-group">
                             <label class="col-md-3 control-label" for="terms"></label>
                             <div class="col-md-9">
@@ -63,14 +60,14 @@
 
             </article>
 
-            <article id="error">
-                <h2>Sorry</h2>
-                <p>There was a problem saving your details to the server</p>
-            </article>
-
             <article id="finish">
                 <h2>Thank you!</h2>
                 <p>Your membership information has been emailed to you</p>
+            </article>
+
+            <article id="error">
+                <h2>Sorry</h2>
+                <p>There was a problem saving your details to the server</p>
             </article>
 
         </section>
@@ -83,14 +80,16 @@
     </main>
 
     <section id="info">
-        <p>This example demonstrates</p>
+        <p>This example demonstrates a multi-step form, with guarded and asynchronous transitions.</p>
     </section>
 
     <script>
 
         function validate ()
         {
-            return !! (email.value !== '' && password.value !== '' && terms.checked);
+            var state = !! (email.value !== '' && password.value !== '' && terms.checked);
+            $('form').toggleClass('has-error', ! state);
+            return state;
         }
 
         var config = {
@@ -99,6 +98,10 @@
 
             events:
             [
+                // next:   intro > form > finish
+                // back:   intro < form
+                // error:          form          > error
+
                 {name: 'next', from: 'intro', to: 'form'},
                 {name: 'next', from: 'form',  to: 'finish'},
 
@@ -113,17 +116,16 @@
                 'leave:form': function (event)
                 {
                     // validate
-                    var state = validate();
-                    $('form').toggleClass('has-error', ! state)
-
-                    // cancel
-                    if (!state) {
+                    if (!validate()) {
                         return event.cancel();
                     }
 
                     // submit
                     event.pause();
-                    setTimeout(event.resume, 2000);
+                    setTimeout(function(){
+                        console.log('Data submitted!');
+                        event.resume();
+                    }, 2000);
                 }
             }
         };

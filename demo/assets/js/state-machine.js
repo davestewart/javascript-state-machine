@@ -338,14 +338,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    do: function _do(action) {
 	        if (this.can(action)) {
-	            this.config.debug && console.info('Doing action "%s"', action);
-	
 	            for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
 	                rest[_key - 1] = arguments[_key];
 	            }
 	
 	            this.transition = _Transition2.default.create(this, action, rest);
-	            this.update('transition', 'start');
 	            this.update('system', 'update');
 	            this.transition.exec();
 	            return true;
@@ -577,11 +574,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.transition.clear();
 	            delete this.transition;
 	            this.update('system', 'change');
-	            this.update('system', 'update');
 	            if (this.isComplete()) {
 	                this.update('system', 'complete');
 	            }
-	            this.update('transition', 'end');
+	            this.update('system', 'update');
 	        }
 	        return this;
 	    },
@@ -615,6 +611,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    add: function add(action, from, to) {
 	        this.actions.set(action + '.' + from, to);
 	        this.transitions.add(from, action);
+	        addState(this, from);
+	        addState(this, to);
 	        return this;
 	    },
 	
@@ -662,56 +660,61 @@ return /******/ (function(modules) { // webpackBootstrap
 	    on: function on(id, fn) {
 	        var _this3 = this;
 	
-	        // get initial matches
-	        var matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
-	        if (!matches) {
-	            console.error('Warning adding event handler: invalid signature "%s"', id);
-	            return this;
-	        }
+	        var _parseHandler = parseHandler(this, id);
 	
-	        var _matches2 = _slicedToArray(matches, 4);
+	        var _parseHandler2 = _slicedToArray(_parseHandler, 3);
 	
-	        var namespace = _matches2[1];
-	        var type = _matches2[2];
-	        var target = _matches2[3];
+	        var namespace = _parseHandler2[0];
+	        var type = _parseHandler2[1];
+	        var targets = _parseHandler2[2];
 	
-	        // determine event if not found
 	
-	        if (!namespace) {
-	            // check if shorthand global was passed
-	            namespace = eventNamespaces[type];
-	
-	            // if event is still null, attempt to determine type from existing states or actions
-	            if (!namespace) {
-	                if (this.states.indexOf(type) !== -1) {
-	                    target = type;
-	                    namespace = 'state';
-	                    type = 'enter';
-	                } else if (this.actions.has(type)) {
-	                    target = type;
-	                    namespace = 'action';
-	                    type = 'start';
-	                } else {
-	                    this.config.debug && console.error('Warning adding event handler: unable to map signature "%s" to a valid event or existing entity', id);
-	                    return;
+	        targets.map(function (target) {
+	            // warn for invalid actions / states
+	            if (target !== '*') {
+	                if (namespace === 'state') {
+	                    if (_this3.states.indexOf(target) === -1) {
+	                        _this3.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
+	                    }
+	                } else if (namespace === 'action') {
+	                    if (!_this3.actions.has(target)) {
+	                        _this3.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
+	                    }
 	                }
 	            }
-	        }
 	
-	        // assign
-	        var targets = target ? target.match(/[*\w]+/g) : ['*'];
-	        targets.map(function (target) {
-	            return addHandler(_this3, namespace, type, target, fn);
+	            // check handler is a function
+	            if (!(0, _utils.isFunction)(fn)) {
+	                throw new Error('Error assigning ' + namespace + '.' + type + ' handler; callback is not a Function', fn);
+	            }
+	
+	            // assign
+	            var path = getPath(namespace, type, target);
+	            _this3.handlers.insert(path, fn);
 	        });
+	
 	        return this;
 	    },
 	
-	    off: function off(path, fn) {
-	        return this;
+	    off: function off(id, fn) {
+	        var _this4 = this;
+	
+	        var _parseHandler3 = parseHandler(this, id);
+	
+	        var _parseHandler4 = _slicedToArray(_parseHandler3, 3);
+	
+	        var namespace = _parseHandler4[0];
+	        var type = _parseHandler4[1];
+	        var targets = _parseHandler4[2];
+	
+	        targets.map(function (target) {
+	            var path = getPath(namespace, type, target);
+	            _this4.handlers.remove(path, fn);
+	        });
 	    },
 	
 	    dispatch: function dispatch(path, event) {
-	        this.config.debug && console.info('StateMachine update "%s"', path);
+	        this.config.debug && console.info('StateMachine dispatch "%s"', path);
 	        var handlers = this.handlers.get(path);
 	        if (handlers) {
 	            // do we need to pass additional arguments?
@@ -721,25 +724,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 	
-	};
-	
-	var eventNamespaces = {
-	    change: 'system',
-	    update: 'system',
-	    complete: 'system',
-	    reset: 'system',
-	
-	    add: 'state',
-	    remove: 'state',
-	    leave: 'state',
-	    enter: 'state',
-	
-	    start: 'action',
-	    end: 'action',
-	
-	    pause: 'transition',
-	    resume: 'transition',
-	    cancel: 'transition'
 	};
 	
 	/**
@@ -761,34 +745,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 	
-	/**
-	 * Generic function to parse action and add callback
-	 *
-	 * @param {StateMachine}    fsm
-	 * @param {string}          namespace
-	 * @param {string}          type
-	 * @param {string}          target
-	 * @param {Function}        fn
-	 */
-	function addHandler(fsm, namespace, type, target, fn) {
-	    // warn for invalid actions / states
-	    if (target !== '*') {
-	        if (namespace === 'state' && fsm.states.indexOf(target) === -1) {
-	            fsm.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
-	        } else if (namespace === 'action' && !fsm.actions.has(target)) {
-	            fsm.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
+	function parseHandler(fsm, id) {
+	    // get initial matches
+	    var matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
+	    if (!matches) {
+	        throw new Error('Warning parsing event handler: invalid signature "%s"', id);
+	    }
+	
+	    var _matches2 = _slicedToArray(matches, 4);
+	
+	    var namespace = _matches2[1];
+	    var type = _matches2[2];
+	    var target = _matches2[3];
+	
+	    // determine namespace if not found
+	
+	    if (!namespace) {
+	        // check if shorthand global was passed
+	        namespace = eventNamespaces[type];
+	
+	        // if event is still null, attempt to determine type from existing states or actions
+	        if (!namespace) {
+	            if (fsm.states.indexOf(type) !== -1) {
+	                target = type;
+	                namespace = 'state';
+	                type = 'enter';
+	            } else if (fsm.actions.has(type)) {
+	                target = type;
+	                namespace = 'action';
+	                type = 'start';
+	            } else {
+	                fsm.config.debug && console.warn('Warning parsing event handler: unable to map "%s" to a valid event or existing entity', id);
+	            }
 	        }
 	    }
 	
-	    // check handler is a function
-	    if (!(0, _utils.isFunction)(fn)) {
-	        throw new Error('Error assigning ' + namespace + '.' + type + ' handler; callback is not a Function', fn);
-	    }
+	    // determine targets
+	    var targets = target ? target.match(/[-*\w_]+/g) : ['*'];
 	
-	    // assign
-	    var path = namespace === 'action' || namespace === 'state' ? [namespace, target, type].join('.') : namespace + '.' + type;
-	    fsm.handlers.insert(path, fn);
+	    // return
+	    return [namespace, type, targets];
 	}
+	
+	function getPath(namespace, type, target) {
+	    return namespace === 'action' || namespace === 'state' ? [namespace, target, type].join('.') : namespace + '.' + type;
+	}
+	
+	var eventNamespaces = {
+	    change: 'system',
+	    update: 'system',
+	    complete: 'system',
+	    reset: 'system',
+	
+	    add: 'state',
+	    remove: 'state',
+	    leave: 'state',
+	    enter: 'state',
+	
+	    start: 'action',
+	    end: 'action',
+	
+	    pause: 'transition',
+	    resume: 'transition',
+	    cancel: 'transition'
+	};
 
 /***/ },
 /* 1 */
@@ -1255,7 +1275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @prop {string}  namespace  The Event namespace; i.e. state or action
 	 * @prop {string}  type       The Event type;      i.e. leave/enter (state) or start/end (action)
-	 * @prop {string}  target     The Event target;    i.e. intro (state) or next (action)
+	 * @prop {string}  target     The Event target;    i.e. intro (state), next (action), or * (all states or types)
 	 * @prop {string}  from       The from state
 	 * @prop {string}  to         The to state
 	 */
