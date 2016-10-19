@@ -6,7 +6,7 @@
     /**
      * @prop {string}  namespace  The Event namespace; i.e. state or action
      * @prop {string}  type       The Event type;      i.e. leave/enter (state) or start/end (action)
-     * @prop {string}  target     The Event target;    i.e. intro (state) or next (action)
+     * @prop {string}  target     The Event target;    i.e. intro (state), next (action), or * (all states or types)
      * @prop {string}  from       The from state
      * @prop {string}  to         The to state
      */
