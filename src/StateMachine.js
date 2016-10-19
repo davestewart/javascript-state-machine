@@ -626,90 +626,64 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
-            // get initial matches
-            let matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
-            if(!matches)
-            {
-                console.error('Warning adding event handler: invalid signature "%s"', id);
-                return this;
-            }
-            let [,namespace, type, target] = matches;
+            let [namespace, type, targets] = parseHandler(this, id);
 
-            // determine event if not found
-            if(!namespace)
+            targets.map( target =>
             {
-                // check if shorthand global was passed
-                namespace = eventNamespaces[type];
-
-                // if event is still null, attempt to determine type from existing states or actions
-                if(!namespace)
+                // warn for invalid actions / states
+                if(target !== '*')
                 {
-                    if(this.states.indexOf(type) !== -1)
+                    if(namespace === 'state')
                     {
-                        target      = type;
-                        namespace   = 'state';
-                        type        = 'enter';
-
+                        if(this.states.indexOf(target) === -1)
+                        {
+                            this.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
+                        }
                     }
-                    else if(this.actions.has(type))
+                    else if(namespace === 'action')
                     {
-                        target      = type;
-                        namespace   = 'action';
-                        type        = 'start';
-                    }
-                    else
-                    {
-                        this.config.debug && console.error('Warning adding event handler: unable to map signature "%s" to a valid event or existing entity', id);
-                        return;
+                        if(!this.actions.has(target))
+                        {
+                            this.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
+                        }
                     }
                 }
-            }
 
-            // assign
-            let targets = target
-                ? target.match(/[*\w]+/g)
-                : ['*'];
-            targets.map( target => addHandler(this, namespace, type, target, fn) );
+                // check handler is a function
+                if(!isFunction(fn))
+                {
+                    throw new Error('Error assigning ' +namespace+ '.' +type+ ' handler; callback is not a Function', fn);
+                }
+
+                // assign
+                let path = getPath(namespace, type, target);
+                this.handlers.insert(path, fn);
+            });
+
             return this;
         },
 
-        off: function (path, fn)
+        off: function (id, fn)
         {
-            return this;
+            let [namespace, type, targets] = parseHandler(this, id);
+            targets.map( target =>
+            {
+                let path = getPath(namespace, type, target);
+                this.handlers.remove(path, fn)
+            });
         },
 
         dispatch: function(path, event)
         {
-            this.config.debug && console.info('StateMachine update "%s"', path);
+            this.config.debug && console.info('StateMachine dispatch "%s"', path);
             let handlers = this.handlers.get(path);
             if(handlers)
             {
                 // do we need to pass additional arguments?
                 handlers.map(fn => fn(event) );
             }
-
         }
 
-};
-
-let eventNamespaces =
-{
-    change	:'system',
-    update	:'system',
-    complete:'system',
-    reset	:'system',
-
-    add	    :'state',
-    remove	:'state',
-    leave	:'state',
-    enter	:'state',
-
-    start	:'action',
-    end	    :'action',
-
-    pause	:'transition',
-    resume	:'transition',
-    cancel	:'transition'
 };
 
 /**
@@ -732,39 +706,76 @@ function addState (fsm, state)
     }
 }
 
-/**
- * Generic function to parse action and add callback
- *
- * @param {StateMachine}    fsm
- * @param {string}          namespace
- * @param {string}          type
- * @param {string}          target
- * @param {Function}        fn
- */
-function addHandler(fsm, namespace, type, target, fn)
+function parseHandler(fsm, id)
 {
-    // warn for invalid actions / states
-    if(target !== '*')
+    // get initial matches
+    let matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
+    if(!matches)
     {
-        if(namespace === 'state' && fsm.states.indexOf(target) === -1)
+        throw new Error('Warning parsing event handler: invalid signature "%s"', id);
+    }
+    let [,namespace, type, target] = matches;
+
+    // determine namespace if not found
+    if(!namespace)
+    {
+        // check if shorthand global was passed
+        namespace = eventNamespaces[type];
+
+        // if event is still null, attempt to determine type from existing states or actions
+        if(!namespace)
         {
-            fsm.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
-        }
-        else if(namespace === 'action' && ! fsm.actions.has(target))
-        {
-            fsm.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
+            if(fsm.states.indexOf(type) !== -1)
+            {
+                target      = type;
+                namespace   = 'state';
+                type        = 'enter';
+            }
+            else if(fsm.actions.has(type))
+            {
+                target      = type;
+                namespace   = 'action';
+                type        = 'start';
+            }
+            else
+            {
+                fsm.config.debug && console.warn('Warning parsing event handler: unable to map "%s" to a valid event or existing entity', id);
+            }
         }
     }
 
-    // check handler is a function
-    if( ! isFunction(fn) )
-    {
-        throw new Error('Error assigning ' +namespace+ '.' +type+ ' handler; callback is not a Function', fn);
-    }
+    // determine targets
+    let targets = target
+        ? target.match(/[-*\w_]+/g)
+        : ['*'];
 
-    // assign
-    let path = namespace === 'action' || namespace === 'state'
+    // return
+    return [namespace, type, targets]
+}
+
+function getPath(namespace, type, target)
+{
+    return namespace === 'action' || namespace === 'state'
         ? [namespace, target, type].join('.')
         : namespace + '.' + type;
-    fsm.handlers.insert(path, fn);
 }
+
+let eventNamespaces =
+{
+    change  :'system',
+    update  :'system',
+    complete:'system',
+    reset   :'system',
+
+    add     :'state',
+    remove  :'state',
+    leave   :'state',
+    enter   :'state',
+
+    start   :'action',
+    end     :'action',
+
+    pause   :'transition',
+    resume  :'transition',
+    cancel  :'transition'
+};
