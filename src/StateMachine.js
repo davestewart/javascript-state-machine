@@ -279,9 +279,7 @@ StateMachine.prototype =
         {
             if(this.can(action))
             {
-                this.config.debug && console.info('Doing action "%s"', action);
                 this.transition = Transition.create(this, action, rest);
-                this.update('transition', 'start');
                 this.update('system', 'update');
                 this.transition.exec();
                 return true;
@@ -419,7 +417,7 @@ StateMachine.prototype =
                     }
                 }
             }
-            return null
+            return null;
         },
 
 
@@ -535,12 +533,11 @@ StateMachine.prototype =
                 this.transition.clear();
                 delete this.transition;
                 this.update('system', 'change');
-                this.update('system', 'update');
                 if(this.isComplete())
                 {
                     this.update('system', 'complete');
                 }
-                this.update('transition', 'end');
+                this.update('system', 'update');
             }
             return this;
         },
