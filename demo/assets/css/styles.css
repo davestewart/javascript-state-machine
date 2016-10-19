@@ -1,0 +1,92 @@
+/* ------------------------------------------------------------------------------------------------
+ * layout
+ */
+
+    body {
+        width: 800px;
+        margin: 50px auto;
+    }
+
+    main {
+        position: relative;
+    }
+
+    h1{
+        border-bottom:1px solid #EEE;
+        padding: 0 0 20px 30px;
+        margin:0 0 30px 0;
+    }
+
+    section {
+        padding:0 0 30px 30px;
+        clear:both;
+    }
+
+    pre {
+        margin:20px;
+    }
+
+
+/* ------------------------------------------------------------------------------------------------
+ * forms
+ */
+
+    .btn[disabled]{
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .btn[disabled]:hover{
+        color:inherit;
+    }
+
+
+/* ------------------------------------------------------------------------------------------------
+ * styles
+ */
+
+    #states {
+        transition: 0.5s all;
+    }
+
+    #states.paused {
+        opacity: 0.25;
+    }
+
+    main.states article {
+        display: inline-flex;
+        vertical-align: top;
+        width: 150px;
+        height: 150px;
+        background: #EEE;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin: 0 5px 0 0;
+        transition: 0.5s all;
+    }
+
+    main.states article.active {
+        border: 1px solid black;
+    }
+
+    main.steps article {
+        width: 500px;
+        border:1px solid #EEE;
+        padding:20px;
+        display: none;
+    }
+
+    main.steps article.active {
+        display: block;
+    }
+
+    main.steps h2 {
+        margin: 0 0 40px;
+        font-size: 2em;
+        color:#1dccaa;
+    }
+
+    main.steps p {
+
+    }

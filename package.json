@@ -1,13 +1,13 @@
 {
   "name": "state-machine",
   "version": "0.1.0",
-  "description": "A flexible and powerful JavaScript finite state machine",
+  "description": "An expressive, feature-rich, event-driven JavaScript finite-state machine",
   "main": "lib/state-machine.js",
   "scripts": {
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js",
     "build": "webpack --mode=build",
-    "examples": "cpx ./lib/state-machine.js ./examples/assets --watch | lite-server"
+    "demo": "cpx ./lib/state-machine.js ./demo/assets/js --watch | lite-server"
   },
   "devDependencies": {
     "babel": "6.3.13",

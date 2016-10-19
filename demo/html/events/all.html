@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Event handler playground</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link href="/assets/css/styles.css" rel="stylesheet">
+    <style>
+        #log {
+            position:absolute;
+            top:0;
+            right:0;
+            width:290px;
+            height:500px;
+            border:1px solid #CCC;
+            padding:15px;
+            overflow: hidden;
+            line-height: 1.2em;
+            font-size:0.8em;
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+
+        #handlers {
+            position: relative;
+        }
+
+        #info {
+            width:450px;
+        }
+
+        p { margin:0; }
+        p.system { color: black; }
+        p.transition { color: blue; }
+        p.action { color: red; }
+        p.state { color: green; }
+
+        hr {
+            margin:10px 0;
+        }
+
+        #log span{
+            display: inline-block;
+        }
+        span.index {
+            width:25px;
+            margin-right: 10px;
+            text-align: right;
+        }
+
+        span.message {
+            margin-left:10px;
+        }
+
+        fieldset > label{
+            display: block;
+        }
+
+        #handlers > fieldset {
+            display: inline-block;
+            vertical-align: top;
+            padding-right:30px;
+        }
+
+        legend {
+            font-size:1.2em;
+            margin-bottom:0.5em;
+        }
+
+        #control-set > section {
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Event handler playground</h1>
+
+    <main class="states">
+
+        <section id="log">
+
+        </section>
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+        </section>
+
+        <section id="handlers">
+
+            <fieldset>
+                <legend>System</legend>
+                <label><input type="checkbox" name="system" value="system.start"> start</label>
+                <label><input type="checkbox" name="system" value="system.update"> update</label>
+                <label><input type="checkbox" name="system" value="system.complete"> complete</label>
+                <label><input type="checkbox" name="system" value="system.reset"> reset</label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Action</legend>
+                <label><input type="checkbox" name="action" value="action.start"> start</label>
+                <label><input type="checkbox" name="action" value="action.end"> end</label>
+                <label><input type="checkbox" name="action" value="action.start:back"> start back</label>
+                <label><input type="checkbox" name="action" value="action.end:back"> end back</label>
+                <label><input type="checkbox" name="action" value="action.start:next"> start next</label>
+                <label><input type="checkbox" name="action" value="action.end:next"> end next</label>
+            </fieldset>
+
+            <fieldset>
+                <legend>State</legend>
+                <label><input type="checkbox" name="state" value="state.enter"> enter</label>
+                <label><input type="checkbox" name="state" value="state.leave"> leave</label>
+                <label><input type="checkbox" name="state" value="state.leave:b"> leave b</label>
+                <label><input type="checkbox" name="state" value="state.enter:c"> enter c</label>
+                <label><input type="checkbox" name="state" value="state.add"> add</label>
+                <label><input type="checkbox" name="state" value="state.remove"> remove</label>
+                <label><input type="checkbox" name="state" value="state.change"> change</label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Transition</legend>
+                <label><input type="checkbox" name="transition" value="transition.pause"> pause</label>
+                <label><input type="checkbox" name="transition" value="transition.resume"> resume</label>
+                <label><input type="checkbox" name="transition" value="transition.cancel"> cancel</label>
+            </fieldset>
+
+        </section>
+
+        <div id="control-set">
+            <section id="controls">
+                <button class="btn btn-sm" name="back">Back</button>
+                <button class="btn btn-sm" name="next">Next</button>
+            </section>
+
+            <section id="more-controls">
+                <button class="btn btn-sm" name="cancel">Cancel</button>
+                <button class="btn btn-sm" name="reset">Reset</button>
+                <button class="btn btn-sm" name="add">Add</button>
+                <button class="btn btn-sm" name="remove">Remove</button>
+            </section>
+        </div>
+
+    </main>
+
+    <section id="info">
+        <p>Toggle handlers for events on and off using the checkboxes above, then use the buttons to navigate the flow and view logging output.</p>
+    </section>
+
+    <script>
+
+        var config = {
+
+            final: 'c',
+
+            debug: true,
+
+            events: [
+                {name: 'next', from: 'a', to: 'b'},
+                {name: 'next', from: 'b', to: 'c'},
+                {name: 'next', from: 'c', to: 'a'},
+
+                {name: 'back', from: 'c', to: 'b'},
+                {name: 'back', from: 'b', to: 'a'},
+                {name: 'back', from: 'a', to: 'c'}
+            ],
+
+            handlers: {
+                'enter:c': function (event) {
+                    event.pause();
+                    setTimeout(event.resume, 3000);
+                }
+            }
+        };
+
+        setup(new StateMachine(document, config));
+
+    </script>
+
+    <script>
+
+        var handlers = {
+
+            system: function (event) {
+                log(event.namespace, event.type);
+            },
+
+            action: function (event) {
+                log(event.namespace, event.type, event.target);
+
+            },
+
+            state: function (event) {
+                log(event.namespace, event.type, event.target);
+            },
+
+            transition: function (event) {
+                log(event.namespace, event.type);
+            },
+
+            target: function (event) {
+                log(event.namespace, event.type, event.target);
+            },
+
+            cancel: function () {
+                fsm.cancel();
+            },
+
+            reset: function () {
+                fsm.reset();
+            },
+
+            add: function () {
+                fsm.add()
+            },
+
+            remove: function () {
+
+            }
+        };
+
+        $('#controls button').on('click', function () {
+            if($log[0].firstChild.tagName === 'P'){
+                $log.prepend('<hr>');
+            }
+        });
+
+        $('input[type="checkbox"]').on('change', function (event) {
+            var signature = event.target.value;
+            var method = event.target.checked ? 'on' : 'off';
+            var handler = signature.indexOf(':') == -1
+                ? handlers[event.target.name]
+                : handlers.target;
+            fsm[method](signature, handler);
+        });
+
+        $('#more-controls button').on('click', function (event) {
+            handlers[event.target.name]();
+        });
+
+        var index = 1;
+        var $log = $('#log');
+        function log(namespace, type, message) {
+            message = message || '';
+            var className = namespace+ ' ' +namespace+ '-' +type;
+            var html =
+            [
+                '<span class="index">' +(index++)+ '</span>',
+                '<span class="event">' +namespace+ '.' +type+ '</span>',
+                '<span class="message"> ' +message+ '</span>'
+            ];
+            $log.prepend('<p class="' +className+ '">' +html.join('')+'</p>');
+        }
+    </script>
+</body>
+</html>

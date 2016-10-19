@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>State Machine Examples</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style type="text/css">
+        #toc p {
+            font-size: 0.8em;
+        }
+
+        #toc ul {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>State Machine - Examples</h1>
+    <main>
+        <section id="toc">
+            <h4>Introduction</h4>
+            <ul>
+                <li><a href="html/flows/basic.html">Example setups</a></li>
+            </ul>
+
+            <h4>Flows</h4>
+            <ul>
+                <li><a href="html/flows/sequential.html">Sequential states</a></li>
+                <li><a href="html/flows/branching.html">Branching states</a></li>
+            </ul>
+
+            <h4>States</h4>
+            <ul>
+                <li><a href="html/states/initial.html">Initial state</a></li>
+                <li><a href="html/states/none.html">Initial empty state</a></li>
+                <li><a href="html/states/terminating.html">Terminating state</a></li>
+                <li><a href="html/states/final.html">Final state</a></li>
+            </ul>
+
+            <h4>Events</h4>
+            <ul>
+                <li><a href="html/events/all.html">Event handler playground</a></li>
+            </ul>
+
+            <h4>Handlers</h4>
+            <ul>
+                <li><a href="html/handlers/guards.html">Cancelling events</a></li>
+                <li><a href="html/handlers/async.html">Managing asyncronous events</a></li>
+                <li><a href="html/handlers/branching.html">Conditional branching</a></li>
+            </ul>
+
+            <h4>Tricks</h4>
+            <ul>
+                <li><a href="html/tricks/css-animation.html">CSS animation events</a></li>
+                <li><a href="html/tricks/jquery-animation.html">jQuery animation</a></li>
+            </ul>
+
+            <h4>Real-world examples</h4>
+            <ul>
+                <li><a href="html/examples/sign-up.html">Multi-step form</a></li>
+                <li><a href="html/examples/game.html">Game state examples</a></li>
+            </ul>
+        </section>
+
+    </main>
+
+
+<pre style="display:none">
+
+API
+
+    Configuration
+
+    - States
+    - Handlers
+    - Settings
+
+    Features
+
+    - Dynamic callbacks
+
+    Basic concepts
+
+    - Actions
+    - States
+    - Asyncronous events
+
+    Animation
+
+    - jquery animation
+        animate + complete
+
+    - css animation events
+        tie in resume to CSS animation finish
+
+    Systems
+
+    - Circular cycle
+    - Multi-step installation
+    - Wandering behaviour
+
+    Real world
+
+    - use FSM to call routes
+
+
+
+
+Examples
+
+    Systems
+
+    - Cycle
+    - Sign-up
+    - Server
+    - Slideshow
+    - Game state
+
+    - Modals
+        open     : intro > modal       onLeave:showModal
+        ok       : modal > complete    onLeave:validate,hideModal
+        cancel   : modal > intro       onLeave:hideModal
+        finish   :                     onEnter:finish
+
+        from:intro  do:open    to:modal   onOpen:showModal, onModal:resetModal
+        from:modal  do:ok      to:finish  onOK:validate,hideModal
+        from:modal  do:cancel  to:intro   onCancel:hideModal
+
+        from:intro  to:modal   via:open    onOpen:showModal
+        from:modal  to:finish  via:ok      onOK:validate,hideModal
+        from:modal  to:intro   via:cancel  onCancel:hideModal
+
+        when:intro  gets:open  go:modal
+
+        next :      >
+
+
+
+</pre>
+
+</body>
+</html>
