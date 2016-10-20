@@ -14,7 +14,6 @@ export default function StateMachine (scope, config)
     if(config)
     {
         this.initialize(config);
-        this.update('system', 'initialize');
     }
 }
 
@@ -252,15 +251,19 @@ StateMachine.prototype =
         /**
          * Dispatch an event
          *
-         * @param namespace
-         * @param type
+         * @param   {string}    namespace
+         * @param   {string}    type
+         * @param   {string}    key
+         * @param   {*}         value
+         * @returns {StateMachine}
          */
-        update: function (namespace, type)
+        update: function (namespace, type, key = '', value = null)
         {
+            let signature = namespace + '.' + type;
             let event = namespace === 'system'
-                ? SystemEvent
-                : TransitionEvent;
-            this.dispatch(namespace + '.' + type, new event(type));
+                ? new SystemEvent(type, key, value)
+                : new TransitionEvent(type);
+            this.dispatch(signature, event);
             return this;
         },
 
@@ -277,10 +280,14 @@ StateMachine.prototype =
          */
         do: function (action, ...rest)
         {
-            if(this.can(action))
+            if(this.can(action) && !this.isPaused())
             {
                 this.transition = Transition.create(this, action, rest);
-                this.update('system', 'update');
+                if(action === 'start')
+                {
+                    this.update('system', 'start');
+                }
+                this.update('system', 'update', 'transition', this.transition);
                 this.transition.exec();
                 return true;
             }
@@ -385,7 +392,7 @@ StateMachine.prototype =
          * @param   {boolean}   [asMap]     Optional boolean to return a Object of action:state properties. Defaults to false
          * @returns {string[]|Object}       An array of string actions, or a hash of action:states
          */
-        getActionsFor: function (state = null, asMap = false)
+        getActionsFor: function (state = '', asMap = false)
         {
             state       = state || this.state;
             let actions = this.transitions.get(state || this.state);
@@ -408,7 +415,7 @@ StateMachine.prototype =
         {
             if(this.has(state))
             {
-                let actions = this.getActionsFor(null, true);
+                let actions = this.getActionsFor(state, true);
                 for(let action in actions)
                 {
                     if(actions[action] === state)
@@ -477,11 +484,11 @@ StateMachine.prototype =
          */
         pause: function ()
         {
-            if(this.transition)
+            if(this.transition && !this.isPaused())
             {
                 this.transition.pause();
                 this.update('transition', 'pause');
-                this.update('system', 'update');
+                this.update('system', 'update', 'pause', true);
             }
             return this;
         },
@@ -493,10 +500,10 @@ StateMachine.prototype =
          */
         resume: function ()
         {
-            if(this.transition)
+            if(this.transition && this.isPaused())
             {
                 this.update('transition', 'resume');
-                this.update('system', 'update');
+                this.update('system', 'update', 'pause', false);
                 this.transition.resume();
             }
             return this;
@@ -511,11 +518,15 @@ StateMachine.prototype =
         {
             if(this.transition)
             {
+                if(this.isPaused())
+                {
+                    this.update('system', 'update', 'pause', false);
+                }
                 this.state = this.transition.from;
                 this.transition.clear();
                 delete this.transition;
                 this.update('transition', 'cancel');
-                this.update('system', 'update');
+                this.update('system', 'update', 'transition', null);
             }
             return this;
         },
@@ -529,15 +540,20 @@ StateMachine.prototype =
         {
             if(this.transition)
             {
+                if(this.isPaused())
+                {
+                    this.update('system', 'update', 'pause', false);
+                }
                 this.state = this.transition.to;
                 this.transition.clear();
                 delete this.transition;
-                this.update('system', 'change');
+                this.update('system', 'change', 'state', this.state);
+                this.update('system', 'update', 'state', this.state);
                 if(this.isComplete())
                 {
                     this.update('system', 'complete');
                 }
-                this.update('system', 'update');
+                this.update('system', 'update', 'transition', null);
             }
             return this;
         },
@@ -547,15 +563,27 @@ StateMachine.prototype =
          *
          * @returns {StateMachine}
          */
-        reset:function(initial)
+        reset:function(initial = '')
         {
-            this.state = initial || this.config.initial;
+            let state = initial || this.config.initial;
+            this.update('system', 'reset');
             if(this.transition)
             {
+                if(this.isPaused())
+                {
+                    this.update('system', 'update', 'pause', false);
+                }
                 this.transition.clear();
                 delete this.transition;
+                this.update('transition', 'cancel');
+                this.update('system', 'update', 'transition', null);
             }
-            this.update('system', 'reset');
+            if(this.state !== state)
+            {
+                this.state = state;
+                this.update('system', 'change', 'state', this.state);
+                this.update('system', 'update', 'state', this.state);
+            }
             return this;
         },
 
@@ -564,7 +592,7 @@ StateMachine.prototype =
     // actions
 
         /**
-         * Add a transition event
+         * Add a transition
          *
          * @param   {string}    action
          * @param   {string}    from
@@ -578,9 +606,18 @@ StateMachine.prototype =
             return this;
         },
 
+        /**
+         * Remove a transition
+         *
+         * @param   {string}    action
+         * @param   {string}    from
+         * @param   {string}    to
+         * @return  {StateMachine}
+         */
         remove: function (action, from, to)
         {
             this.states.remove(action, from);
+            return this;
         },
 
 
@@ -594,12 +631,12 @@ StateMachine.prototype =
          *
          * - namespace.type:target1 target2 target3 ...
          *
-         * Valid event signatures:
+         * Valid event namespaces / types:
          *
-         * - system:(change|update|complete|reset)
-         * - action:(start|end)
-         * - state:(add|remove|leave|enter)
-         * - transition:(pause|resume|cancel)
+         * - system.(change|update|complete|reset)
+         * - action.(start|end)
+         * - state.(add|remove|leave|enter)
+         * - transition.(pause|resume|cancel)
          *
          * As event types are unique, they can be used without the namespace:
          *
