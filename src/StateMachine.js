@@ -743,12 +743,23 @@ function addState (fsm, state)
 function parseHandler(fsm, id)
 {
     // get initial matches
-    let matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
-    if(!matches)
+    let matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
+    if(matches)
     {
-        throw new Error('Warning parsing event handler: invalid signature "%s"', id);
+        var [,namespace, type, target, invalid] = matches;
     }
-    let [,namespace, type, target] = matches;
+
+    // flag invalid
+    if(!matches || invalid)
+    {
+        throw new Error('Invalid event handler signature "' +id+ '"');
+    }
+
+    // check namespace
+    if(namespace && ! /^(system|transition|action|state)$/.test(namespace))
+    {
+        throw new Error('Invalid event namespace "' +namespace+ '"');
+    }
 
     // determine namespace if not found
     if(!namespace)
