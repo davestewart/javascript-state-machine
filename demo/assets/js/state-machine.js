@@ -89,7 +89,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.handlers = new _ValueMap2.default();
 	    if (config) {
 	        this.initialize(config);
-	        this.update('system', 'initialize');
 	    }
 	}
 	
@@ -317,12 +316,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     * Dispatch an event
 	     *
-	     * @param namespace
-	     * @param type
+	     * @param   {string}    namespace
+	     * @param   {string}    type
+	     * @param   {string}    key
+	     * @param   {*}         value
+	     * @returns {StateMachine}
 	     */
 	    update: function update(namespace, type) {
-	        var event = namespace === 'system' ? _Events.SystemEvent : _Events.TransitionEvent;
-	        this.dispatch(namespace + '.' + type, new event(type));
+	        var key = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+	        var value = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+	
+	        var signature = namespace + '.' + type;
+	        var event = namespace === 'system' ? new _Events.SystemEvent(type, key, value) : new _Events.TransitionEvent(type);
+	        this.dispatch(signature, event);
 	        return this;
 	    },
 	
@@ -337,13 +343,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @returns {boolean}
 	     */
 	    do: function _do(action) {
-	        if (this.can(action)) {
+	        if (this.can(action) && !this.isPaused()) {
 	            for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
 	                rest[_key - 1] = arguments[_key];
 	            }
 	
 	            this.transition = _Transition2.default.create(this, action, rest);
-	            this.update('system', 'update');
+	            if (action === 'start') {
+	                this.update('system', 'start');
+	            }
+	            this.update('system', 'update', 'transition', this.transition);
 	            this.transition.exec();
 	            return true;
 	        }
@@ -443,7 +452,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    getActionsFor: function getActionsFor() {
 	        var _this2 = this;
 	
-	        var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+	        var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 	        var asMap = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 	
 	        state = state || this.state;
@@ -467,7 +476,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    getActionForState: function getActionForState(state) {
 	        if (this.has(state)) {
-	            var actions = this.getActionsFor(null, true);
+	            var actions = this.getActionsFor(state, true);
 	            for (var action in actions) {
 	                if (actions[action] === state) {
 	                    return action;
@@ -525,10 +534,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @returns {StateMachine}
 	     */
 	    pause: function pause() {
-	        if (this.transition) {
+	        if (this.transition && !this.isPaused()) {
 	            this.transition.pause();
 	            this.update('transition', 'pause');
-	            this.update('system', 'update');
+	            this.update('system', 'update', 'pause', true);
 	        }
 	        return this;
 	    },
@@ -539,9 +548,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @returns {StateMachine}
 	     */
 	    resume: function resume() {
-	        if (this.transition) {
+	        if (this.transition && this.isPaused()) {
 	            this.update('transition', 'resume');
-	            this.update('system', 'update');
+	            this.update('system', 'update', 'pause', false);
 	            this.transition.resume();
 	        }
 	        return this;
@@ -554,11 +563,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    cancel: function cancel() {
 	        if (this.transition) {
+	            if (this.isPaused()) {
+	                this.update('system', 'update', 'pause', false);
+	            }
 	            this.state = this.transition.from;
 	            this.transition.clear();
 	            delete this.transition;
 	            this.update('transition', 'cancel');
-	            this.update('system', 'update');
+	            this.update('system', 'update', 'transition', null);
 	        }
 	        return this;
 	    },
@@ -570,14 +582,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    end: function end() {
 	        if (this.transition) {
+	            if (this.isPaused()) {
+	                this.update('system', 'update', 'pause', false);
+	            }
 	            this.state = this.transition.to;
 	            this.transition.clear();
 	            delete this.transition;
-	            this.update('system', 'change');
+	            this.update('system', 'change', 'state', this.state);
+	            this.update('system', 'update', 'state', this.state);
 	            if (this.isComplete()) {
 	                this.update('system', 'complete');
 	            }
-	            this.update('system', 'update');
+	            this.update('system', 'update', 'transition', null);
 	        }
 	        return this;
 	    },
@@ -587,13 +603,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *
 	     * @returns {StateMachine}
 	     */
-	    reset: function reset(initial) {
-	        this.state = initial || this.config.initial;
+	    reset: function reset() {
+	        var initial = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+	
+	        var state = initial || this.config.initial;
+	        this.update('system', 'reset');
 	        if (this.transition) {
+	            if (this.isPaused()) {
+	                this.update('system', 'update', 'pause', false);
+	            }
 	            this.transition.clear();
 	            delete this.transition;
+	            this.update('transition', 'cancel');
+	            this.update('system', 'update', 'transition', null);
 	        }
-	        this.update('system', 'reset');
+	        if (this.state !== state) {
+	            this.state = state;
+	            this.update('system', 'change', 'state', this.state);
+	            this.update('system', 'update', 'state', this.state);
+	        }
 	        return this;
 	    },
 	
@@ -601,7 +629,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // actions
 	
 	    /**
-	     * Add a transition event
+	     * Add a transition
 	     *
 	     * @param   {string}    action
 	     * @param   {string}    from
@@ -611,13 +639,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    add: function add(action, from, to) {
 	        this.actions.set(action + '.' + from, to);
 	        this.transitions.add(from, action);
-	        addState(this, from);
-	        addState(this, to);
 	        return this;
 	    },
 	
+	    /**
+	     * Remove a transition
+	     *
+	     * @param   {string}    action
+	     * @param   {string}    from
+	     * @param   {string}    to
+	     * @return  {StateMachine}
+	     */
 	    remove: function remove(action, from, to) {
 	        this.states.remove(action, from);
+	        return this;
 	    },
 	
 	    // ------------------------------------------------------------------------------------------------
@@ -630,12 +665,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *
 	     * - namespace.type:target1 target2 target3 ...
 	     *
-	     * Valid event signatures:
+	     * Valid event namespaces / types:
 	     *
-	     * - system:(change|update|complete|reset)
-	     * - action:(start|end)
-	     * - state:(add|remove|leave|enter)
-	     * - transition:(pause|resume|cancel)
+	     * - system.(change|update|complete|reset)
+	     * - action.(start|end)
+	     * - state.(add|remove|leave|enter)
+	     * - transition.(pause|resume|cancel)
 	     *
 	     * As event types are unique, they can be used without the namespace:
 	     *
@@ -747,19 +782,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function parseHandler(fsm, id) {
 	    // get initial matches
-	    var matches = id.match(/^(?:(\w+)\.)?(\w+[-.\w]*)(?::(.*))?/);
-	    if (!matches) {
-	        throw new Error('Warning parsing event handler: invalid signature "%s"', id);
+	    var matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
+	    if (matches) {
+	        var _matches2 = _slicedToArray(matches, 5);
+	
+	        var namespace = _matches2[1];
+	        var type = _matches2[2];
+	        var target = _matches2[3];
+	        var invalid = _matches2[4];
 	    }
 	
-	    var _matches2 = _slicedToArray(matches, 4);
+	    // flag invalid
+	    if (!matches || invalid) {
+	        throw new Error('Invalid event handler signature "' + id + '"');
+	    }
 	
-	    var namespace = _matches2[1];
-	    var type = _matches2[2];
-	    var target = _matches2[3];
+	    // check namespace
+	    if (namespace && !/^(system|transition|action|state)$/.test(namespace)) {
+	        throw new Error('Invalid event namespace "' + namespace + '"');
+	    }
 	
 	    // determine namespace if not found
-	
 	    if (!namespace) {
 	        // check if shorthand global was passed
 	        namespace = eventNamespaces[type];
@@ -1200,12 +1243,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // handle "to" being a function
 	        if ((0, _utils.isFunction)(to)) {
-	            var actions = fsm.getActionsFor();
-	            var state = to.apply(scope, [actions].concat(params));
-	            var _action = fsm.getActionsFor(state);
-	            // TODO debug this! It's wrong
-	            if (!_action) {
-	                throw new Error('Cannot go to state "' + state + '" from current state "' + from + '"');
+	            to = to.apply(scope, params);
+	            if (fsm.states.indexOf(to) === -1) {
+	                throw new Error('Invalid "to" state "' + to + '"');
 	            }
 	        }
 	
@@ -1239,7 +1279,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                handlers = handlers.map(function (handler) {
 	                    return function () {
 	                        var event = _Events2.default.create(namespace, type, target, from, to, callbacks);
-	                        handler.apply(scope, [event].concat(params));
+	                        return handler.apply(scope, [event].concat(params));
 	                    };
 	                });
 	
@@ -1333,13 +1373,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	// ------------------------------------------------------------------------------------------------
 	// SystemEvent
 	
-	function SystemEvent(type) {
+	function SystemEvent(type, key, value) {
 	    this.type = type;
+	    this.key = key;
+	    this.value = value;
 	}
 	
 	SystemEvent.prototype = {
 	    namespace: 'system',
-	    type: ''
+	    type: '',
+	    key: '',
+	    value: null
 	};
 	
 	// ------------------------------------------------------------------------------------------------

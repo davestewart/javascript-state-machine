@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Guards</title>
+    <title>Conditional transitions</title>
     <script src="/assets/vendor/jquery.min.js"></script>
-    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
-    <link href="/assets/css/styles.css" rel="stylesheet">
+    <link  href="/assets/css/styles.css" rel="stylesheet">
     <style type="text/css">
         .error {
             color:red;
@@ -15,7 +15,7 @@
 </head>
 <body>
 
-    <h1>Guards</h1>
+    <h1>Conditional transitions</h1>
 
     <main class="states">
 
@@ -25,7 +25,7 @@
         </section>
 
         <section id="terms">
-            <label><input type="checkbox"> I need to be checked to continue</label>
+            <label><input type="checkbox"> I need to be checked to leave Step 1</label>
         </section>
 
         <section id="controls">
@@ -36,7 +36,13 @@
     </main>
 
     <section id="info">
-        <p>State change (transitions) complete by default</p>
+        <p>You can make a transition conditional by adding a handler which cancels the transition, from <strong>any</strong> of its lifecycle events (transition, event or state) and at any point (start, leave, enter, end).</p>
+        <p>To do this you can:</p>
+        <ul>
+            <li>Return <code>false</code> from the event handler</li>
+            <li>Call <code>cancel()</code> on the event object</li>
+            <li>Call <code>cancel()</code> on the state machine instance</li>
+        </ul>
     </section>
 
     <script>
@@ -44,17 +50,19 @@
         function validate (event) {
 
             // variables
-            var $step = $('#step1');
             var $terms = $('#terms');
             var checked = $terms.find('input').is(':checked');
 
+            // update ui
             $terms.toggleClass('error', ! checked);
 
             // cancel transition if checkbox not checked
             if( ! checked ) {
-                event.cancel();
+                event.cancel(); // could also return false;
             }
         }
+
+        function fn(){}
 
         var config = {
 
@@ -64,7 +72,21 @@
             ],
 
             handlers: {
-                'leave step1': validate
+                'system.change' :fn,
+                'action.start' :fn,
+                'state.add' :fn,
+                'transition.pause' :fn,
+
+                'change' :fn,
+                'pause' :fn,
+                'start' :fn,
+                'end' :fn,
+                'leave:red' :fn,
+                'enter:blue green' :fn,
+                'start:next' :fn,
+                'end:back' :fn,
+
+                'leave:step1': validate
             }
         };
 

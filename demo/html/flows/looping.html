@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Event handlers</title>
+    <title>Looping state</title>
     <script src="/assets/vendor/jquery.min.js"></script>
-    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
-    <link href="/assets/css/styles.css" rel="stylesheet">
+    <link  href="/assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
 
-    <h1>Event handlers</h1>
+    <h1>Looping state</h1>
 
     <main class="states">
 
@@ -29,26 +29,10 @@
     </main>
 
     <section id="info">
-        <p>This example demonstrates</p>
+        <p>This example is a variation on the <a href="sequential.html">sequential state</a> example, and just loops around the first and last states / slides.</p>
     </section>
 
     <script>
-
-        function onLeave (event) {
-            console.log('leaving state', event.from);
-        }
-
-        function onEnter (event) {
-            console.log('entering state', event.to);
-        }
-
-        function onStart (event) {
-            console.log('starting action', event.verb);
-        }
-
-        function onEnd (event) {
-            console.log('ending action', event.verb);
-        }
 
         var config = {
 
@@ -56,18 +40,13 @@
                 {name: 'next', from: 'a', to: 'b'},
                 {name: 'next', from: 'b', to: 'c'},
                 {name: 'next', from: 'c', to: 'd'},
+                {name: 'next', from: 'd', to: 'a'},
 
+                {name: 'back', from: 'a', to: 'd'},
                 {name: 'back', from: 'd', to: 'c'},
                 {name: 'back', from: 'c', to: 'b'},
                 {name: 'back', from: 'b', to: 'a'}
-            ],
-
-            handlers: {
-                'start': onStart,
-                'end'  : onEnd,
-                'leave': onLeave,
-                'enter': onEnter
-            }
+            ]
         };
 
         setup(new StateMachine(document, config));
