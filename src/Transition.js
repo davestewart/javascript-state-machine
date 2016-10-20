@@ -197,7 +197,7 @@ export default
                     return function()
                     {
                         let event = Events.create(namespace, type, target, from, to, callbacks);
-                        handler.apply(scope, [event].concat(params));
+                        return handler.apply(scope, [event].concat(params));
                     }
                 });
 
