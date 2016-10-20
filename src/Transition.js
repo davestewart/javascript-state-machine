@@ -150,13 +150,10 @@ export default
         // handle "to" being a function
         if(isFunction(to))
         {
-            let actions = fsm.getActionsFor();
-            let state   = to.apply(scope, [actions].concat(params));
-            let action  = fsm.getActionsFor(state);
-            // TODO debug this! It's wrong
-            if( ! action )
+            to = to.apply(scope, params);
+            if(fsm.states.indexOf(to) === -1)
             {
-                throw new Error('Cannot go to state "' +state+ '" from current state "' +from+ '"');
+                throw new Error('Invalid "to" state "' +to+ '"');
             }
         }
 
