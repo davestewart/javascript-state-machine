@@ -75,15 +75,19 @@
 // ------------------------------------------------------------------------------------------------
 // SystemEvent
 
-    export function SystemEvent (type)
+    export function SystemEvent (type, key, value)
     {
-        this.type = type;
+        this.type   = type;
+        this.key    = key;
+        this.value  = value;
     }
 
     SystemEvent.prototype =
     {
-        namespace: 'system',
-        type: ''
+        namespace   : 'system',
+        type        : '',
+        key         : '',
+        value       : null
     };
 
 
@@ -97,7 +101,7 @@
 
     TransitionEvent.prototype =
     {
-        namespace: 'transition',
-        type: ''
+        namespace   : 'transition',
+        type        : ''
     };
 
