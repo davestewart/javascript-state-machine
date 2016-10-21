@@ -304,13 +304,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        /**
 	         * Sets the default order to run transition callbacks in
 	         *
-	         * start/leave/enter/end  -> event types
-	         * to/action              -> targeted handlers (leave:red)
-	         * *                      -> global handlers   (leave, or leave:*)
-	         *
 	         * @type {string[]} type.target
 	         */
-	        config.order = config.order || ['start:*', 'start:action', 'leave:from', 'leave:*', 'enter:*', 'enter:to', 'end:action', 'end:*'];
+	        config.order = config.order || ['action.*.start', 'action.@action.start', 'state.@from.@action', 'state.@from.leave', 'state.*.leave', 'state.*.enter', 'state.@to.enter', 'action.@action.end', 'action.*.end'];
 	    },
 	
 	    /**
@@ -688,6 +684,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * - next
 	     * - intro
 	     *
+	     * Finally, you can target a state with an action:
+	     *
+	     * - state@action
+	     * - intro@next
+	     * - form@submit
+	     * - form@leave (built-in state/action)
+	     *
 	     * @param id
 	     * @param fn
 	     * @return {StateMachine}
@@ -703,6 +706,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var type = _parseHandler2[1];
 	        var targets = _parseHandler2[2];
 	
+	        ///console.log(namespace, type, targets)
 	
 	        targets.map(function (target) {
 	            // warn for invalid actions / states
@@ -781,16 +785,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function parseHandler(fsm, id) {
-	    // get initial matches
-	    var matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
-	    if (matches) {
-	        var _matches2 = _slicedToArray(matches, 5);
+	    // variables
+	    var matches, namespace, type, action, target, invalid;
 	
-	        var namespace = _matches2[1];
-	        var type = _matches2[2];
-	        var target = _matches2[3];
-	        var invalid = _matches2[4];
+	    // match state@action
+	    if (id.indexOf('@') !== -1) {
+	        matches = id.match(/^(?:state\.)?\s*(\w+[ -_\w]*)@(\w+)$/);
+	        if (matches) {
+	            namespace = 'state';
+	            var _matches2 = matches;
+	
+	            var _matches3 = _slicedToArray(_matches2, 3);
+	
+	            target = _matches3[1];
+	            action = _matches3[2];
+	
+	            type = action;
+	        }
 	    }
+	    // matches other
+	    else {
+	            matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
+	            if (matches) {
+	                var _matches4 = matches;
+	
+	                var _matches5 = _slicedToArray(_matches4, 5);
+	
+	                namespace = _matches5[1];
+	                type = _matches5[2];
+	                target = _matches5[3];
+	                invalid = _matches5[4];
+	            }
+	        }
 	
 	    // flag invalid
 	    if (!matches || invalid) {
@@ -1234,6 +1260,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var scope = fsm.scope;
 	        var from = fsm.state;
 	        var to = fsm.actions.get(action)[from];
+	        var vars = { action: action, to: to, from: from };
 	        var callbacks = {
 	            cancel: fsm.cancel.bind(fsm),
 	            pause: fsm.pause.bind(fsm),
@@ -1250,41 +1277,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        // build handlers array
-	        fsm.config.order.map(function (token) {
-	            // determine path variables
-	            var _token$split = token.split(':');
-	
-	            var _token$split2 = _slicedToArray(_token$split, 2);
-	
-	            var type = _token$split2[0];
-	            var source = _token$split2[1]; // i.e. start.*, enter:to, end:action
-	
-	            var namespace = /^(start|end)$/.test(type) ? 'action' : 'state';
-	            var target = void 0;
-	            if (source === '*') {
-	                target = '*';
-	            } else if (namespace == 'action') {
-	                target = action;
-	            } else {
-	                target = type === 'leave' ? from : to;
-	            }
-	
-	            // get handlers
-	            var path = [namespace, target, type].join('.');
-	
+	        fsm.config.order.map(function (path) {
+	            // replace path tokens
+	            path = path.replace(/@(\w+)/g, function (all, token) {
+	                return vars[token];
+	            });
 	            var handlers = fsm.handlers.get(path);
-	            if (handlers) {
-	                // pre-bind handlers, scopes and params
-	                // this way scope and params don't need to be passed around
-	                handlers = handlers.map(function (handler) {
-	                    return function () {
-	                        var event = _Events2.default.create(namespace, type, target, from, to, callbacks);
-	                        return handler.apply(scope, [event].concat(params));
-	                    };
-	                });
 	
-	                // add to queue
-	                queue = queue.concat(handlers);
+	            // do it!
+	            if (handlers) {
+	                (function () {
+	                    var _path$split = path.split('.');
+	
+	                    var _path$split2 = _slicedToArray(_path$split, 3);
+	
+	                    var namespace = _path$split2[0];
+	                    var target = _path$split2[1];
+	                    var type = _path$split2[2];
+	
+	                    handlers = handlers.map(function (handler) {
+	                        // pre-bind handlers, scopes and params;
+	                        // this way scope and params don't need to be passed around
+	                        return function () {
+	                            var event = _Events2.default.create(namespace, type, target, from, to, callbacks);
+	                            return handler.apply(scope, [event].concat(params));
+	                        };
+	                    });
+	
+	                    // add to queue
+	                    queue = queue.concat(handlers);
+	                })();
 	            }
 	        });
 	

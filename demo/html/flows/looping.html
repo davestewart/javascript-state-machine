@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Looping state</title>
+    <title>Looping flow</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <h1>Looping state</h1>
+    <h1>Looping flow</h1>
 
     <main class="states">
 
@@ -29,7 +29,7 @@
     </main>
 
     <section id="info">
-        <p>This example is a variation on the <a href="sequential.html">sequential state</a> example, and just loops around the first and last states / slides.</p>
+        <p>This flow is a variation on the <a href="sequential.html">sequential</a> example, and just loops around the first and last states / slides.</p>
     </section>
 
     <script>
@@ -42,10 +42,10 @@
                 {name: 'next', from: 'c', to: 'd'},
                 {name: 'next', from: 'd', to: 'a'},
 
-                {name: 'back', from: 'a', to: 'd'},
                 {name: 'back', from: 'd', to: 'c'},
                 {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'}
+                {name: 'back', from: 'b', to: 'a'},
+                {name: 'back', from: 'a', to: 'd'}
             ]
         };
 

@@ -7,6 +7,17 @@
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+        #states > div{
+            display:inline-block;
+        }
+        #states div{
+            margin-bottom:10px;
+        }
+        #states div article{
+            height: 70px;
+        }
+    </style>
 </head>
 <body>
 
@@ -15,10 +26,17 @@
     <main class="states">
 
         <section id="states">
-            <article id="start">Start</article>
             <article id="a">State A</article>
-            <article id="b">State B</article>
-            <article id="c">State C</article>
+            <div>
+                <div>
+                    <article id="b1">State B1</article>
+                    <article id="c1">State C1</article>
+                </div>
+                <div>
+                    <article id="b2">State B2</article>
+                    <article id="c2">State C2</article>
+                </div>
+            </div>
         </section>
 
         <section id="controls">
@@ -29,24 +47,27 @@
 
     <section id="info">
         <p>By assigning a function to a transition <code>to</code> state, you can determine the target state at run time.</p>
-        <p>The example above will jump to a random state from the starting state, then return the start again.</p>
-        <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point.</p>
+        <p>The example above will alternately choose the top or bottom route based.</p>
+        <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point, for example character animation states or game bonuses.</p>
     </section>
 
     <script>
 
-        function random() {
-            var states = ['a', 'b', 'c'];
-            return states[Math.floor(Math.random() * states.length)];
+        var state = false;
+        function choose() {
+            return (state = !state) ? 'b1' : 'b2';
         }
 
         var config = {
 
             events: [
-                {name: 'next', from: 'start', to:random},
-                {name: 'next', from: 'a', to: 'start'},
-                {name: 'next', from: 'b', to: 'start'},
-                {name: 'next', from: 'c', to: 'start'}
+                {name: 'next', from: 'a', to:choose},
+                    
+                {name: 'next', from: 'b1', to: 'c1'},
+                {name: 'next', from: 'c1', to: 'a'},
+
+                {name: 'next', from: 'b2', to: 'c2'},
+                {name: 'next', from: 'c2', to: 'a'},
             ]
         };
 

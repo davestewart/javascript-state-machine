@@ -105,13 +105,19 @@
 
                 {name: 'back', from: 'form',  to: 'intro'},
                 {name: 'back', from: 'error', to: 'form'},
+                {name: 'back', from: 'finish', to: 'form'},
 
                 {name: 'error', from: 'form', to: 'error'}
             ],
 
             handlers:
             {
-                'leave:form': function (event)
+                'form@enter':function()
+                {
+                    $('form').removeClass('has-error');
+                },
+
+                'form@next': function (event)
                 {
                     // validate
                     if (!validate()) {
