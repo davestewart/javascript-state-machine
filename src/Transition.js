@@ -139,6 +139,7 @@ export default
         var scope   = fsm.scope;
         var from    = fsm.state;
         var to      = fsm.actions.get(action)[from];
+        let vars    = {action, to, from};
         var callbacks =
         {
             cancel   :fsm.cancel.bind(fsm),
@@ -158,39 +159,20 @@ export default
         }
 
         // build handlers array
-        fsm.config.order.map( token =>
+        fsm.config.order.map( path =>
         {
-            // determine path variables
-            let [type, source]      = token.split(':'); // i.e. start.*, enter:to, end:action
-            let namespace           = /^(start|end)$/.test(type)
-                                        ? 'action'
-                                        : 'state';
-            let target;
-            if(source === '*')
-            {
-                target = '*';
-            }
-            else if(namespace == 'action')
-            {
-                target = action;
-            }
-            else
-            {
-                target = type === 'leave'
-                    ? from
-                    : to;
-            }
-
-            // get handlers
-            let path = [namespace, target, type].join('.');
-
+            // replace path tokens
+            path = path.replace(/@(\w+)/g, (all, token) => vars[token]);
             let handlers = fsm.handlers.get(path);
+
+            // do it!
             if(handlers)
             {
-                // pre-bind handlers, scopes and params
-                // this way scope and params don't need to be passed around
+                let [namespace, target, type] = path.split('.');
                 handlers = handlers.map( handler =>
                 {
+                    // pre-bind handlers, scopes and params;
+                    // this way scope and params don't need to be passed around
                     return function()
                     {
                         let event = Events.create(namespace, type, target, from, to, callbacks);

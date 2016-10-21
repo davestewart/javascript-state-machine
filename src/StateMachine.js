@@ -230,21 +230,18 @@ StateMachine.prototype =
             /**
              * Sets the default order to run transition callbacks in
              *
-             * start/leave/enter/end  -> event types
-             * to/action              -> targeted handlers (leave:red)
-             * *                      -> global handlers   (leave, or leave:*)
-             *
              * @type {string[]} type.target
              */
             config.order = config.order || [
-                'start:*',
-                'start:action',
-                'leave:from',
-                'leave:*',
-                'enter:*',
-                'enter:to',
-                'end:action',
-                'end:*'
+                'action.*.start',
+                'action.@action.start',
+                'state.@from.@action',
+                'state.@from.leave',
+                'state.*.leave',
+                'state.*.enter',
+                'state.@to.enter',
+                'action.@action.end',
+                'action.*.end'
             ];
         },
 
@@ -661,6 +658,8 @@ StateMachine.prototype =
         on: function (id, fn)
         {
             let [namespace, type, targets] = parseHandler(this, id);
+
+            ///console.log(namespace, type, targets)
 
             targets.map( target =>
             {
