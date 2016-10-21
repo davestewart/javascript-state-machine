@@ -3,64 +3,67 @@
 <head>
     <title>Event handler playground</title>
     <script src="/assets/vendor/jquery.min.js"></script>
-    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
-    <link href="/assets/css/styles.css" rel="stylesheet">
+    <link  href="/assets/css/styles.css" rel="stylesheet">
     <style>
         #log {
             position:absolute;
             top:0;
             right:0;
             width:290px;
-            height:500px;
+            height:465px;
             border:1px solid #CCC;
             padding:15px;
             overflow: hidden;
             line-height: 1.2em;
             font-size:0.8em;
             font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            white-space: nowrap;
         }
 
-        #handlers {
-            position: relative;
-        }
+        #log p { margin:0; }
 
-        #info {
-            width:450px;
-        }
+        .system { color: black; }
+        .transition { color: blue; }
+        .action { color: red; }
+        .state { color: green; }
 
-        p { margin:0; }
-        p.system { color: black; }
-        p.transition { color: blue; }
-        p.action { color: red; }
-        p.state { color: green; }
-
-        hr {
+        #log hr {
             margin:10px 0;
         }
 
         #log span{
             display: inline-block;
         }
-        span.index {
+
+        #log span.index {
             width:25px;
             margin-right: 10px;
             text-align: right;
         }
 
-        span.message {
+        #log span.message {
             margin-left:10px;
         }
 
-        fieldset > label{
-            display: block;
+        #control-set > section {
+            display: inline-block;
+        }
+
+        #handlers {
+            position: relative;
         }
 
         #handlers > fieldset {
             display: inline-block;
             vertical-align: top;
             padding-right:30px;
+        }
+
+        fieldset > label{
+            display: block;
         }
 
         legend {
@@ -87,42 +90,47 @@
         <section id="states">
             <article id="a">State A</article>
             <article id="b">State B</article>
-            <article id="c">State C</article>
+            <article id="c">State C<br>(async. entry)</article>
         </section>
 
         <section id="handlers">
 
             <fieldset>
-                <legend>System</legend>
+                <legend class="system">System</legend>
                 <label><input type="checkbox" name="system" value="system.start"> start</label>
+                <label><input type="checkbox" name="system" value="system.change"> change</label>
                 <label><input type="checkbox" name="system" value="system.update"> update</label>
                 <label><input type="checkbox" name="system" value="system.complete"> complete</label>
                 <label><input type="checkbox" name="system" value="system.reset"> reset</label>
             </fieldset>
 
             <fieldset>
-                <legend>Action</legend>
-                <label><input type="checkbox" name="action" value="action.start"> start</label>
-                <label><input type="checkbox" name="action" value="action.end"> end</label>
-                <label><input type="checkbox" name="action" value="action.start:back"> start back</label>
-                <label><input type="checkbox" name="action" value="action.end:back"> end back</label>
-                <label><input type="checkbox" name="action" value="action.start:next"> start next</label>
-                <label><input type="checkbox" name="action" value="action.end:next"> end next</label>
+                <legend class="action">Action</legend>
+                <label><input type="checkbox" name="action" value="start"> start</label>
+                <label><input type="checkbox" name="action" value="end"> end</label>
+                <label><input type="checkbox" name="action" value="start:next"> start:next</label>
+                <label><input type="checkbox" name="action" value="end:next"> end:next</label>
+                <label><input type="checkbox" name="action" value="start:back"> start:back</label>
+                <label><input type="checkbox" name="action" value="end:back"> end:back</label>
             </fieldset>
 
             <fieldset>
-                <legend>State</legend>
-                <label><input type="checkbox" name="state" value="state.enter"> enter</label>
-                <label><input type="checkbox" name="state" value="state.leave"> leave</label>
-                <label><input type="checkbox" name="state" value="state.leave:b"> leave b</label>
-                <label><input type="checkbox" name="state" value="state.enter:c"> enter c</label>
-                <label><input type="checkbox" name="state" value="state.add"> add</label>
-                <label><input type="checkbox" name="state" value="state.remove"> remove</label>
-                <label><input type="checkbox" name="state" value="state.change"> change</label>
+                <legend class="state">State</legend>
+                <label><input type="checkbox" name="state" value="enter"> enter</label>
+                <label><input type="checkbox" name="state" value="leave"> leave</label>
+                <label><input type="checkbox" name="state" value="leave:a"> leave:a</label>
+                <label><input type="checkbox" name="state" value="enter:b"> enter:b</label>
+                <label><input type="checkbox" name="state" value="leave:b c"> leave:b c</label>
+                <label><input type="checkbox" name="state" value="next:a b"> next:a b</label>
+                <label><input type="checkbox" name="state" value="a@next"> a@next</label>
+                <label><input type="checkbox" name="state" value="a b@next"> a b@next</label>
+                <label><input type="checkbox" name="state" value="a@leave"> a@leave</label>
+                <label><input type="checkbox" name="state" value="add"> add</label>
+                <label><input type="checkbox" name="state" value="remove"> remove</label>
             </fieldset>
 
             <fieldset>
-                <legend>Transition</legend>
+                <legend class="transition">Transition</legend>
                 <label><input type="checkbox" name="transition" value="transition.pause"> pause</label>
                 <label><input type="checkbox" name="transition" value="transition.resume"> resume</label>
                 <label><input type="checkbox" name="transition" value="transition.cancel"> cancel</label>
@@ -132,6 +140,7 @@
 
         <div id="control-set">
             <section id="controls">
+                <button class="btn btn-sm" name="start">Start</button>
                 <button class="btn btn-sm" name="back">Back</button>
                 <button class="btn btn-sm" name="next">Next</button>
             </section>
@@ -147,18 +156,33 @@
     </main>
 
     <section id="info">
-        <p>Toggle handlers for events on and off using the checkboxes above, then use the buttons to navigate the flow and view logging output.</p>
+        <p>This example demonstrates the various events you can listen to and take action on:</p>
+        <ul>
+            <li>Toggle handlers for the events above using the checkboxes</li>
+            <li>Use the buttons to navigate the flow</li>
+            <li>Note the order and timing of events in the panel on the right</li>
+        </ul>
+        <p>Note that all handlers operate independently of one another:</p>
+        <ul>
+            <li>You can listen to global (all states, and all actions) as well as named events</li>
+            <li>You can mix and match all event handler types to both control and react to your flow</li>
+        </ul>
     </section>
 
     <script>
 
         var config = {
 
-            final: 'c',
-
             debug: true,
 
-            events: [
+            start: 'a',
+
+            final: 'c',
+
+            events:
+            [
+                {name: 'start', from: 'none', to: 'a'},
+
                 {name: 'next', from: 'a', to: 'b'},
                 {name: 'next', from: 'b', to: 'c'},
                 {name: 'next', from: 'c', to: 'a'},
@@ -172,6 +196,9 @@
                 'enter:c': function (event) {
                     event.pause();
                     setTimeout(event.resume, 3000);
+                },
+                update: function (event) {
+
                 }
             }
         };
@@ -185,7 +212,10 @@
         var handlers = {
 
             system: function (event) {
-                log(event.namespace, event.type);
+                var message = event.key
+                    ? [event.key, event.value]
+                    : '';
+                log(event.namespace, event.type, message);
             },
 
             action: function (event) {
@@ -222,12 +252,6 @@
             }
         };
 
-        $('#controls button').on('click', function () {
-            if($log[0].firstChild.tagName === 'P'){
-                $log.prepend('<hr>');
-            }
-        });
-
         $('input[type="checkbox"]').on('change', function (event) {
             var signature = event.target.value;
             var method = event.target.checked ? 'on' : 'off';
@@ -235,6 +259,12 @@
                 ? handlers[event.target.name]
                 : handlers.target;
             fsm[method](signature, handler);
+        });
+
+        $('#control-set button').on('mouseup', function () {
+            if($log[0].firstChild.tagName === 'P'){
+                $log.prepend('<hr>');
+            }
         });
 
         $('#more-controls button').on('click', function (event) {

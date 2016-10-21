@@ -6,7 +6,7 @@
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
-    <link href="/assets/css/styles.css" rel="stylesheet">
+    <link  href="/assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
 
@@ -94,8 +94,6 @@
 
         var config = {
 
-            initial:'intro',
-
             events:
             [
                 // next:   intro > form > finish
@@ -107,13 +105,19 @@
 
                 {name: 'back', from: 'form',  to: 'intro'},
                 {name: 'back', from: 'error', to: 'form'},
+                {name: 'back', from: 'finish', to: 'form'},
 
                 {name: 'error', from: 'form', to: 'error'}
             ],
 
             handlers:
             {
-                'leave:form': function (event)
+                'form@enter':function()
+                {
+                    $('form').removeClass('has-error');
+                },
+
+                'form@next': function (event)
                 {
                     // validate
                     if (!validate()) {

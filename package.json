@@ -7,7 +7,7 @@
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js",
     "build": "webpack --mode=build",
-    "demo": "cpx ./lib/state-machine.js ./demo/assets/js --watch | lite-server"
+    "demo": "npm run dev | cpx ./lib/state-machine.js ./demo/assets/js --watch | lite-server"
   },
   "devDependencies": {
     "babel": "6.3.13",

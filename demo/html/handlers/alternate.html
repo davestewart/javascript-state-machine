@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Sequential flow</title>
+    <title>Alternate transitions</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <h1>Sequential flow</h1>
+    <h1>Alternate transitions</h1>
 
     <main class="states">
 
@@ -29,14 +29,8 @@
     </main>
 
     <section id="info">
-        <p>This example navigates 4 states using only 2 actions, <code>next</code> and <code>back</code>.</p>
-        <p>Transitions are dependent on current state, thus multiple transitions can be described using the same action, as long as the <code>from</code> and <code>to</code> states are different:</p>
-        <ul>
-            <li><code>next : a &gt; b</code></li>
-            <li><code>next : b &gt; c</code></li>
-            <li><code>next : c &gt; d</code></li>
-        </ul>
-        <p>etc...</p>
+        <p>It's possible to force a new state from a an event by cancelling an event, and passing a new state.</p>
+        <p>This can be useful in asynchronous transitions for example, perhaps if a server responded incorrectly, or you have some other reason to disrupt the planned flow.</p>
     </section>
 
     <script>

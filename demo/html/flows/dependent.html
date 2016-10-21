@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Example setups</title>
+    <title>Dependent flow</title>
     <script src="/assets/vendor/jquery.min.js"></script>
-    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
-    <link href="/assets/css/styles.css" rel="stylesheet">
+    <link  href="/assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
 
-    <h1>Example setups</h1>
+    <h1>Dependent flow</h1>
 
     <main class="states">
 
@@ -29,23 +29,12 @@
     </main>
 
     <section id="info">
-        <p>All examples are setup using <code>examples/assets/js/setup.js</code> which:</p>
-        <ul>
-            <li>Updates the onscreen state diagram active state</li>
-            <li>Enables and disabled buttons depending on available transitions</li>
-        </ul>
-        <p>For all examples:</p>
-        <ul>
-            <li>Inspect the HTML using your browser's dev tools</li>
-            <li>View the page's HTML to see the custom code for that setup</li>
-        </ul>
+        <p>Building on top of the <a href="sequential.html">sequential</a> flow, this example simulates a linked list, with states being dependent on siblings.</p>
     </section>
 
     <script>
 
         var config = {
-
-            initial: 'standing',
 
             events: [
                 {name: 'walk',  from: 'standing', to: 'walking'},

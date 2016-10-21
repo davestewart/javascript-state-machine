@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Programmatic transitions</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+        #states > div{
+            display:inline-block;
+        }
+        #states div{
+            margin-bottom:10px;
+        }
+        #states div article{
+            height: 70px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Programmatic transitions</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <div>
+                <div>
+                    <article id="b1">State B1</article>
+                    <article id="c1">State C1</article>
+                </div>
+                <div>
+                    <article id="b2">State B2</article>
+                    <article id="c2">State C2</article>
+                </div>
+            </div>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>By assigning a function to a transition <code>to</code> state, you can determine the target state at run time.</p>
+        <p>The example above will alternately choose the top or bottom route based.</p>
+        <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point, for example character animation states or game bonuses.</p>
+    </section>
+
+    <script>
+
+        var state = false;
+        function choose() {
+            return (state = !state) ? 'b1' : 'b2';
+        }
+
+        var config = {
+
+            events: [
+                {name: 'next', from: 'a', to:choose},
+                    
+                {name: 'next', from: 'b1', to: 'c1'},
+                {name: 'next', from: 'c1', to: 'a'},
+
+                {name: 'next', from: 'b2', to: 'c2'},
+                {name: 'next', from: 'c2', to: 'a'},
+            ]
+        };
+
+        setup(new StateMachine(document, config));
+
+    </script>
+</body>
+</html>

@@ -21,7 +21,7 @@ function update(){
     // update buttons
     $buttons
         .each(function(i, e){
-            e.disabled = ! fsm.can(e.name);
+            e.disabled = ! fsm.can(e.name) || fsm.isPaused();
         });
 }
 
@@ -32,8 +32,7 @@ function setup(fsm) {
 
     // elements
     $states = $('#states');
-    $controls = $('#controls');
-    $buttons = $controls.find('button');
+    $buttons = $('#controls button');
 
     // bind button clicks to fsm actions
     $buttons.on('click', function(event){

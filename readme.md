@@ -55,7 +55,7 @@ The following NPM tasks are available, via `npm run <task>`:
 
 - `dev` - compile and watch the source to `state-machine.js`
 - `build` - compile teh source to `state-machine.min.js`
-- `demo` - watch and copy development build to `demo/`, and serve demo file at `http://localhost:8888`
+- `demo` - compile, watch and copy the development build to `demo/` and serve demo files at `http://localhost:8888`
 - `test` - run all tests
 
 

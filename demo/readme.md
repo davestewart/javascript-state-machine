@@ -18,10 +18,7 @@ Examples:
 - Animating views
 - etc.
 
-Run `index.html` directly in browser, or for development:
- 
-```
-npm run dev | npm run demo
-```
- 
-The development build will run and watch, and the demo server will launch and in turn watch the demo build for changes.
+To view the demo files:
+
+- Load `/demo/index.html` for the latest static development build
+- Run `npm run demo` to run and watch the development build, llve-reloading the browser when source files are updated
