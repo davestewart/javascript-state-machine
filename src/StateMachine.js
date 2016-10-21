@@ -651,6 +651,13 @@ StateMachine.prototype =
          * - next
          * - intro
          *
+         * Finally, you can target a state with an action:
+         *
+         * - state@action
+         * - intro@next
+         * - form@submit
+         * - form@leave (built-in state/action)
+         *
          * @param id
          * @param fn
          * @return {StateMachine}
@@ -741,11 +748,28 @@ function addState (fsm, state)
 
 function parseHandler(fsm, id)
 {
-    // get initial matches
-    let matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
-    if(matches)
+    // variables
+    var matches, namespace, type, action, target, invalid;
+
+    // match state@action
+    if(id.indexOf('@') !== -1)
     {
-        var [,namespace, type, target, invalid] = matches;
+        matches = id.match(/^(?:state\.)?\s*(\w+[ -_\w]*)@(\w+)$/);
+        if(matches)
+        {
+            namespace = 'state';
+            [,target, action] = matches;
+            type = action;
+        }
+    }
+    // matches other
+    else
+    {
+        matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
+        if(matches)
+        {
+            [,namespace, type, target, invalid] = matches;
+        }
     }
 
     // flag invalid
