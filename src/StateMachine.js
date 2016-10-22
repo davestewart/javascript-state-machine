@@ -297,12 +297,18 @@ StateMachine.prototype =
          * Finds if an appropriate transition exists, then calls the related action if it does
          *
          * @param   {string}    state
+         * @param   {boolean}   [force]
          * @returns {boolean}
          */
-        go: function (state)
+        go: function (state, force = false)
         {
             if(this.has(state))
             {
+                if(force)
+                {
+                    this.transition = Transition.force(this, state);
+                    return this.end();
+                }
                 var action = this.getActionForState(state);
                 if(action)
                 {
