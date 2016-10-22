@@ -1,4 +1,4 @@
-import Events from './Events';
+import { StateEvent, ActionEvent } from './Events';
 import { isFunction } from './utils/utils';
 
 /**
@@ -42,29 +42,35 @@ import { isFunction } from './utils/utils';
  *
  * When the last callback has fired, the main FSM's end() handler will be called and the state will updated
  *
+ * @param {StateMachine}    fsm
  * @param {string}          action
  * @param {string}          from
  * @param {string}          to
- * @param {Function[]}      handlers
- * @param {Object}          callbacks
  */
-function Transition (action, from, to, handlers, callbacks)
+function Transition (fsm, action, from, to)
 {
+    this.fsm        = fsm;
     this.action     = action;
     this.from       = from;
     this.to         = to;
-    this.handlers   = handlers;
-    this.callbacks  = callbacks;
+    this.clear();
 }
 
+/**
+ * @prop {StateMachine}    fsm
+ * @prop {string}          action
+ * @prop {string}          from
+ * @prop {string}          to
+ * @prop {Function[]}      handlers
+ */
 Transition.prototype =
 {
+    fsm         : null,
     action      : '',
     from        : '',
     to          : '',
-    handlers    : null,
-    callbacks   : null,
     paused      : false,
+    handlers    : null,
 
     clear: function ()
     {
@@ -86,17 +92,17 @@ Transition.prototype =
                 var state = handler();
                 if(state === false)
                 {
-                    return this.callbacks.cancel();
+                    return this.fsm.cancel();
                 }
                 if(state === true)
                 {
-                    return this.callbacks.pause();
+                    return this.fsm.pause();
                 }
                 this.exec();
             }
             else
             {
-                this.callbacks.end();
+                this.fsm.end();
             }
         }
         return this;
@@ -115,14 +121,13 @@ Transition.prototype =
     }
 };
 
-
 export default
 {
     /**
      * Create the Transition object
      *
-     * - Set up variables, callbacks and queue
-     * - Determine paths to relevant callbacks
+     * - Set up variables, and queue
+     * - Determine paths to relevant handlers
      * - Build State and Action Event objects
      * - Pre-bind all handlers
      * - Append to queue
@@ -134,19 +139,11 @@ export default
      */
     create:function (fsm, action, params)
     {
-        // transition
-        var queue   = [];
-        var scope   = fsm.scope;
-        var from    = fsm.state;
-        var to      = fsm.actions.get(action)[from];
+        // transition properties
+        let scope   = fsm.scope;
+        let from    = fsm.state;
+        let to      = fsm.actions.get(action)[from];
         let vars    = {action, to, from};
-        var callbacks =
-        {
-            cancel   :fsm.cancel.bind(fsm),
-            pause    :fsm.pause.bind(fsm),
-            resume   :fsm.resume.bind(fsm),
-            end      :fsm.end.bind(fsm)
-        };
 
         // handle "to" being a function
         if(isFunction(to))
@@ -157,6 +154,10 @@ export default
                 throw new Error('Invalid "to" state "' +to+ '"');
             }
         }
+
+        // transition
+        let queue       = [];
+        let transition  = new Transition(fsm, action, from, to);
 
         // build handlers array
         fsm.config.order.map( path =>
@@ -171,24 +172,34 @@ export default
                 let [namespace, target, type] = path.split('.');
                 handlers = handlers.map( handler =>
                 {
-                    // pre-bind handlers, scopes and params;
+                    // build event object
+                    let Event = namespace === 'state' ? StateEvent : ActionEvent;
+                    let event = new Event(type, target, transition);
+
+                    // pre-bind handlers, scopes and params
                     // this way scope and params don't need to be passed around
+                    // and the call from Transition is always just `value = handler()`
                     return function()
                     {
-                        let event = Events.create(namespace, type, target, from, to, callbacks);
-                        return handler.apply(scope, [event].concat(params));
+                        return handler.apply(scope, [event, fsm].concat(params));
                     }
                 });
 
                 // add to queue
                 queue = queue.concat(handlers);
             }
-
         });
 
-        // create
-        return new Transition(action, from, to, queue, callbacks);
+        // return
+        transition.handlers = queue;
+        return transition;
+    },
+
+    force: function(fsm, state)
+    {
+        let transition = new Transition(fsm, '', fsm.state, state);
+        transition.paused = fsm.transition ? fsm.transition.paused : false;
+        return transition;
     }
 
 }
-
