@@ -175,11 +175,15 @@ export function remove(obj, path, value)
     }
     if(isDefined(value) && isArray(parent[key]))
     {
-        parent = parent[key];
-        var index = parent.indexOf(value);
+        let target = parent[key];
+        var index = target.indexOf(value);
         if(index > -1)
         {
-            parent.splice(index, 1);
+            target.splice(index, 1);
+            if(target.length === 0)
+            {
+                delete parent[key];
+            }
             return true;
         }
         return false;
