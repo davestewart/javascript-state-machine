@@ -59,6 +59,10 @@ The following NPM tasks are available, via `npm run <task>`:
 - `demo` - compile, watch and copy the development build to `demo/` and serve demo files at `http://localhost:8888`
 - `test` - run all tests
 
+To run a single or set of tests, use the following syntax:
+
+- `npm run test -- --grep="<filename>"`
+
 
 ## Mentions
 
