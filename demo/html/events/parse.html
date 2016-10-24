@@ -42,7 +42,7 @@
         var fsm = new StateMachine({
             start: 'a',
             final: 'c',
-            events: [
+            transitions: [
                 {name: 'initialize', from: 'none', to: 'a'},
 
                 {name: 'next', from: 'a', to: 'b'},

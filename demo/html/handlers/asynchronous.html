@@ -51,7 +51,7 @@
 
         var config = {
 
-            events: [
+            transitions: [
                 {name: 'next', from: 'step1', to: 'step2'},
                 {name: 'back', from: 'step2', to: 'step1'}
             ],
@@ -61,7 +61,7 @@
             }
         };
 
-        setup(new StateMachine(document, config));
+        setup(new StateMachine(config));
 
     </script>
 </body>

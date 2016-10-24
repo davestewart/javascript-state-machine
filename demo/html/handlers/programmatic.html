@@ -60,7 +60,7 @@
 
         var config = {
 
-            events: [
+            transitions: [
                 {name: 'next', from: 'a', to:choose},
                     
                 {name: 'next', from: 'b1', to: 'c1'},
@@ -71,7 +71,7 @@
             ]
         };
 
-        setup(new StateMachine(document, config));
+        setup(new StateMachine(config));
 
     </script>
 </body>

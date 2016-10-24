@@ -37,7 +37,7 @@
 
         var config = {
 
-            events: [
+            transitions: [
                 {name: 'walk',  from: 'standing', to: 'walking'},
                 {name: 'run',   from: 'walking',  to: 'running'},
                 {name: 'walk',  from: 'running',  to: 'walking'},
@@ -45,7 +45,7 @@
             ]
         };
 
-        setup(new StateMachine(document, config));
+        setup(new StateMachine(config));
 
     </script>
 </body>

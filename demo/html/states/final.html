@@ -54,7 +54,7 @@
 
             final: 'c',
 
-            events: [
+            transitions: [
                 {name: 'next', from: 'a', to: 'b'},
                 {name: 'next', from: 'b', to: 'c'},
                 {name: 'back', from: 'c', to: 'b'},
@@ -69,7 +69,7 @@
 
         };
 
-        setup(new StateMachine(document, config));
+        setup(new StateMachine(config));
 
     </script>
 </body>
