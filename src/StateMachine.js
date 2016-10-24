@@ -2,11 +2,11 @@ import ValueMap from './utils/ValueMap';
 import Transition from './Transition';
 import { SystemEvent, TransitionEvent } from './Events';
 import { isString, isFunction } from './utils/utils';
-import { getPath, parse } from './utils/handlers'
+import { parse } from './utils/handlers'
 
 export default function StateMachine (scope, config)
 {
-    // parameters
+    // allow [scope, config] or [config] as parameters
     if(arguments.length == 1)
     {
         [config, scope] = [scope, null];
@@ -28,7 +28,6 @@ export default function StateMachine (scope, config)
 }
 
 StateMachine.parse = parse;
-StateMachine.getPath = getPath;
 
 /**
  * StateMachine prototype
@@ -142,7 +141,7 @@ StateMachine.prototype =
          *
          * @var {ValueMap}
          */
-        handlers   : null,
+        handlers    : null,
 
         /**
          * The current state
@@ -163,7 +162,7 @@ StateMachine.prototype =
          *
          * @var {*}
          */
-        scope      : null,
+        scope       : null,
 
         /**
          * The original config object
@@ -194,8 +193,8 @@ StateMachine.prototype =
             }
 
             // pre-collate all states
-            addStates(this, 'from', config.events);
-            addStates(this, 'to', config.events);
+            addStates(this, 'from', config.transitions);
+            addStates(this, 'to', config.transitions);
 
             // initial state
             if( ! config.initial )
@@ -204,39 +203,45 @@ StateMachine.prototype =
             }
 
             // add transitions
-            config.events.map( event =>
+            if(Array.isArray(config.transitions))
             {
-                // shorthand
-                if(isString(event))
+                config.transitions.map( transition =>
                 {
-                    let matches = event.match(/(\w+)\s*[\|:=]\s*(\w+)\s*([<>-])\s*(\w.*)/);
-                    let [,name, from, op, to] = matches;
-                    if(op === '-')
+                    // shorthand
+                    if(isString(transition))
                     {
+                        let matches = transition.match(/(\w+)\s*[|:=]\s*(\w+)\s*([<>-])\s*(\w.*)/);
+                        let [,name, from, op, to] = matches;
+                        if(op === '-')
+                        {
+                            this.add(name, from, to);
+                            this.add(name, to, from);
+                            return;
+                        }
+                        if(op === '<')
+                        {
+                            [from, to] = [to, from];
+                        }
                         this.add(name, from, to);
-                        this.add(name, to, from);
-                        return;
                     }
-                    if(op === '<')
-                    {
-                        [from, to] = [to, from];
-                    }
-                    this.add(name, from, to);
-                }
 
-                // keys
-                else
-                {
-                    this.add(event.name, event.from, event.to);
-                }
-            });
+                    // keys
+                    else
+                    {
+                        this.add(transition.name, transition.from, transition.to);
+                    }
+                });
+            }
 
             // add handlers
-            for(let name in config.handlers)
+            if(config.handlers)
             {
-                if(config.handlers.hasOwnProperty(name))
+                for(let name in config.handlers)
                 {
-                    this.on(name, config.handlers[name]);
+                    if(config.handlers.hasOwnProperty(name))
+                    {
+                        this.on(name, config.handlers[name]);
+                    }
                 }
             }
 
@@ -277,7 +282,6 @@ StateMachine.prototype =
                 'state.*.leave',
                 'state.*.enter',
                 'state.{to}.enter',
-                //'state.{to}.{action}',
                 'action.{action}.end',
                 'action.*.end'
             ];
@@ -776,7 +780,10 @@ StateMachine.prototype =
  */
 function addStates(fsm, key, transitions)
 {
-    transitions.map( event => addState(fsm, event[key]) );
+    if(transitions)
+    {
+        transitions.map( event => addState(fsm, event[key]) );
+    }
 }
 
 function addState (fsm, state)
