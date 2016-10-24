@@ -18,7 +18,4 @@ Examples:
 - Animating views
 - etc.
 
-To view the demo files:
-
-- Load `/demo/index.html` for the latest static development build
-- Run `npm run demo` to run and watch the development build, llve-reloading the browser when source files are updated
+To view the demo files, run `npm run demo`. Any changes will be live-reloaded.
