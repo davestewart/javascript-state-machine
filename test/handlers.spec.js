@@ -3,54 +3,52 @@ import chai from 'chai';
 import StateMachine from '../src/StateMachine';
 import {parse, getPath} from '../src/utils/handlers';
 
-const describe = mocha.describe;
-const it = mocha.it;
+//const describe = mocha.describe;
+//const it = mocha.it;
 
 chai.expect();
-chai.should();
 
 const assert = chai.assert;
 const expect = chai.expect;
 
+// make a new state machine
+let fsm = new StateMachine({
+    start: 'a',
+    final: 'c',
+    events: [
+        {name: 'initialize', from: 'none', to: 'a'},
+
+        {name: 'next', from: 'a', to: 'b'},
+        {name: 'next', from: 'b', to: 'c'},
+        {name: 'next', from: 'c', to: 'a'},
+
+        {name: 'back', from: 'c', to: 'b'},
+        {name: 'back', from: 'b', to: 'a'},
+        {name: 'back', from: 'a', to: 'c'}
+    ]
+});
+
+function test (id, path)
+{
+    // convert path to array
+    let paths = path.match(/\S+/g);
+
+    // parse input
+    var [namespace, type, targets] = parse(fsm, id);
+
+    // convert
+    targets.forEach( (target, i) =>
+    {
+        targets[i] = getPath(namespace, type, target);
+    });
+
+    // compare
+    assert.deepEqual(paths, targets);
+}
 
 describe('Testing parsing of event handler ids for:', function () {
 
-    // make a new state machine
-    let fsm = new StateMachine({
-        start: 'a',
-        final: 'c',
-        events: [
-            {name: 'initialize', from: 'none', to: 'a'},
-
-            {name: 'next', from: 'a', to: 'b'},
-            {name: 'next', from: 'b', to: 'c'},
-            {name: 'next', from: 'c', to: 'a'},
-
-            {name: 'back', from: 'c', to: 'b'},
-            {name: 'back', from: 'b', to: 'a'},
-            {name: 'back', from: 'a', to: 'c'}
-        ]
-    });
-
-    function test (id, path)
-    {
-        // convert path to array
-        let paths = path.match(/\S+/g);
-
-        // parse input
-        var [namespace, type, targets] = parse(fsm, id);
-
-        // convert
-        targets.forEach( (target, i) =>
-        {
-            targets[i] = getPath(namespace, type, target);
-        });
-
-        // compare
-        assert.deepEqual(paths, targets);
-    }
-
-    describe('system', function () {
+    describe('system (shorthand)', function () {
 
         describe('start', function () {
             it("results in 'system.start'", function () {
@@ -96,7 +94,7 @@ describe('Testing parsing of event handler ids for:', function () {
 
     });
 
-    describe('transition', function () {
+    describe('transition (shorthand)', function () {
 
         describe('pause', function () {
             it("results in 'transition.pause'", function () {
@@ -113,6 +111,23 @@ describe('Testing parsing of event handler ids for:', function () {
         describe('cancel', function () {
             it("results in 'transition.cancel'", function () {
                 test('cancel', 'transition.cancel');
+            });
+        });
+
+    });
+
+
+    describe('system / transition (absolute)', function () {
+
+        describe('system.start', function () {
+            it("results in 'system.start'", function () {
+                test('system.start', 'system.start');
+            });
+        });
+
+        describe('transition.pause', function () {
+            it("results in 'transition.pause'", function () {
+                test('transition.pause', 'transition.pause');
             });
         });
 
@@ -192,7 +207,7 @@ describe('Testing parsing of event handler ids for:', function () {
 
         describe(':enter', function () {
             it("results in 'state.*.enter'", function () {
-                test(':enter', 'state.*.leave');
+                test(':enter', 'state.*.enter');
             });
         });
 
@@ -203,14 +218,8 @@ describe('Testing parsing of event handler ids for:', function () {
         });
 
         describe('a:leave', function () {
-            it("results in 'state.*.leave'", function () {
-                test('a:leave', 'state.*.leave');
-            });
-        });
-
-        describe('a.next', function () {
-            it("results in 'state.a.next'", function () {
-                test('a.next', 'state.a.next');
+            it("results in 'state.a.leave'", function () {
+                test('a:leave', 'state.a.leave');
             });
         });
 
@@ -220,19 +229,37 @@ describe('Testing parsing of event handler ids for:', function () {
             });
         });
 
+    });
+
+    describe('state + action', function () {
+
+        describe('a.next', function () {
+            it("results in 'state.a.next'", function () {
+                test('a.next', 'state.a.next');
+            });
+        });
+
+        describe('b.leave', function () {
+            it("results in 'state.b.leave'", function () {
+                test('a.leave', 'state.a.leave');
+            });
+        });
+
+        describe('(a|b).next', function () {
+            it("results in 'state.a.next state.b.next'", function () {
+                test('(a|b).next', 'state.a.next state.b.next');
+            });
+        });
+
         describe('state.(a|b).next', function () {
             it("results in 'state.a.next state.b.next'", function () {
                 test('state.(a|b).next', 'state.a.next state.b.next');
             });
         });
 
-    });
-
-    describe('state + action', function () {
-
         describe('@next', function () {
-            it("results in 'action.*.next.start'", function () {
-                test('@next', 'action.*.next.start');
+            it("results in 'state.*.next'", function () {
+                test('@next', 'state.*.next');
             });
         });
 
@@ -242,18 +269,12 @@ describe('Testing parsing of event handler ids for:', function () {
             });
         });
 
-        describe('c@next (async)', function () {
-            it("results in 'state.c.next'", function () {
-                test('c@next (async)', 'state.c.next');
+        describe('(a|b)@next', function () {
+            it("results in 'state.a.next state.b.next '", function () {
+                test('(a|b)@next', 'state.a.next state.b.next');
             });
         });
 
-    });
-
-    describe('when I need a', function () {
-        it('I should get a', () => {
-            test()
-        });
     });
 
 });
