@@ -2,15 +2,25 @@ import ValueMap from './utils/ValueMap';
 import Transition from './Transition';
 import { SystemEvent, TransitionEvent } from './Events';
 import { isString, isFunction } from './utils/utils';
+import { getPath, parse } from './utils/handlers'
 
 export default function StateMachine (scope, config)
 {
+    // parameters
+    if(arguments.length == 1)
+    {
+        [config, scope] = [scope, null];
+    }
+
+    // assignment
     this.scope          = scope;
     this.state          = '';
     this.states         = [];
     this.transitions    = new ValueMap();
     this.actions        = new ValueMap();
     this.handlers       = new ValueMap();
+
+    // initialize
     if(config)
     {
         this.initialize(config);
@@ -174,6 +184,12 @@ StateMachine.prototype =
             // assign config
             this.config     = config;
 
+            // scope
+            if(config.scope)
+            {
+                this.scope = config.scope;
+            }
+
             // pre-collate all states
             addStates(this, 'from', config.events);
             addStates(this, 'to', config.events);
@@ -221,26 +237,45 @@ StateMachine.prototype =
                 }
             }
 
-            // state
+            // start automatically unless defer is set to true
             if( ! config.defer )
             {
                 this.state = config.initial;
             }
 
             /**
+             * Sets defaults for various declarations
+             *
+             * @type {Object}
+             */
+            config.defaults = Object.assign({
+
+                // initialize event
+                initialize  :'initialize',
+
+                // handler defaults
+                action      :'start',
+                state       :'enter'
+
+            }, config.defaults);
+
+            /**
              * Sets the default order to run transition callbacks in
              *
              * @type {string[]} type.target
              */
-            config.order = config.order || [
+            config.order = config.order ||
+            [
                 'action.*.start',
-                'action.@action.start',
-                'state.@from.@action',
-                'state.@from.leave',
+                'action.{action}.start',
+                'state.{*}.{action}',
+                'state.{from}.{action}',
+                'state.{from}.leave',
                 'state.*.leave',
                 'state.*.enter',
-                'state.@to.enter',
-                'action.@action.end',
+                'state.{to}.enter',
+                //'state.{to}.{action}',
+                'action.{action}.end',
                 'action.*.end'
             ];
         },
