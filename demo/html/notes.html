@@ -10,14 +10,15 @@
     <h1>Notes</h1>
 
     <section id="info">
-        <p>All examples first run a basic setup script <code>examples/assets/js/setup.js</code> which:</p>
+        <p>All examples first run a basic setup script <code>demo/assets/js/setup.js</code> which:</p>
         <ul>
-            <li>Assigns the state machine to the global <code>fsm</code>variable</li>
+            <li>Assigns the StateMachine instance to the global <code>fsm</code>variable</li>
             <li>Adds an <code>update</code> listener to the fsm to:</li>
             <ul>
                 <li>Update the onscreen state diagram's active state</li>
                 <li>Enable / disable buttons depending on available actions and <code>isPaused()</code> result</li>
             </ul>
+            <li>Logs the instance to the console</li>
         </ul>
         <p>To understand each of the examples:</p>
         <ul>
