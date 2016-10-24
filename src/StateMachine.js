@@ -668,70 +668,66 @@ StateMachine.prototype =
         /**
          * Add an event handler
          *
-         * Event handler signature:
+         * Event handler signatures are build from the following grammar:
          *
-         * - namespace.type:target1 target2 target3 ...
+         * - token      foo
+         * - property   .foo
+         * - event      :foo
+         * - action     @foo
+         * - targets    (foo|bar|baz)
          *
-         * Valid event namespaces / types:
+         * For example:
          *
-         * - system.(change|update|complete|reset)
-         * - action.(start|end)
-         * - state.(add|remove|leave|enter)
-         * - transition.(pause|resume|cancel)
+         * - change
+         * - transition.pause
+         * - next:end
+         * - (a|b)@next
+         * - a@next
          *
-         * As event types are unique, they can be used without the namespace:
+         * The main event types are unique, so can be used without the namespace:
          *
          * - change
          * - pause
-         * - start
-         * - end
-         * - leave:red
-         * - enter:blue green
-         * - start:next
-         * - end:back
+         * - complete
+         * - ...
          *
-         * You can also just pass action or names to target individual state.leave / action.end events:
+         * If your states and events are unique, they can also be used without qualification.
          *
-         * - next
-         * - intro
+         * See docs and demo for more information
          *
-         * Finally, you can target a state with an action:
-         *
-         * - state@action
-         * - intro@next
-         * - form@submit
-         * - form@leave (built-in state/action)
-         *
-         * @param id
-         * @param fn
-         * @return {StateMachine}
+         * @param   {string}        id
+         * @param   {Function}      fn
+         * @return  {StateMachine}
          */
         on: function (id, fn)
         {
-            let [namespace, type, targets] = parse(this, id);
+            /** @type {ParseResult} */
+            let result = parse(this, id);
 
             if(this.config.debug)
             {
-                console.log('StateMachine on: ' + id, [namespace, type], targets)
+                console.log('StateMachine on: ' + id, [result.namespace, result.type], result.paths)
             }
 
-            targets.map( target =>
+            result.paths.map( (path, index) =>
             {
+                let target = result.targets[index];
+
                 // warn for invalid actions / states
                 if(target !== '*')
                 {
-                    if(namespace === 'state')
+                    if(result.namespace === 'state')
                     {
                         if(this.states.indexOf(target) === -1)
                         {
-                            this.config.debug && console.warn('StateMachine: Warning assigning state.%s handler; no such state "%s"', type, target);
+                            this.config.debug && console.warn('StateMachine: Warning assigning state.%s handler; no such state "%s"', result.type, target);
                         }
                     }
-                    else if(namespace === 'action')
+                    else if(result.namespace === 'action')
                     {
                         if(!this.actions.has(target))
                         {
-                            this.config.debug && console.warn('StateMachine: Warning assigning action.%s handler; no such action "%s"', type, target);
+                            this.config.debug && console.warn('StateMachine: Warning assigning action.%s handler; no such action "%s"', result.type, target);
                         }
                     }
                 }
@@ -739,11 +735,10 @@ StateMachine.prototype =
                 // check handler is a function
                 if(!isFunction(fn))
                 {
-                    throw new Error('Error assigning ' +namespace+ '.' +type+ ' handler; callback is not a Function', fn);
+                    throw new Error('Error assigning ' +result.namespace+ '.' +result.type+ ' handler; callback is not a Function', fn);
                 }
 
                 // assign
-                let path = getPath(namespace, type, target);
                 this.handlers.insert(path, fn);
             });
 
@@ -752,10 +747,9 @@ StateMachine.prototype =
 
         off: function (id, fn)
         {
-            let [namespace, type, targets] = parse(this, id);
-            targets.map( target =>
+            let result = parse(this, id);
+            result.paths.map( path =>
             {
-                let path = getPath(namespace, type, target);
                 this.handlers.remove(path, fn)
             });
         },

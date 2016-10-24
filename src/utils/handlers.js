@@ -29,7 +29,7 @@ let lookup =
  *
  * @param {StateMachine}    fsm
  * @param {string}          id
- * @return {*[]}
+ * @return {ParseResult}
  */
 export function parse(fsm, id)
 {
@@ -90,7 +90,7 @@ export function parse(fsm, id)
             }
         }
 
-        // action / leave
+        // action event, i.e. :event
         else if(/^(enter|leave)$/.test(value))
         {
             type = value;
@@ -100,7 +100,18 @@ export function parse(fsm, id)
     // process
     segments    = id.match(/:\w+|@\w+|\(.+?\)|\.\w+|\w+/g);
 
-    // process segments
+    /**
+     * This is the engine of the parse process
+     *
+     * The regex above matches the grammar of the expression into an array:
+     *
+     * - transition.pause   => ["transition", ".pause"]
+     * - (a|b)@next         => ["(a|b)", "@next"]
+     * - a@next             => ["a", "@next"]
+     *
+     * Each segment is then analysed for its type and content, either directly
+     * or via the utility functions above which update the local variables.
+     */
     segments.forEach(function (segment, i, segments)
     {
         // variables
@@ -138,7 +149,7 @@ export function parse(fsm, id)
         }
     });
 
-    // final processing
+    // final determination
     if(!targets)
     {
         targets = getTargets();
@@ -154,23 +165,26 @@ export function parse(fsm, id)
         type = defaults[namespace];
     }
 
-    // return values
-    return [namespace, type, targets];
+    // return result
+    return new ParseResult(namespace, type, targets);
 }
 
-/**
- * Builds the path to a handler
- *
- * System and Transition only have 2 segments, Action and State have 3
- *
- * @param {string}      namespace
- * @param {string}      type
- * @param {string}      target
- * @return {string}
- */
-export function getPath(namespace, type, target)
+function ParseResult (namespace, type, targets)
 {
-    return namespace === 'action' || namespace === 'state'
-        ? [namespace, target, type].join('.')
-        : namespace + '.' + type;
+    this.namespace  = namespace;
+    this.type       = type;
+    this.targets    = targets;
+    this.paths      = targets.map( target => {
+        return namespace === 'action' || namespace === 'state'
+            ? [namespace, target, type].join('.')
+            : namespace + '.' + type;
+    });
 }
+
+ParseResult.prototype =
+{
+    namespace   :'',
+    type        :'',
+    targets     :[],
+    paths       :[]
+};

@@ -28,22 +28,11 @@ let fsm = new StateMachine({
     ]
 });
 
-function test (id, path)
+function test (id, input)
 {
-    // convert path to array
-    let paths = path.match(/\S+/g);
-
-    // parse input
-    var [namespace, type, targets] = parse(fsm, id);
-
-    // convert
-    targets.forEach( (target, i) =>
-    {
-        targets[i] = getPath(namespace, type, target);
-    });
-
-    // compare
-    assert.deepEqual(paths, targets);
+    let expected    = input.match(/\S+/g);
+    let result      = parse(fsm, id);
+    assert.deepEqual(expected, result.paths);
 }
 
 describe('Testing parsing of event handler ids for:', function () {
