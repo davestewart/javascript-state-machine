@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Event handler playground</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style>
+        tr.error{
+            color:red;
+        }
+        td, th {
+            font-size: 0.9em;
+            padding:2px 6px!important;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Parse test: </h1>
+
+    <main class="states">
+
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>id</th>
+                <th>expected</th>
+                <th>result</th>
+            </tr>
+            </thead>
+            <tbody id="results"></tbody>
+        </table>
+
+    </main>
+
+    <script>
+
+        var fsm = new StateMachine({
+            start: 'a',
+            final: 'c',
+            events: [
+                {name: 'initialize', from: 'none', to: 'a'},
+
+                {name: 'next', from: 'a', to: 'b'},
+                {name: 'next', from: 'b', to: 'c'},
+                {name: 'next', from: 'c', to: 'a'},
+
+                {name: 'back', from: 'c', to: 'b'},
+                {name: 'back', from: 'b', to: 'a'},
+                {name: 'back', from: 'a', to: 'c'}
+            ]
+        });
+
+        var parse = StateMachine.parse;
+        var getPath = StateMachine.getPath;
+        var $table = $('#results').empty();
+        var count = 0, total = 0;
+
+        function addRow(id, path, targets, ok)
+        {
+            $table.append('<tr class="' +(ok ? '' : 'error')+ '"><td>' +[id, path, targets].join('</td><td>')+ '</td></tr>');
+        }
+
+        function test (id, path)
+        {
+            // convert path to array
+            let paths = path.match(/\S+/g);
+
+            // parse input
+            var [namespace, type, targets] = parse(fsm, id);
+
+            // convert
+            targets.forEach( (target, i) =>
+            {
+                targets[i] = getPath(namespace, type, target);
+            });
+            targets = targets.join(' ')
+
+            // compare
+            var ok = path == targets;
+            if(ok)count++;
+            total++;
+            addRow(id, path, targets, ok);
+
+            //assert.deepEqual(paths, targets);
+        }
+
+
+
+        test('start', 'system.start');
+        test('change', 'system.change');
+        test('update', 'system.update');
+        test('complete', 'system.complete');
+        test('reset', 'system.reset');
+        test('add', 'system.add');
+        test('remove', 'system.remove');
+        test('pause', 'transition.pause');
+        test('resume', 'transition.resume');
+        test('cancel', 'transition.cancel');
+
+        test('system.start', 'system.start');
+        test('transition.pause', 'transition.pause');
+
+        test('action', 'action.*.start');
+        test('next', 'action.next.start');
+        test('(next|back)', 'action.next.start action.back.start');
+
+        test(':start', 'action.*.start');
+        test(':end', 'action.*.end');
+        test('next:start', 'action.next.start');
+        test('next:end', 'action.next.end');
+        test('action.next:end', 'action.next.end');
+        test('(next|back):end', 'action.next.end action.back.end');
+
+        test('state', 'state.*.enter');
+        test('a', 'state.a.enter');
+        test(':enter', 'state.*.enter');
+        test(':leave', 'state.*.leave');
+        test('a:leave', 'state.a.leave');
+        test('(b|c):enter', 'state.b.enter state.c.enter');
+
+        test('a.next', 'state.a.next');
+        test('a.leave', 'state.a.leave');
+        test('(a|b).next', 'state.a.next state.b.next');
+        test('state.(a|b).next', 'state.a.next state.b.next');
+
+        test('@next', 'state.*.next');
+        test('a@next', 'state.a.next');
+        test('(a|b)@next', 'state.a.next state.b.next');
+
+         /*
+        */
+        $('h1').append(count + '/' + total);
+
+    </script>
+
+
+</body>
+</html>

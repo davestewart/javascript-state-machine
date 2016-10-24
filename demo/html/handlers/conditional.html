@@ -40,14 +40,13 @@
         <p>To do this you can:</p>
         <ul>
             <li>Return <code>false</code> from the event handler</li>
-            <li>Call <code>cancel()</code> on the event object</li>
             <li>Call <code>cancel()</code> on the state machine instance</li>
         </ul>
     </section>
 
     <script>
 
-        function validate (event) {
+        function validate (event, fsm) {
 
             // variables
             var $terms = $('#terms');
@@ -58,11 +57,9 @@
 
             // cancel transition if checkbox not checked
             if( ! checked ) {
-                event.cancel(); // could also return false;
+                fsm.cancel(); // could also return false;
             }
         }
-
-        function fn(){}
 
         var config = {
 
@@ -72,21 +69,7 @@
             ],
 
             handlers: {
-                'system.change' :fn,
-                'action.start' :fn,
-                'state.add' :fn,
-                'transition.pause' :fn,
-
-                'change' :fn,
-                'pause' :fn,
-                'start' :fn,
-                'end' :fn,
-                'leave:red' :fn,
-                'enter:blue green' :fn,
-                'start:next' :fn,
-                'end:back' :fn,
-
-                'leave:step1': validate
+                'step1@next': validate
             }
         };
 

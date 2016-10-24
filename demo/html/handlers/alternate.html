@@ -18,7 +18,10 @@
             <article id="a">State A</article>
             <article id="b">State B</article>
             <article id="c">State C</article>
-            <article id="d">State D</article>
+        </section>
+
+        <section>
+            <label><input id="skip" type="checkbox"> Skip straight to State C</label>
         </section>
 
         <section id="controls">
@@ -29,7 +32,7 @@
     </main>
 
     <section id="info">
-        <p>It's possible to force a new state from a an event by cancelling an event, and passing a new state.</p>
+        <p>It's possible to force a new state from an event by calling <code>go('state', true)</code> at any point in a transition.</p>
         <p>This can be useful in asynchronous transitions for example, perhaps if a server responded incorrectly, or you have some other reason to disrupt the planned flow.</p>
     </section>
 
@@ -40,12 +43,27 @@
             events: [
                 {name: 'next', from: 'a', to: 'b'},
                 {name: 'next', from: 'b', to: 'c'},
-                {name: 'next', from: 'c', to: 'd'},
 
-                {name: 'back', from: 'd', to: 'c'},
                 {name: 'back', from: 'c', to: 'b'},
                 {name: 'back', from: 'b', to: 'a'}
-            ]
+            ],
+
+            handlers: {
+                // force
+                'a@next': function (event, fsm) {
+                    if (skip.checked) {
+                        fsm.go('c', true);
+                    }
+                },
+
+                // debug
+                ':start': function (event) {
+                    console.log(event.transition);
+                },
+                'update': function (event) {
+                    console.log(event);
+                }
+            }
         };
 
         setup(new StateMachine(document, config));

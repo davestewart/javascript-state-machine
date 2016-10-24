@@ -10,15 +10,20 @@
     <h1>Notes</h1>
 
     <section id="info">
-        <p>All examples are setup using <code>examples/assets/js/setup.js</code> which:</p>
+        <p>All examples first run a basic setup script <code>examples/assets/js/setup.js</code> which:</p>
         <ul>
-            <li>Updates the onscreen state diagram active state</li>
-            <li>Enables and disabled buttons depending on available transitions</li>
+            <li>Assigns the state machine to the global <code>fsm</code>variable</li>
+            <li>Adds an <code>update</code> listener to the fsm to:</li>
+            <ul>
+                <li>Update the onscreen state diagram's active state</li>
+                <li>Enable / disable buttons depending on available actions and <code>isPaused()</code> result</li>
+            </ul>
         </ul>
-        <p>For all examples:</p>
+        <p>To understand each of the examples:</p>
         <ul>
+            <li>Open each example in your IDE; all the code is on the page</li>
             <li>Inspect the HTML using your browser's dev tools</li>
-            <li>View the page's HTML to see the custom code for that setup</li>
+            <li>Check the console for <code>debug</code> messages</li>
         </ul>
     </section>
 

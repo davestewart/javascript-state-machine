@@ -3,7 +3,7 @@
  */
 
     body {
-        width: 800px;
+        width: 1000px;
         margin: 50px auto;
     }
 
@@ -89,4 +89,8 @@
 
     main.steps p {
 
+    }
+
+    ul ul{
+        margin: 10px 0 20px;
     }

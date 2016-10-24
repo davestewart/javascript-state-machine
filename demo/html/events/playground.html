@@ -56,10 +56,20 @@
             position: relative;
         }
 
-        #handlers > fieldset {
+        #handlers > * {
             display: inline-block;
             vertical-align: top;
             padding-right:30px;
+        }
+
+        fieldset p{
+            font-size: 0.8em;
+            border-bottom: 1px dotted #CCC;
+            margin-top:20px;
+        }
+
+        legend + p{
+            margin-top: 0px;
         }
 
         fieldset > label{
@@ -87,71 +97,181 @@
 
         </section>
 
-        <section id="states">
-            <article id="a">State A</article>
-            <article id="b">State B</article>
-            <article id="c">State C<br>(async. entry)</article>
-        </section>
-
-        <section id="handlers">
-
-            <fieldset>
-                <legend class="system">System</legend>
-                <label><input type="checkbox" name="system" value="system.start"> start</label>
-                <label><input type="checkbox" name="system" value="system.change"> change</label>
-                <label><input type="checkbox" name="system" value="system.update"> update</label>
-                <label><input type="checkbox" name="system" value="system.complete"> complete</label>
-                <label><input type="checkbox" name="system" value="system.reset"> reset</label>
-            </fieldset>
-
-            <fieldset>
-                <legend class="action">Action</legend>
-                <label><input type="checkbox" name="action" value="start"> start</label>
-                <label><input type="checkbox" name="action" value="end"> end</label>
-                <label><input type="checkbox" name="action" value="start:next"> start:next</label>
-                <label><input type="checkbox" name="action" value="end:next"> end:next</label>
-                <label><input type="checkbox" name="action" value="start:back"> start:back</label>
-                <label><input type="checkbox" name="action" value="end:back"> end:back</label>
-            </fieldset>
-
-            <fieldset>
-                <legend class="state">State</legend>
-                <label><input type="checkbox" name="state" value="enter"> enter</label>
-                <label><input type="checkbox" name="state" value="leave"> leave</label>
-                <label><input type="checkbox" name="state" value="leave:a"> leave:a</label>
-                <label><input type="checkbox" name="state" value="enter:b"> enter:b</label>
-                <label><input type="checkbox" name="state" value="leave:b c"> leave:b c</label>
-                <label><input type="checkbox" name="state" value="next:a b"> next:a b</label>
-                <label><input type="checkbox" name="state" value="a@next"> a@next</label>
-                <label><input type="checkbox" name="state" value="a b@next"> a b@next</label>
-                <label><input type="checkbox" name="state" value="a@leave"> a@leave</label>
-                <label><input type="checkbox" name="state" value="add"> add</label>
-                <label><input type="checkbox" name="state" value="remove"> remove</label>
-            </fieldset>
-
-            <fieldset>
-                <legend class="transition">Transition</legend>
-                <label><input type="checkbox" name="transition" value="transition.pause"> pause</label>
-                <label><input type="checkbox" name="transition" value="transition.resume"> resume</label>
-                <label><input type="checkbox" name="transition" value="transition.cancel"> cancel</label>
-            </fieldset>
-
-        </section>
-
-        <div id="control-set">
-            <section id="controls">
-                <button class="btn btn-sm" name="start">Start</button>
-                <button class="btn btn-sm" name="back">Back</button>
-                <button class="btn btn-sm" name="next">Next</button>
+        <div id="content">
+            <section id="states">
+                <article id="a">State A</article>
+                <article id="b">State B</article>
+                <article id="c">State C</article>
             </section>
 
-            <section id="more-controls">
-                <button class="btn btn-sm" name="cancel">Cancel</button>
-                <button class="btn btn-sm" name="reset">Reset</button>
-                <button class="btn btn-sm" name="add">Add</button>
-                <button class="btn btn-sm" name="remove">Remove</button>
+            <section id="handlers">
+
+                <div>
+
+                    <fieldset>
+                        <legend class="system">System</legend>
+
+                        <p>Types</p>
+
+                        <label data-path="system.start" data-desc="The FSM has been started and the system has entered the initial state">
+                            <input type="checkbox" name="system" value="start"> start</label>
+
+                        <label data-path="system.change" data-desc="The state of the system has changed">
+                            <input type="checkbox" name="system" value="change"> change</label>
+
+                        <label data-path="system.update" data-desc="A property in the system (state, paused, transition) has been updated">
+                            <input type="checkbox" name="system" value="update"> update</label>
+
+                        <label data-path="system.complete" data-desc="The system has entered the final state">
+                            <input type="checkbox" name="system" value="complete"> complete</label>
+
+                        <label data-path="system.reset" data-desc="The system was reset to its default state">
+                            <input type="checkbox" name="system" value="reset"> reset</label>
+
+                        <label data-path="system.add" data-desc="A new event is added to the system">
+                            <input type="checkbox" name="system" value="add"> add</label>
+
+                        <label data-path="system.remove" data-desc="An event is removed from the system">
+                            <input type="checkbox" name="system" value="remove"> remove</label>
+
+                    </fieldset>
+
+                </div>
+
+                <fieldset>
+                    <legend class="transition">Transition</legend>
+
+                    <p>Types</p>
+
+                    <label data-path="transition.pause" data-desc="The current transition was paused">
+                        <input type="checkbox" name="transition" value="pause"> pause</label>
+
+                    <label data-path="transition.resume" data-desc="The current transition was resumed">
+                        <input type="checkbox" name="transition" value="resume"> resume</label>
+
+                    <label data-path="transition.cancel" data-desc="The current transition was cancelled">
+                        <input type="checkbox" name="transition" value="cancel"> cancel</label>
+
+                </fieldset>
+
+                <fieldset>
+                    <legend class="action">Action</legend>
+
+                    <p>Targets</p>
+
+                    <label data-path="action.*.start" data-desc="Any action started (defaulting to the configured event type)">
+                        <input type="checkbox" name="action" value="action"> action</label>
+
+                    <label data-path="action.next.start" data-desc="Action 'next' started (defaulting to the configured event type)">
+                        <input type="checkbox" name="action" value="next"> next</label>
+
+                    <label data-path="action.next.start action.back.start" data-desc="Actions 'next' and 'back' started (defaulting to the configured event type)">
+                        <input type="checkbox" name="action" value="(next|back)"> (next|back)</label>
+
+                    <p>Events</p>
+
+                    <label data-path="action.*.start" data-desc="Any action started">
+                        <input type="checkbox" name="action" value=":start"> :start</label>
+
+                    <label data-path="action.*.end" data-desc="Any action ended">
+                        <input type="checkbox" name="action" value=":end"> :end</label>
+
+                    <p>Combinations</p>
+
+                    <label data-path="action.next.start" data-desc="Action 'next' started">
+                        <input type="checkbox" name="action" value="next:start"> next:start</label>
+
+                    <label data-path="action.next.end" data-desc="Action 'next' ended">
+                        <input type="checkbox" name="action" value="next:end"> next:end</label>
+
+                    <label data-path="action.next.end" data-desc="Action 'back' ended">
+                        <input type="checkbox" name="action" value="action.next:end"> action.next:end</label>
+
+                    <label data-path="action.next.end action.back.end" data-desc="Actions 'next' and 'back' ended">
+                        <input type="checkbox" name="action" value="(next|back):end"> (next|back):end</label>
+
+                </fieldset>
+
+                <fieldset>
+                    <legend class="state">State</legend>
+
+                    <p>Targets</p>
+
+                    <label data-path="state.*.enter" data-desc="Any state entered (defaulting to the configured event type)">
+                        <input type="checkbox" name="state" value="state"> state</label>
+
+                    <label data-path="state.a.enter" data-desc="State 'a' entered (defaulting to the configured event type)">
+                        <input type="checkbox" name="state" value="a"> a</label>
+
+                    <label data-path="state.b.enter state.c.enter" data-desc="States 'b' and 'c' entered (defaulting to the configured event type)">
+                        <input type="checkbox" name="state" value="(b|c):enter"> (b|c)</label>
+
+                    <p>Events</p>
+
+                    <label data-path="state.*.enter" data-desc="Any state entered">
+                        <input type="checkbox" name="state" value=":enter"> :enter</label>
+
+                    <label data-path="state.*.leave" data-desc="Any state left">
+                        <input type="checkbox" name="state" value=":leave"> :leave</label>
+
+                    <p>Combinations</p>
+
+                    <label data-path="state.*.leave" data-desc="State 'a' left ">
+                        <input type="checkbox" name="state" value="a:leave"> a:leave</label>
+
+                    <label data-path="state.b.enter state.c.enter" data-desc="States 'b' and 'c' entered">
+                        <input type="checkbox" name="state" value="(b|c):enter"> (b|c):enter</label>
+
+                </fieldset>
+
+                <fieldset>
+                    <legend><span class="state">State</span> + <span class="action">Action</span></legend>
+
+                    <p>Targeted</p>
+
+                    <label data-path="state.a.next" data-desc="Action 'next' called on state 'a'">
+                        <input type="checkbox" name="state" value="a.next"> a.next</label>
+
+                    <label data-path="state.b.leave" data-desc="Event 'leave' (treated as an action) on state 'b'">
+                        <input type="checkbox" name="state" value="b.leave"> b.leave</label>
+
+                    <label data-path="state.a.next state.b.next" data-desc="Action 'next' called on states 'a' and 'b'">
+                        <input type="checkbox" name="state" value="state.(a|b).next"> state.(a|b).next</label>
+
+                    <p>Shorthand</p>
+
+                    <label data-path="action.*.next.start" data-desc="Any action started">
+                        <input type="checkbox" name="shorthand" value="@next"> @next</label>
+
+                    <label data-path="state.a.next" data-desc="Action 'next' called on state 'a'">
+                        <input type="checkbox" name="shorthand" value="a@next"> a@next</label>
+
+                    <p>Special</p>
+
+                    <label data-path="state.c.next" data-desc="Action 'next' called on state 'c'">
+                        <input type="checkbox" name="shorthand" value="c@next" data-method="async"> c@next (async)</label>
+
+                </fieldset>
+
             </section>
+
+            <div id="control-set">
+                <section id="controls">
+                    <button class="btn btn-sm" name="start">Start</button>
+                    <button class="btn btn-sm" name="back">Back</button>
+                    <button class="btn btn-sm" name="next">Next</button>
+                </section>
+
+                <section id="more-controls">
+                    <button class="btn btn-sm" name="cancel">Cancel</button>
+                    <button class="btn btn-sm" name="reset">Reset</button>
+                    <button class="btn btn-sm" name="add">Add</button>
+                    <button class="btn btn-sm" name="remove">Remove</button>
+                </section>
+            </div>
+
         </div>
+
 
     </main>
 
@@ -169,7 +289,7 @@
         </ul>
     </section>
 
-    <script>
+    <script title="fsm">
 
         var config = {
 
@@ -190,87 +310,119 @@
                 {name: 'back', from: 'c', to: 'b'},
                 {name: 'back', from: 'b', to: 'a'},
                 {name: 'back', from: 'a', to: 'c'}
-            ],
+            ]
 
-            handlers: {
-                'enter:c': function (event) {
-                    event.pause();
-                    setTimeout(event.resume, 3000);
-                },
-                update: function (event) {
-
-                }
-            }
         };
 
         setup(new StateMachine(document, config));
 
     </script>
 
-    <script>
+    <script title="ui">
 
+        /**
+         * Demo event handlers
+         */
         var handlers = {
 
-            system: function (event) {
+            system: function onSystem (event) {
                 var message = event.key
                     ? [event.key, event.value]
                     : '';
                 log(event.namespace, event.type, message);
             },
 
-            action: function (event) {
+            action: function onAction (event) {
                 log(event.namespace, event.type, event.target);
 
             },
 
-            state: function (event) {
+            state: function onState (event) {
                 log(event.namespace, event.type, event.target);
             },
 
-            transition: function (event) {
+            shorthand: function onShorthandState (event) {
+                log(event.namespace, event.type, event.target, 'orange');
+            },
+
+            transition: function onTransition (event) {
                 log(event.namespace, event.type);
             },
 
-            target: function (event) {
+            target: function onTarget (event) {
                 log(event.namespace, event.type, event.target);
             },
 
-            cancel: function () {
-                fsm.cancel();
+            async: function async (event, fsm) {
+                log(event.namespace, event.type, event.target);
+                fsm.pause();
+                setTimeout(fsm.resume.bind(fsm), 3000);
             },
 
-            reset: function () {
-                fsm.reset();
+            cancel: function onCancel () {
+                window.fsm.cancel();
             },
 
-            add: function () {
-                fsm.add()
+            reset: function onReset () {
+                window.fsm.reset();
             },
 
-            remove: function () {
+            add: function onAdd () {
+                window.fsm.add()
+            },
+
+            remove: function onRemove () {
 
             }
         };
 
-        $('input[type="checkbox"]').on('change', function (event) {
-            var signature = event.target.value;
-            var method = event.target.checked ? 'on' : 'off';
-            var handler = signature.indexOf(':') == -1
-                ? handlers[event.target.name]
-                : handlers.target;
-            fsm[method](signature, handler);
+        /**
+         * Update titles
+         */
+
+        $('[data-desc]').each(function (i, e) {
+            var $e = $(e);
+            e.title = $e.data('desc') + '\n\n' + $e.data('path').replace(/\s+/, '\n');
         });
 
+        /**
+         * Add or remove handler on checkbox toggle
+         */
+        $('input[type="checkbox"]').on('change', function (event) {
+            var signature   = event.target.value;
+            var type        = event.target.checked ? 'on' : 'off';
+            var method      = $(event.target).data('method');
+            var handler     = method
+                ? handlers[method]
+                : /[:@]/.test(signature)
+                    ? handlers[event.target.name]
+                    : handlers.target;
+            fsm[type](signature, handler);
+        });
+
+        /**
+         * Append a divider to the log on control click
+         */
         $('#control-set button').on('mouseup', function () {
             if($log[0].firstChild.tagName === 'P'){
                 $log.prepend('<hr>');
             }
         });
 
+        /**
+         * Execute additional commands
+         */
         $('#more-controls button').on('click', function (event) {
             handlers[event.target.name]();
         });
 
+    </script>
+
+    <script title="logging">
+
+        /**
+         * Logging functionality
+         */
         var index = 1;
         var $log = $('#log');
         function log(namespace, type, message) {
@@ -284,6 +436,7 @@
             ];
             $log.prepend('<p class="' +className+ '">' +html.join('')+'</p>');
         }
+
     </script>
 </body>
 </html>

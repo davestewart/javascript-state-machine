@@ -4,7 +4,7 @@ if (window.StateMachine) {
 
 var fsm, $states, $controls, $buttons;
 
-function update(){
+function update() {
 
     // assign state and paused
     $states
@@ -35,7 +35,7 @@ function setup(fsm) {
     $buttons = $('#controls button');
 
     // bind button clicks to fsm actions
-    $buttons.on('click', function(event){
+    $buttons.on('click', function (event) {
         fsm.do(event.target.name);
     });
 

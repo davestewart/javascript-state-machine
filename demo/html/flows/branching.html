@@ -77,86 +77,26 @@
                 {name: 'panic', from: 'yellow', to: 'red'},
                 {name: 'clear', from: 'red', to: 'green'},
                 {name: 'calm', from: 'red', to: 'yellow'},
-                {name: 'random', from: 'red', to: function(states, ...rest)
-                {
-                    console.info('RANDOM:', states, rest);
-                    return states[0];
-                }},
                 {name: 'finish', from: 'red', to: 'final'}
             ],
 
             handlers: {
-                'enter:green': function (event) {
-                    console.log('enter green', event)
+                'action:end' : function(event){
+                    console.info(event.transition);
                 },
-                'leave:green': function (event) {
-                    console.log('leave green', event)
-                },
-                'leave:yellow': function (event) {
-                    console.log('leave yellow', event)
-                },
-                'leave:red': function (event) {
-                    console.log('leave red', event)
-                    event.pause();
-                    setTimeout(function(){
-                        event.resume();
+                'red:leave': function (event, fsm) {
+                    console.log(event);
+                    fsm.pause();
+                    setTimeout(function () {
+                        fsm.resume();
                     }, 1000);
-                },
-                'leave:purple': function (event) {
-                    console.log('leave purple', event)
-                },
-                'leave:*': function validate(event) {
-                    console.log('leave *', event)
-                },
-                'leave': function submit(event) {
-                    console.log('leave', event)
-                },
-                'leave:green yellow red': function (event) {
-                    console.log('leave green yellow red', event)
-                },
-                'start:next': function (event) {
-                    console.log('start next', event)
-                },
-                'end:finish': function (event) {
-                    console.log('end final', event)
-                },
-                'start:warn': function (event) {
-                    console.log('start warn', this.title, event)
-                },
-                'end:*': function (event) {
-                    console.log('end *', event)
-                },
-            },
-
-            other: [
-                'warn   : green     > yellow',
-                'panic  : green     > red',
-                'clear  : yellow    > green',
-                'panic  : yellow    > red',
-                'clear  : red       > green',
-                'calm   : red       > yellow',
-                'finish : red       > end',
-
-                'finish : *         > end',
-                'finish : green red > end',
-
-                {name: 'foo', from: '*', to: 'red'},
-                {name: 'foo', from: 'green yellow', to: 'red'},
-                {name: 'bar', from: ['green', 'yellow'], to: 'red'},
-                {name: 'baz', from: 'green', to: ['yellow', 'red']},
-
-            ]
+                }
+            }
 
         };
 
-        fsm = new StateMachine(document, config);
+        setup(new StateMachine(config));
 
-        fsm.on('transition', function(event){
-           console.info(event.type);
-        });
-
-        setup(fsm);
-        console.log(fsm);
     </script>
 </body>
 </html>

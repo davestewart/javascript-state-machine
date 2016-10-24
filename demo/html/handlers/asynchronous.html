@@ -8,6 +8,7 @@
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
 </head>
+<body>
     <h1>Asynchronous transitions</h1>
 
     <main class="states">
@@ -29,7 +30,6 @@
         <p>To do this you can:</p>
         <ul>
             <li>Return <code>true</code> from the event handler</li>
-            <li>Call <code>pause()</code> on the event object</li>
             <li>Call <code>pause()</code> on the state machine instance</li>
         </ul>
         <p>Once paused, you can execute any asynchronous code you need to run, then <code>resume()</code> or <code>cancel()</code> the event to finish the transition.</p>
@@ -38,15 +38,15 @@
 
     <script>
 
-        function submit (event) {
+        function submit (event, fsm) {
 
             // simulate submitting to the server
             setTimeout(function(){
-                event.resume();
+                fsm.resume();
             }, 1000);
 
             // pause the transition
-            event.pause(); // could also return true
+            fsm.pause(); // could also return true
         }
 
         var config = {
@@ -57,7 +57,7 @@
             ],
 
             handlers: {
-                'leave:step1': submit
+                'step1@next': submit
             }
         };
 

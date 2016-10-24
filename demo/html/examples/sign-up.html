@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Using handlers to guard states</title>
+    <title>Sign-up form</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <h1>Using handlers to guard states</h1>
+    <h1>Sign-up form</h1>
 
     <main class="steps">
 
@@ -66,21 +66,32 @@
             </article>
 
             <article id="error">
-                <h2>Sorry</h2>
+                <h2 style="color:red">Sorry</h2>
                 <p>There was a problem saving your details to the server</p>
             </article>
 
         </section>
 
+        <section>
+            <label><input id="invalid" type="checkbox"> Simulate server error</label>
+        </section>
+
         <section id="controls">
             <button class="btn btn-sm" name="back">Back</button>
             <button class="btn btn-sm" name="next">Next</button>
+            <button class="btn btn-sm" name="exit">Finish</button>
         </section>
 
     </main>
 
     <section id="info">
-        <p>This example demonstrates a multi-step form, with guarded and asynchronous transitions.</p>
+        <p>This example demonstrates various processes for a multi-step form:</p>
+        <ul>
+            <li>A conditional transition when validating the form</li>
+            <li>An asynchronous transition when submitting the form</li>
+            <li>A forced transition to an "error" state via <code>go()</code></li>
+            <li>A terminating state "done"</li>
+        </ul>
     </section>
 
     <script>
@@ -94,6 +105,8 @@
 
         var config = {
 
+            debug: true,
+
             events:
             [
                 // next:   intro > form > finish
@@ -105,30 +118,39 @@
 
                 {name: 'back', from: 'form',  to: 'intro'},
                 {name: 'back', from: 'error', to: 'form'},
-                {name: 'back', from: 'finish', to: 'form'},
+                {name: 'exit', from: 'finish', to: 'intro'},
 
                 {name: 'error', from: 'form', to: 'error'}
             ],
 
             handlers:
             {
-                'form@enter':function()
+                'form:enter':function ()
                 {
                     $('form').removeClass('has-error');
                 },
 
-                'form@next': function (event)
+                'form@next': function (event, fsm)
                 {
                     // validate
                     if (!validate()) {
-                        return event.cancel();
+                        return fsm.cancel();
                     }
 
                     // submit
-                    event.pause();
-                    setTimeout(function(){
-                        console.log('Data submitted!');
-                        event.resume();
+                    fsm.pause();
+                    setTimeout(function ()
+                    {
+                        if(invalid.checked)
+                        {
+                            console.log('There was an error submitting your data!');
+                            fsm.go('error', true);
+                        }
+                        else
+                        {
+                            console.log('Data submitted!');
+                            fsm.resume();
+                        }
                     }, 2000);
                 }
             }
