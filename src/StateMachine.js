@@ -27,6 +27,9 @@ export default function StateMachine (scope, config)
     }
 }
 
+StateMachine.parse = parse;
+StateMachine.getPath = getPath;
+
 /**
  * StateMachine prototype
  *
@@ -315,9 +318,9 @@ StateMachine.prototype =
             if(this.can(action) && !this.isPaused())
             {
                 this.transition = Transition.create(this, action, rest);
-                if(action === 'start')
+                if(action === this.config.defaults.initialize)
                 {
-                    this.update('system', 'start');
+                    this.update('system', 'initialize');
                 }
                 this.update('system', 'update', 'transition', this.transition);
                 this.transition.exec();
@@ -705,9 +708,12 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
-            let [namespace, type, targets] = parseHandler(this, id);
+            let [namespace, type, targets] = parse(this, id);
 
-            ///console.log(namespace, type, targets)
+            if(this.config.debug)
+            {
+                console.log('StateMachine on: ' + id, [namespace, type], targets)
+            }
 
             targets.map( target =>
             {
@@ -718,14 +724,14 @@ StateMachine.prototype =
                     {
                         if(this.states.indexOf(target) === -1)
                         {
-                            this.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
+                            this.config.debug && console.warn('StateMachine: Warning assigning state.%s handler; no such state "%s"', type, target);
                         }
                     }
                     else if(namespace === 'action')
                     {
                         if(!this.actions.has(target))
                         {
-                            this.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
+                            this.config.debug && console.warn('StateMachine: Warning assigning action.%s handler; no such action "%s"', type, target);
                         }
                     }
                 }
@@ -746,7 +752,7 @@ StateMachine.prototype =
 
         off: function (id, fn)
         {
-            let [namespace, type, targets] = parseHandler(this, id);
+            let [namespace, type, targets] = parse(this, id);
             targets.map( target =>
             {
                 let path = getPath(namespace, type, target);
@@ -756,7 +762,7 @@ StateMachine.prototype =
 
         dispatch: function(path, event)
         {
-            this.config.debug && console.info('StateMachine dispatch "%s"', path);
+            this.config.debug && console.info('StateMachine: dispatch "%s"', path);
             let handlers = this.handlers.get(path);
             if(handlers)
             {
@@ -786,105 +792,3 @@ function addState (fsm, state)
         fsm.states.push(state);
     }
 }
-
-function parseHandler(fsm, id)
-{
-    // variables
-    var matches, namespace, type, action, target, invalid;
-
-    // match state@action
-    if(id.indexOf('@') !== -1)
-    {
-        matches = id.match(/^(?:state\.)?\s*(\w+[ -_\w]*)@(\w+)$/);
-        if(matches)
-        {
-            namespace = 'state';
-            [,target, action] = matches;
-            type = action;
-        }
-    }
-    // matches other
-    else
-    {
-        matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
-        if(matches)
-        {
-            [,namespace, type, target, invalid] = matches;
-        }
-    }
-
-    // flag invalid
-    if(!matches || invalid)
-    {
-        throw new Error('Invalid event handler signature "' +id+ '"');
-    }
-
-    // check namespace
-    if(namespace && ! /^(system|transition|action|state)$/.test(namespace))
-    {
-        throw new Error('Invalid event namespace "' +namespace+ '"');
-    }
-
-    // determine namespace if not found
-    if(!namespace)
-    {
-        // check if shorthand global was passed
-        namespace = eventNamespaces[type];
-
-        // if event is still null, attempt to determine type from existing states or actions
-        if(!namespace)
-        {
-            if(fsm.states.indexOf(type) !== -1)
-            {
-                target      = type;
-                namespace   = 'state';
-                type        = 'enter';
-            }
-            else if(fsm.actions.has(type))
-            {
-                target      = type;
-                namespace   = 'action';
-                type        = 'start';
-            }
-            else
-            {
-                fsm.config.debug && console.warn('Warning parsing event handler: unable to map "%s" to a valid event or existing entity', id);
-            }
-        }
-    }
-
-    // determine targets
-    let targets = target
-        ? target.match(/[-*\w_]+/g)
-        : ['*'];
-
-    // return
-    return [namespace, type, targets]
-}
-
-function getPath(namespace, type, target)
-{
-    return namespace === 'action' || namespace === 'state'
-        ? [namespace, target, type].join('.')
-        : namespace + '.' + type;
-}
-
-let eventNamespaces =
-{
-    change  :'system',
-    update  :'system',
-    complete:'system',
-    reset   :'system',
-
-    add     :'state',
-    remove  :'state',
-    leave   :'state',
-    enter   :'state',
-
-    start   :'action',
-    end     :'action',
-
-    pause   :'transition',
-    resume  :'transition',
-    cancel  :'transition'
-};
