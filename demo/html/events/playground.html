@@ -26,9 +26,9 @@
         #log p { margin:0; }
 
         .system { color: black; }
-        .transition { color: blue; }
+        .transition { color: #2f83ff; }
         .action { color: red; }
-        .state { color: green; }
+        .state { color: #35cc62; }
 
         #log hr {
             margin:10px 0;
@@ -318,7 +318,7 @@
 
     </script>
 
-    <script title="ui">
+    <script title="handlers">
 
         /**
          * Demo event handlers
@@ -376,10 +376,13 @@
             }
         };
 
+    </script>
+
+    <script title="ui">
+
         /**
          * Update titles
          */
-
         $('[data-desc]').each(function (i, e) {
             var $e = $(e);
             e.title = $e.data('desc') + '\n\n' + $e.data('path').replace(/\s+/, '\n');

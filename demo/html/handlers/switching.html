@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Alternate transitions</title>
+    <title>Switching transitions</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <h1>Alternate transitions</h1>
+    <h1>Switching transitions</h1>
 
     <main class="states">
 
@@ -32,8 +32,9 @@
     </main>
 
     <section id="info">
-        <p>It's possible to force a new state from an event by calling <code>go('state', true)</code> at any point in a transition.</p>
-        <p>This can be useful in asynchronous transitions for example, perhaps if a server responded incorrectly, or you have some other reason to disrupt the planned flow.</p>
+        <p>It's possible to force a new state in your system - at any point - by calling <code>go('state', true)</code> .</p>
+        <p>You can even do this in a transition handler to force a new state, perhaps depending on an external factor. Any existing transitions or pause states will ba cancelled and the new state will be entered immediately.</p>
+        <p>This can be useful in asynchronous transitions for example, perhaps for an unexpected condition where you need to show an error state.</p>
     </section>
 
     <script>
