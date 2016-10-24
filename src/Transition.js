@@ -163,7 +163,7 @@ export default
         fsm.config.order.map( path =>
         {
             // replace path tokens
-            path = path.replace(/@(\w+)/g, (all, token) => vars[token]);
+            path = path.replace(/{(\w+)}/g, (all, token) => vars[token]);
             let handlers = fsm.handlers.get(path);
 
             // do it!
