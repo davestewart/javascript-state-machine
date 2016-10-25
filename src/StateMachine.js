@@ -192,59 +192,120 @@ StateMachine.prototype =
                 this.scope = config.scope;
             }
 
-            // pre-collate all states
+            // pre-process transitions
             if(config.transitions)
             {
-                config.transitions.map( tx => {
-                    let states;
-                    if(typeof tx === 'string')
-                    {
-                        states = tx.match(/\w+/g);
-                        states.shift();
-                    }
-                    else
-                    {
-                        states = [tx.from, tx.to];
-                    }
-                    states.map( state => addState(this, state) );
-                });
-            }
+                let transitions = [];
 
-            // initial state
-            if( ! config.initial )
-            {
-                config.initial = this.states[0];
-            }
-
-            // add transitions
-            if(Array.isArray(config.transitions))
-            {
-                config.transitions.map( transition =>
+                function newError(tx, message)
                 {
-                    // shorthand
-                    if(isString(transition))
+                    return new Error('Invalid transition shorthand pattern "' +tx+ '" - ' + message);
+                }
+
+                function add(name, from, to)
+                {
+                    transitions.push({name, from, to});
+                }
+
+                config.transitions.map( tx =>
+                {
+                    // convert shorthand to objects
+                    if(isString(tx))
                     {
-                        let matches = transition.match(/(\w+)\s*[|:=]\s*(\w+)\s*([<>-])\s*(\w.*)/);
-                        let [,name, from, op, to] = matches;
-                        if(op === '-')
+                        // pre-process string
+                        tx = tx
+                            .replace(/([|=:<>])/g, ' $1 ')
+                            .replace(/\s+/g, ' ')
+                            .replace(/^\s+|\s+$/g,'');
+
+                        // ensure string is valid
+                        if(!/^\w+ [:|=] \w[\w ]*[<>] \w[\w ]*/.test(tx))
                         {
-                            this.add(name, from, to);
-                            this.add(name, to, from);
-                            return;
+                            throw newError(tx, 'cannot determine action and states');
                         }
-                        if(op === '<')
+
+                        // initialize variables
+                        let matches = tx.match(/([*\w ]+|[<>])/g),
+                            action  = matches.shift().replace(/\s+/g, ''),
+                            stack   = [],
+                            match   = '',
+                            op      = '',
+                            a       = '',
+                            b       = '';
+
+                        // process remaining tokens
+                        while(matches.length)
                         {
-                            [from, to] = [to, from];
+                            // get the next match
+                            match = matches.shift();
+                            if(/[<>]/.test(match))
+                            {
+                                op = match;
+                            }
+                            else
+                            {
+                                match = match.match(/[*\w]+/g);
+                                match = match.length === 1 ? match[0] : match;
+                                stack.push(match);
+                            }
+
+                            // process matches if stack is full
+                            if(stack.length === 2)
+                            {
+                                [a, b] = op === '<'
+                                    ? [stack[1], stack[0]]
+                                    : stack;
+                                if(Array.isArray(a) && Array.isArray(b))
+                                {
+                                    throw newError(tx, 'transitioning between 2 arrays doesn\'t make sense');
+                                }
+                                if(Array.isArray(a))
+                                {
+                                    a.map( a => add(action, a, b) );
+                                }
+                                else if(Array.isArray(b))
+                                {
+                                    b.map( b => add(action, a, b) );
+                                }
+                                else
+                                {
+                                    add(action, a, b);
+                                }
+
+                                // once processed, shift the original
+                                stack.shift();
+                            }
+
                         }
-                        this.add(name, from, to);
                     }
 
-                    // keys
+                    // just add objects as-is
                     else
+                    {
+                        transitions.push(tx);
+                    }
+                });
+
+                // pre-collate all states
+                transitions.map( tx =>
+                {
+                    [tx.from, tx.to].map( state => addState(this, state) );
+                });
+
+                // initial state (must be done after
+                if( ! config.initial )
+                {
+                    config.initial = this.states[0];
+                }
+
+                // add transitions
+                if(Array.isArray(transitions))
+                {
+                    transitions.map( transition =>
                     {
                         this.add(transition.name, transition.from, transition.to);
-                    }
-                });
+                    });
+                }
             }
 
             // add handlers
