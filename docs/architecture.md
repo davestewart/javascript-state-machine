@@ -1,5 +1,15 @@
 # Architecture
 
+One of the aims of the project was to be fully object-oriented, and as logical as possible without getting too hung up on the theory side of things.
+
+As well, there are a variety of implementations out there, depending on whether you're looking at UML, embedded systems or computer software.
+
+This implementation aims to strike a balance between 
+
+
+##### Caveat 
+Whilst the code is tight, this implementation is optimised for ease of use rather than performance, so if using it for 1000s of game characters perhaps, you might be better rolling your own!
+
 ## Classes
 
 The state machine comprises 2 main classes:
@@ -14,6 +24,9 @@ There are 4 event classes:
 - `ActionEvent` - dispatched for any action lifecycle events, i.e. `start` and `end`
 - `StateEvent` - dispatched for any state lifecycle events, i.e. `leave` and `enter`
 
+There is one main helper class:
+
+- `ValueMap` - manages teh assignment and retrieval via dot-path notation of transitions, handlers, etc.
 
 ## Vocabulary
 
