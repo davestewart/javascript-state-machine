@@ -1,7 +1,6 @@
+# Usage
 
-## Usage
-
-### Overview
+## Overview
 
 Using JavaScript State Machine in your code is easy. 
 
@@ -72,7 +71,7 @@ There are a wide variety of lifecycle hooks which can have handlers attached, al
 
 StateMachine's eventful nature and rich API makes it trivial to enable or disable buttons, or update navigation or components as you move from state to state.
 
-### Summary
+## Summary
 
 In a few brief points:
 

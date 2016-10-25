@@ -1,6 +1,6 @@
-## Architecture
+# Architecture
 
-### Classes
+## Classes
 
 The state machine comprises 2 main classes:
 
@@ -15,7 +15,7 @@ There are 4 event classes:
 - `StateEvent` - dispatched for any state lifecycle events, i.e. `leave` and `enter`
 
 
-### Vocabulary
+## Vocabulary
 
 The vocabulary of the state machine is represented by the following entities:
 
@@ -29,7 +29,7 @@ The vocabulary of the state machine is represented by the following entities:
 - `type` - the type of action or state event, i.e. "start" or "enter"
 
 
-### Configuration
+## Configuration
 
 The State Machine is configured via a configuration object, the main components being:
 
