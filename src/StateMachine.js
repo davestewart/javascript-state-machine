@@ -193,8 +193,22 @@ StateMachine.prototype =
             }
 
             // pre-collate all states
-            addStates(this, 'from', config.transitions);
-            addStates(this, 'to', config.transitions);
+            if(config.transitions)
+            {
+                config.transitions.map( tx => {
+                    let states;
+                    if(typeof tx === 'string')
+                    {
+                        states = tx.match(/\w+/g);
+                        states.shift();
+                    }
+                    else
+                    {
+                        states = [tx.from, tx.to];
+                    }
+                    states.map( state => addState(this, state) );
+                });
+            }
 
             // initial state
             if( ! config.initial )
@@ -648,6 +662,8 @@ StateMachine.prototype =
         {
             this.actions.set(action + '.' + from, to);
             this.transitions.add(from, action);
+            addState(this, from);
+            addState(this, to);
             return this;
         },
 
@@ -769,21 +785,6 @@ StateMachine.prototype =
         }
 
 };
-
-/**
- * Parses config and adds unique state names to states array
- *
- * @param {StateMachine}    fsm
- * @param {string}          key
- * @param {Object[]}        transitions
- */
-function addStates(fsm, key, transitions)
-{
-    if(transitions)
-    {
-        transitions.map( event => addState(fsm, event[key]) );
-    }
-}
 
 function addState (fsm, state)
 {
