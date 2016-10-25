@@ -764,8 +764,7 @@ StateMachine.prototype =
             let handlers = this.handlers.get(path);
             if(handlers)
             {
-                // do we need to pass additional arguments?
-                handlers.map(fn => fn(event) );
+                handlers.map(fn => fn(event, this) );
             }
         }
 
