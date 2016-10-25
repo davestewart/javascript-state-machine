@@ -50,34 +50,33 @@
     </main>
 
     <section id="info">
-        <p>This example demonstrates a more complicated flow with additional actions, and a more state-dependent flow:</p>
-        <ul>
-            <li>From the initial <code>green</code> state, it's possible to enter the <code>yellow</code> or <code>red</code> states via <code>warn</code> or <code>panic</code>.</li>
-            <li>From the <code>yellow</code> state, it's possible to <code>clear</code> or enter the <code>red</code> state by <code>panic</code>ing</li>
-            <li>From the <code>red</code> state it's possible to drop down states via <code>calm</code> or <code>clear</code></li>
-            <li>Exiting the <code>red</code> state also delays execution of the transition by pausing and resuming the transition</li>
-        </ul>
-        <p>This example is a copy of Jake Gordon's <a href="http://codeincomplete.com/posts/javascript-state-machine-v2/demo/">JavaScript State Machine</a>.</p>
+        <p>This example demonstrates a more complicated, state-dependent flow (copying <a href="http://codeincomplete.com/posts/javascript-state-machine-v2/demo/">Jake Gordon's</a> JavaScript State Machine demo):</p>
+        <p>There are a variety of interacting states and actions, as well as an <a href="../handlers/asynchronous.html">asynchronous event handler</a> on leaving the red state.</p>
+        <p>Note that the configuration for this state machine was written using <a href="../config/advanced.html">shorthand notation</a>:</p>
+        <pre id="config"></pre>
+        <p>Had it been written in JavaScript, it would have looked like this:</p>
+<pre>
+{name: 'warn', from: 'green', to: 'yellow'},
+{name: 'panic', from: 'green', to: 'red'},
+{name: 'clear', from: 'yellow', to: 'green'},
+{name: 'panic', from: 'yellow', to: 'red'},
+{name: 'clear', from: 'red', to: 'green'},
+{name: 'calm', from: 'red', to: 'yellow'},
+{name: 'finish', from: 'red', to: 'final'}
+</pre>
     </section>
 
     <script>
 
         var config = {
 
-            initial : null,
-
-            final   : 'final',
-
-            debug   : false,
-
             transitions: [
-                {name: 'warn', from: 'green', to: 'yellow'},
-                {name: 'panic', from: 'green', to: 'red'},
-                {name: 'clear', from: 'yellow', to: 'green'},
-                {name: 'panic', from: 'yellow', to: 'red'},
-                {name: 'clear', from: 'red', to: 'green'},
-                {name: 'calm', from: 'red', to: 'yellow'},
-                {name: 'finish', from: 'red', to: 'final'}
+                'warn  : green  > yellow',
+                'panic : yellow > red',
+                'panic : green  > red',
+                'calm  : yellow < red',
+                'clear : green  < yellow',
+                'clear : green  < red'
             ],
 
             handlers: {
@@ -94,6 +93,8 @@
             }
 
         };
+
+        show(config);
 
         setup(new StateMachine(config));
 

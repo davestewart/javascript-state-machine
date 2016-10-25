@@ -2,7 +2,7 @@ if (window.StateMachine) {
     window.StateMachine = StateMachine.default;
 }
 
-var fsm, $states, $controls, $buttons;
+var fsm, $states, $buttons;
 
 function update() {
 
@@ -45,4 +45,9 @@ function setup(fsm) {
     // update
     update();
     console.log(fsm)
+}
+
+function show(config)
+{
+    $('pre:first-of-type').text(config.transitions.join('\n'));
 }

@@ -28,7 +28,9 @@
     </main>
 
     <section id="info">
-        <p>This example demonstrates assigning actions and states via shorthand notation, e.g. <code>next : a > b</code>.</p>
+        <p>This example demonstrates assigning actions and states via "shorthand" notation:</p>
+        <pre></pre>
+        <p>See both the <a href="advanced.html">advanced shorthand notation</a> and <a href="../flows/branching.html">branching flow</a> example to see how shorthand notation makes it easier to visualise flows.</p>
     </section>
 
     <script>
@@ -43,6 +45,8 @@
             ]
 
         };
+
+        show(config);
 
         setup(new StateMachine(config));
 
