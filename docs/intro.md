@@ -47,9 +47,3 @@ Options
 
 - Output debug messages
 
-
-## Mentions
-
-The concepts for this state machine were inspired heavily by the [@jakesgordon](https://github.com/jakesgordon/javascript-state-machine/), however as that project has not been updated since 2013 and also suffers from some a 
-
-Changes
