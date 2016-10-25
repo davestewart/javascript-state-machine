@@ -42,20 +42,8 @@
                 {name: 'next', from: 'b', to: 'c'},
                 {name: 'back', from: 'c', to: 'b'},
                 {name: 'back', from: 'b', to: 'a'}
-            ],
+            ]
 
-            handlers: {
-
-                complete: function (event) {
-                    alert('Final state entered');
-                    console.log(event);
-                    if (event.transition.to == fsm.config.final)
-                    {
-                        // another way to determine final event
-                    }
-                }
-
-            }
         };
 
         setup(new StateMachine(config));

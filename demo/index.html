@@ -1,30 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>State Machine Examples</title>
+    <title>State Machine Demo</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <style type="text/css">
-        #toc p {
+
+        main, section {
+            padding:0 0 20px 20px;
+        }
+
+        p {
             font-size: 0.8em;
         }
 
-        #toc ul {
+        ul {
             margin-bottom: 30px;
+        }
+
+        h2{
+            border-bottom:1px double #EEE;
+            padding: 0 0 10px 20px;
+            margin:0 0 15px 0;
         }
 
         a[disabled] {
             color: #CCC;
             pointer-events: none;
         }
+
     </style>
 </head>
 <body>
 
-    <h1>State Machine - Examples</h1>
-    <main>
-        <section id="toc">
+    <h1>State Machine Demo</h1>
+    <main id="toc">
+
+        <h2>API</h2>
+        <section>
+
             <h4>Introduction</h4>
             <ul>
                 <li><a href="html/notes.html">Notes</a></li>
@@ -34,7 +49,7 @@
             <ul>
                 <li><a href="html/flows/sequential.html">Sequential flow</a></li>
                 <li><a href="html/flows/looping.html">Looping flow</a></li>
-                <li><a href="html/flows/dependent.html">Dependent flow</a></li>
+                <li><a href="html/flows/linked.html">Linked flow</a></li>
                 <li><a href="html/flows/branching.html">Branching flow</a></li>
             </ul>
 
@@ -49,7 +64,8 @@
             <h4>Events</h4>
             <ul>
                 <li><a href="html/events/playground.html">Event handler playground</a></li>
-                <li><a href="html/events/parse.html">Event handler id parse test</a></li>
+                <li><a href="html/events/interactive.html">Interactive id tester</a></li>
+                <li><a href="html/events/automated.html">Automated id tester</a></li>
             </ul>
 
             <h4>Transitions</h4>
@@ -60,18 +76,32 @@
                 <li><a href="html/handlers/switching.html">Switching transitions</a></li>
             </ul>
 
-            <h4>Tricks</h4>
+            <h4>Advanced</h4>
             <ul>
-                <li><a href="html/tricks/css-animation.html" disabled>CSS animation events</a></li>
-                <li><a href="html/tricks/jquery-animation.html" disabled>jQuery animation</a></li>
+                <li><a href="html/advanced/nested.html" disabled>Nested state</a></li>
             </ul>
+        </section>
 
-            <h4>Real-world examples</h4>
+        <h2>Examples</h2>
+        <section>
+
+            <h4>Systems</h4>
             <ul>
                 <li><a href="html/examples/sign-up.html">Multi-step form</a></li>
-                <li><a href="html/examples/game.html" disabled>Game state examples</a></li>
-                <li><a href="html/examples/routing.html" disabled>Routing example</a></li>
-                <li><a href="html/examples/vue.html" disabled>Vue JS example</a></li>
+                <li><a href="html/examples/game.html" disabled>Game character state</a></li>
+                <li><a href="html/examples/game.html" disabled>Multiple state machines</a></li>
+            </ul>
+
+            <h4>Animation</h4>
+            <ul>
+                <li><a href="html/examples/jquery-animation.html" disabled>jQuery animation</a></li>
+                <li><a href="html/examples/css-animation.html" disabled>CSS animation events</a></li>
+            </ul>
+
+            <h4>Framework</h4>
+            <ul>
+                <li><a href="html/examples/routing.html" disabled>State-based routing</a></li>
+                <li><a href="html/examples/vue.html" disabled>Vue JS reactive state</a></li>
             </ul>
         </section>
 

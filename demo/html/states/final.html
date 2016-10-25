@@ -62,6 +62,21 @@
             ],
 
             handlers: {
+
+                /**
+                 * Complete handler
+                 *
+                 * @param {SystemEvent} event
+                 */
+                complete: function (event) {
+                    console.log('Complete event fired!', event);
+                },
+
+                /**
+                 * Change handler
+                 *
+                 * @param {SystemEvent} event
+                 */
                 change:function (event) {
                     $('#states').toggleClass('complete', fsm.isComplete());
                 }

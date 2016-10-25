@@ -782,12 +782,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	
 	    dispatch: function dispatch(path, event) {
+	        var _this5 = this;
+	
 	        this.config.debug && console.info('StateMachine: dispatch "%s"', path);
 	        var handlers = this.handlers.get(path);
 	        if (handlers) {
-	            // do we need to pass additional arguments?
 	            handlers.map(function (fn) {
-	                return fn(event);
+	                return fn(event, _this5);
 	            });
 	        }
 	    }
@@ -1445,6 +1446,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // process
 	    segments = id.match(/:\w+|@\w+|\(.+?\)|\.\w+|\w+/g);
 	
+	    // return an empty result if no matches
+	    if (!segments) {
+	        return new ParseResult();
+	    }
+	
 	    /**
 	     * This is the engine of the parse process
 	     *
@@ -1510,12 +1516,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function ParseResult(namespace, type, targets) {
-	    this.namespace = namespace;
-	    this.type = type;
-	    this.targets = targets;
-	    this.paths = targets.map(function (target) {
-	        return namespace === 'action' || namespace === 'state' ? [namespace, target, type].join('.') : namespace + '.' + type;
-	    });
+	    if (namespace) {
+	        this.namespace = namespace;
+	        this.type = type;
+	        this.targets = targets;
+	        this.paths = targets.map(function (target) {
+	            return namespace === 'action' || namespace === 'state' ? [namespace, target, type].join('.') : namespace + '.' + type;
+	        });
+	    }
 	}
 	
 	ParseResult.prototype = {

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Interactive id tester</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+        pre{
+            margin:0;
+            color:#333;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Interactive id tester</h1>
+
+    <main class="states">
+
+        <section id="app">
+            <div class="form-group">
+                <input id="id" type="text" placeholder="Type a valid event handler id here..." class="form-control input-md">
+            </div>
+            <div>
+                <pre class="well well-sm" id="result">Awaiting input...</pre>
+            </div>
+        </section>
+
+        <section id="info">
+
+            <p>This page allows you to test out some event handler ids of your own.</p>
+            <p>A StateMachine instance is instantiated, so type above to try out some expressions.</p>
+
+            <p>The following properties available:</p>
+            <ul>
+                <li>States: <code>a</code>, <code>b</code>, <code>c</code></li>
+                <li>Actions: <code>back</code>, <code>next</code></li>
+            </ul>
+
+            <p>The following grammar is available:</p>
+            <ul>
+                <li><code>foo</code> tokens, including namespaces, event-type shortcuts, actions and states</li>
+                <li><code>.foo</code> property, including event types, actions and states</li>
+                <li><code>:foo</code> event, action or state events, such as "start" and "enter"</li>
+                <li><code>@foo</code> action, filter to actions only</li>
+                <li><code>(foo|bar|baz)</code> multiple targets; either actions or states</li>
+            </ul>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        var fsm = new StateMachine({
+            transitions: [
+                {name: 'initialize', from: 'none', to: 'a'},
+
+                {name: 'next', from: 'a', to: 'b'},
+                {name: 'next', from: 'b', to: 'c'},
+                {name: 'next', from: 'c', to: 'a'},
+
+                {name: 'back', from: 'c', to: 'b'},
+                {name: 'back', from: 'b', to: 'a'},
+                {name: 'back', from: 'a', to: 'c'}
+            ]
+        });
+
+        $('#id')
+            .on('input', function(event)
+            {
+                // get results
+                var input   = event.target.value;
+                var result  = StateMachine.parse(fsm, input);
+                delete result.targets;
+
+                // update
+                $('#result').html(result.namespace ? JSON.stringify(result, null, '    ') : 'No result');
+
+                // save
+                localStorage.handlerId = input;
+            })
+            .val(localStorage.handlerId || '')
+            .trigger('input');
+
+    </script>
+
+
+</body>
+</html>

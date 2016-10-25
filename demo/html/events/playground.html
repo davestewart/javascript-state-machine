@@ -114,10 +114,10 @@
                         <p>Types</p>
 
                         <label data-path="system.start" data-desc="The FSM has been started and the system has entered the initial state">
-                            <input type="checkbox" name="system" value="start"> start</label>
+                            <input type="checkbox" name="system" value="start" checked> start</label>
 
                         <label data-path="system.change" data-desc="The state of the system has changed">
-                            <input type="checkbox" name="system" value="change"> change</label>
+                            <input type="checkbox" name="system" value="change" checked> change</label>
 
                         <label data-path="system.update" data-desc="A property in the system (state, paused, transition) has been updated">
                             <input type="checkbox" name="system" value="update"> update</label>
@@ -144,7 +144,7 @@
                     <p>Types</p>
 
                     <label data-path="transition.pause" data-desc="The current transition was paused">
-                        <input type="checkbox" name="transition" value="pause"> pause</label>
+                        <input type="checkbox" name="transition" value="pause" checked> pause</label>
 
                     <label data-path="transition.resume" data-desc="The current transition was resumed">
                         <input type="checkbox" name="transition" value="resume"> resume</label>
@@ -160,7 +160,7 @@
                     <p>Targets</p>
 
                     <label data-path="action.*.start" data-desc="Any action started (defaulting to the configured event type)">
-                        <input type="checkbox" name="action" value="action"> action</label>
+                        <input type="checkbox" name="action" value="action" checked> action</label>
 
                     <label data-path="action.next.start" data-desc="Action 'next' started (defaulting to the configured event type)">
                         <input type="checkbox" name="action" value="next"> next</label>
@@ -198,7 +198,7 @@
                     <p>Targets</p>
 
                     <label data-path="state.*.enter" data-desc="Any state entered (defaulting to the configured event type)">
-                        <input type="checkbox" name="state" value="state"> state</label>
+                        <input type="checkbox" name="state" value="state" checked> state</label>
 
                     <label data-path="state.a.enter" data-desc="State 'a' entered (defaulting to the configured event type)">
                         <input type="checkbox" name="state" value="a"> a</label>
@@ -208,11 +208,11 @@
 
                     <p>Events</p>
 
-                    <label data-path="state.*.enter" data-desc="Any state entered">
-                        <input type="checkbox" name="state" value=":enter"> :enter</label>
-
                     <label data-path="state.*.leave" data-desc="Any state left">
                         <input type="checkbox" name="state" value=":leave"> :leave</label>
+
+                    <label data-path="state.*.enter" data-desc="Any state entered">
+                        <input type="checkbox" name="state" value=":enter"> :enter</label>
 
                     <p>Combinations</p>
 
@@ -230,7 +230,7 @@
                     <p>Targeted</p>
 
                     <label data-path="state.a.next" data-desc="Action 'next' called on state 'a'">
-                        <input type="checkbox" name="state" value="a.next"> a.next</label>
+                        <input type="checkbox" name="state" value="a.next" checked> a.next</label>
 
                     <label data-path="state.b.leave" data-desc="Event 'leave' (treated as an action) on state 'b'">
                         <input type="checkbox" name="state" value="b.leave"> b.leave</label>
@@ -272,21 +272,33 @@
 
         </div>
 
-
     </main>
 
     <section id="info">
+
         <p>This example demonstrates the various events you can listen to and take action on:</p>
         <ul>
-            <li>Toggle handlers for the events above using the checkboxes</li>
+            <li>Toggle handlers using the checkboxes</li>
             <li>Use the buttons to navigate the flow</li>
             <li>Note the order and timing of events in the panel on the right</li>
         </ul>
+
+        <p>The <strong>shorthand handler ids</strong> above all compile to <strong>absolute handler paths</strong>, such as <code>system.change</code> or <code>action.next:end</code>. Hover over each id/checkbox to see more information about the example.</p>
+        <p>There are 5 grammars that can be used:</p>
+        <ul>
+            <li><code>foo</code> tokens, including namespaces, event-type shortcuts, actions and states</li>
+            <li><code>.foo</code> property, including event types, actions and states</li>
+            <li><code>:foo</code> event, action or state events, such as "start" and "enter"</li>
+            <li><code>@foo</code> action, filter to actions only</li>
+            <li><code>(foo|bar|baz)</code> multiple targets; either actions or states</li>
+        </ul>
+
         <p>Note that all handlers operate independently of one another:</p>
         <ul>
             <li>You can listen to global (all states, and all actions) as well as named events</li>
             <li>You can mix and match all event handler types to both control and react to your flow</li>
         </ul>
+
     </section>
 
     <script title="fsm">
@@ -299,7 +311,7 @@
 
             final: 'c',
 
-            tran:
+            transitions:
             [
                 {name: 'start', from: 'none', to: 'a'},
 
@@ -325,98 +337,103 @@
          */
         var handlers = {
 
-            system: function onSystem (event) {
-                var message = event.key
-                    ? [event.key, event.value]
-                    : '';
-                log(event.namespace, event.type, message);
+            checkboxes: {
+
+                system: function onSystem (event) {
+                    var message = event.key
+                        ? event.key + ':' + event.value
+                        : '';
+                    log(event.namespace, event.type, message);
+                },
+
+                transition: function onTransition (event) {
+                    log(event.namespace, event.type);
+                },
+
+                action: function onAction (event) {
+                    log(event.namespace, event.type, event.target);
+                },
+
+                state: function onState (event) {
+                    log(event.namespace, event.type, event.target);
+                },
+
+                shorthand: function onShorthandState (event) {
+                    log(event.namespace, event.type, event.target, 'orange');
+                },
+
+                async: function async (event, fsm) {
+                    log(event.namespace, event.type, event.target);
+                    fsm.pause();
+                    setTimeout(fsm.resume.bind(fsm), 3000);
+                },
+
             },
 
-            action: function onAction (event) {
-                log(event.namespace, event.type, event.target);
+            buttons: {
 
-            },
+                cancel: function onCancel () {
+                    window.fsm.cancel();
+                },
 
-            state: function onState (event) {
-                log(event.namespace, event.type, event.target);
-            },
+                reset: function onReset () {
+                    window.fsm.reset();
+                },
 
-            shorthand: function onShorthandState (event) {
-                log(event.namespace, event.type, event.target, 'orange');
-            },
+                add: function onAdd () {
 
-            transition: function onTransition (event) {
-                log(event.namespace, event.type);
-            },
+                },
 
-            target: function onTarget (event) {
-                log(event.namespace, event.type, event.target);
-            },
+                remove: function onRemove () {
 
-            async: function async (event, fsm) {
-                log(event.namespace, event.type, event.target);
-                fsm.pause();
-                setTimeout(fsm.resume.bind(fsm), 3000);
-            },
-
-            cancel: function onCancel () {
-                window.fsm.cancel();
-            },
-
-            reset: function onReset () {
-                window.fsm.reset();
-            },
-
-            add: function onAdd () {
-                window.fsm.add()
-            },
-
-            remove: function onRemove () {
+                }
 
             }
+
         };
 
     </script>
 
     <script title="ui">
 
-        /**
-         * Update titles
-         */
+        function onHandlerClick (event) {
+
+            // variables
+            var signature   = event.target.value;
+            var type        = event.target.checked ? 'on' : 'off';
+            var method      = $(event.target).data('method');
+
+            // determine handler
+            var handler     = method
+                    ? handlers.checkboxes[method]
+                    : handlers.checkboxes[event.target.name];
+
+            // add or remove
+            fsm[type](signature, handler);
+        }
+
+        // Update titles
         $('[data-desc]').each(function (i, e) {
             var $e = $(e);
             e.title = $e.data('desc') + '\n\n' + $e.data('path').replace(/\s+/, '\n');
         });
 
-        /**
-         * Add or remove handler on checkbox toggle
-         */
-        $('input[type="checkbox"]').on('change', function (event) {
-            var signature   = event.target.value;
-            var type        = event.target.checked ? 'on' : 'off';
-            var method      = $(event.target).data('method');
-            var handler     = method
-                ? handlers[method]
-                : /[:@]/.test(signature)
-                    ? handlers[event.target.name]
-                    : handlers.target;
-            fsm[type](signature, handler);
-        });
+        // Add or remove handler on checkbox toggle
+        $('input[type="checkbox"]')
+            .on('change', onHandlerClick)
+            .filter(':checked')
+            .trigger('change');
 
-        /**
-         * Append a divider to the log on control click
-         */
+        // Append a divider to the log on control click
         $('#control-set button').on('mouseup', function () {
             if($log[0].firstChild.tagName === 'P'){
                 $log.prepend('<hr>');
             }
         });
 
-        /**
-         * Execute additional commands
-         */
+        // Execute additional commands
         $('#more-controls button').on('click', function (event) {
-            handlers[event.target.name]();
+            handlers.buttons[event.target.name]();
         });
 
     </script>
