@@ -24,7 +24,7 @@
 
             <article id="form">
 
-                <h2>Sign-up</h2>
+                <h2>Details</h2>
 
                 <form class="form-horizontal">
 
@@ -90,16 +90,19 @@
             <li>A conditional transition when validating the form</li>
             <li>An asynchronous transition when submitting the form</li>
             <li>A forced transition to an "error" state via <code>go()</code></li>
+            <li>Clearing the form once submitted</li>
             <li>A terminating state "done"</li>
         </ul>
     </section>
 
     <script>
 
+        var $form = $('form');
+
         function validate ()
         {
             var validated = true;
-            $('#form input').each(function(i, e)
+            $form.find('input').each(function(i, e)
             {
                 var valid = e.type === 'checkbox'
                     ? e.checked
@@ -150,6 +153,7 @@
 
                     // submit
                     fsm.pause();
+                    console.log('Submitting data...');
                     setTimeout(function ()
                     {
                         if(document.getElementById('invalid').checked)
@@ -163,6 +167,12 @@
                             fsm.resume();
                         }
                     }, 2000);
+                },
+
+                'finish:enter':function()
+                {
+                    console.log('Form cleared');
+                    $form.get(0).reset();
                 }
             }
         };
