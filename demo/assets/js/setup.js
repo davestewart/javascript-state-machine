@@ -2,6 +2,10 @@ if (window.StateMachine) {
     window.StateMachine = StateMachine.default;
 }
 
+$(function(){
+    $('body').append('<a id="home" href="/">Home</a>');
+});
+
 var fsm, $states, $buttons;
 
 function update() {
