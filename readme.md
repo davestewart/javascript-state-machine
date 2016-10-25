@@ -14,7 +14,7 @@ It was designed with front-end web application use in mind, namely things like m
 
 
 
-### Feature highlights
+## Feature highlights
 
 Expressive, shorthand transition assignment notation:
 
@@ -70,7 +70,7 @@ Rich set of demos to play with:
 For more information see the [docs](docs/readme.md) section.
 
 
-### Getting started
+## Getting started
 
 The easiest thing to see all the features in action is to play with the live demos.
 
