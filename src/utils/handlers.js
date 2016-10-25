@@ -100,6 +100,12 @@ export function parse(fsm, id)
     // process
     segments    = id.match(/:\w+|@\w+|\(.+?\)|\.\w+|\w+/g);
 
+    // return an empty result if no matches
+    if(!segments)
+    {
+        return new ParseResult();
+    }
+
     /**
      * This is the engine of the parse process
      *
@@ -171,14 +177,17 @@ export function parse(fsm, id)
 
 function ParseResult (namespace, type, targets)
 {
-    this.namespace  = namespace;
-    this.type       = type;
-    this.targets    = targets;
-    this.paths      = targets.map( target => {
-        return namespace === 'action' || namespace === 'state'
-            ? [namespace, target, type].join('.')
-            : namespace + '.' + type;
-    });
+    if(namespace)
+    {
+        this.namespace  = namespace;
+        this.type       = type;
+        this.targets    = targets;
+        this.paths      = targets.map( target => {
+            return namespace === 'action' || namespace === 'state'
+                ? [namespace, target, type].join('.')
+                : namespace + '.' + type;
+        });
+    }
 }
 
 ParseResult.prototype =
