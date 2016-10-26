@@ -308,23 +308,30 @@ StateMachine.prototype =
                 }
             }
 
-            // add handlers
-            if(config.handlers)
-            {
-                for(let name in config.handlers)
-                {
-                    if(config.handlers.hasOwnProperty(name))
-                    {
-                        this.on(name, config.handlers[name]);
-                    }
-                }
-            }
-
             // start automatically unless defer is set to true
             if( ! config.defer )
             {
                 this.state = config.initial;
             }
+
+            /**
+             * Sets the default order to run transition callbacks in
+             *
+             * @type {string[]} type.target
+             */
+            config.order = config.order ||
+            [
+                'action.*.start',
+                'action.{action}.start',
+                'state.*.{action}',
+                'state.{from}.{action}',
+                'state.{from}.leave',
+                'state.*.leave',
+                'state.*.enter',
+                'state.{to}.enter',
+                'action.{action}.end',
+                'action.*.end'
+            ];
 
             /**
              * Sets defaults for various declarations
@@ -342,24 +349,18 @@ StateMachine.prototype =
 
             }, config.defaults);
 
-            /**
-             * Sets the default order to run transition callbacks in
-             *
-             * @type {string[]} type.target
-             */
-            config.order = config.order ||
-            [
-                'action.*.start',
-                'action.{action}.start',
-                'state.{*}.{action}',
-                'state.{from}.{action}',
-                'state.{from}.leave',
-                'state.*.leave',
-                'state.*.enter',
-                'state.{to}.enter',
-                'action.{action}.end',
-                'action.*.end'
-            ];
+            // add handlers
+            if(config.handlers)
+            {
+                for(let name in config.handlers)
+                {
+                    if(config.handlers.hasOwnProperty(name))
+                    {
+                        this.on(name, config.handlers[name]);
+                    }
+                }
+            }
+
         },
 
         /**
