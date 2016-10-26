@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------------------
- * layout
+ * layout and formatting
  */
 
     body {
@@ -34,8 +34,24 @@
 
 
 /* ------------------------------------------------------------------------------------------------
- * forms
+ * states state
  */
+
+    main.steps article {
+        display: none;
+    }
+
+    main.steps article.active {
+        display: block;
+    }
+
+    #states {
+        transition: 0.5s all;
+    }
+
+    #states.paused {
+        opacity: 0.25;
+    }
 
     .btn[disabled]{
         opacity: 0.5;
@@ -48,15 +64,13 @@
 
 
 /* ------------------------------------------------------------------------------------------------
- * styles
+ * states formatting
  */
 
-    #states {
-        transition: 0.5s all;
-    }
-
-    #states.paused {
-        opacity: 0.25;
+    main.steps article {
+        width: 500px;
+        border:1px solid #EEE;
+        padding:20px;
     }
 
     main.states article {
@@ -74,17 +88,6 @@
 
     main.states article.active {
         border: 1px solid black;
-    }
-
-    main.steps article {
-        width: 500px;
-        border:1px solid #EEE;
-        padding:20px;
-        display: none;
-    }
-
-    main.steps article.active {
-        display: block;
     }
 
     main.steps h2 {
