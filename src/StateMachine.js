@@ -9,7 +9,7 @@ export default function StateMachine (scope, config)
     // allow [scope, config] or [config] as parameters
     if(arguments.length == 1)
     {
-        [config, scope] = [scope, null];
+        [config, scope] = [scope, this];
     }
 
     // assignment
