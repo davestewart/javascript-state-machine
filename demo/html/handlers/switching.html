@@ -7,6 +7,19 @@
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+        #d {
+            margin-left: 50px;
+            opacity:0.25;
+        }
+
+        #states.skipping #c {
+            opacity:0.25;
+        }
+        #states.skipping #d {
+            opacity:1;
+        }
+    </style>
 </head>
 <body>
 
@@ -18,10 +31,11 @@
             <article id="a">State A</article>
             <article id="b">State B</article>
             <article id="c">State C</article>
+            <article id="d">State D</article>
         </section>
 
         <section>
-            <label><input id="skip" type="checkbox"> Skip straight to State C</label>
+            <label><input id="skip" type="checkbox"> Show D instead of C</label>
         </section>
 
         <section id="controls">
@@ -42,18 +56,14 @@
         var config = {
 
             transitions: [
-                {name: 'next', from: 'a', to: 'b'},
-                {name: 'next', from: 'b', to: 'c'},
-
-                {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'}
+                'next : a > b > c > a < d'
             ],
 
             handlers: {
                 // force
-                'a@next': function (event, fsm) {
+                'c:enter': function (event, fsm) {
                     if (skip.checked) {
-                        fsm.go('c', true);
+                        fsm.go('d', true);
                     }
                 },
 
@@ -68,6 +78,10 @@
         };
 
         setup(new StateMachine(config));
+
+        $('#skip').on('change', function (event) {
+            $('#states').toggleClass('skipping', event.currentTarget.checked);
+        });
 
     </script>
 </body>

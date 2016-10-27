@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>State-based routing</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+
+    <!-- libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/2.0.1/vue-router.js"></script>
+</head>
+<body>
+
+    <h1>State-based routing</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <router-view>STATE</router-view>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>This example demonstrates uses StateMachine in combination with a router to update the UI.</p>
+        <ul>
+            <li>The StateMachine doesn't update the UI; instead, a change handler updates a Vue Router, which re-renders the page depending on the route.</li>
+            <li>When the history is manually navigated, we cheat and directly set the state machine's state, and manually call the UI update handler</li>
+        </ul>
+        <p>This relationship has the following advantages:</p>
+        <ul>
+            <li>The StateMachine instance manages allowable routes</li>
+            <li>The UI same, simple UI update function toggles button availability</li>
+            <li>The router takes care of browser history</li>
+            <li>The user can navigate using the browser's back and forward buttons</li>
+        </ul>
+    </section>
+
+    <script title="router">
+
+        /*
+            http://jsfiddle.net/yyx990803/xgrjzsup/
+            http://router.vuejs.org/en/essentials/named-routes.html
+
+            Use router links
+
+            - enable or disable according to can
+            - actually, shit idea! This is the opposite of using actions
+
+            maybe look at inverse examples as well?
+            - could state machine be used as a router?
+            - use getStatesForAction()
+        */
+
+        Vue.use(VueRouter);
+
+        var StateA = { template: '<article>State A</article>' };
+        var StateB = { template: '<article>State B</article>' };
+        var StateC = { template: '<article>State C</article>' };
+
+        var router = new VueRouter({
+            mode: 'hash',
+            routes: [
+                { path: '/a', name: 'a', component: StateA },
+                { path: '/b', name: 'b', component: StateB },
+                { path: '/c', name: 'c', component: StateC }
+            ]
+        });
+
+        var app = new Vue(
+        {
+            el:'#states',
+            router:router,
+        }).$mount('#states');
+
+    </script>
+
+    <script title="state-machine">
+
+        var config = {
+
+            transitions: [
+                'next :  a > b > c',
+                'back :  a < b < c'
+            ],
+
+            handlers: {
+                change: function(event, fsm) {
+                    router.push('/' + fsm.state);
+                    updateTitle(fsm.state);
+                }
+            }
+        };
+
+        // state machine confif
+        setup(new StateMachine(config));
+
+        // on router change, cheat and directly set state
+        router.afterEach(function(route){
+            window.fsm.state = route.name;
+            updateTitle(route.name);
+            update();
+        });
+
+        // update title function
+        function updateTitle (state) {
+            // set timeout here, as VueRouter needs to update to the next "tick"
+            setTimeout(function(){ document.title = 'State-based routing / State ' + state.toUpperCase(); }, 100);
+        }
+
+    </script>
+</body>
+</html>

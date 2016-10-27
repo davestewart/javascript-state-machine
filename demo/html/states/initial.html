@@ -38,10 +38,8 @@
             initial: 'b',
 
             transitions: [
-                {name: 'next', from: 'a', to: 'b'},
-                {name: 'next', from: 'b', to: 'c'},
-                {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'}
+                'next : a > b > c',
+                'back : a < b < c'
             ]
 
         };
