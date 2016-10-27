@@ -140,7 +140,7 @@ export default
     create:function (fsm, action, params)
     {
         // transition properties
-        let scope   = fsm.scope;
+        let scope   = fsm.config.scope;
         let from    = fsm.state;
         let to      = fsm.actions.get(action)[from];
         let vars    = {action, to, from};
