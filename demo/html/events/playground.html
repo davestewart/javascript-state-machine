@@ -311,17 +311,10 @@
 
             final: 'c',
 
-            transitions:
-            [
-                {name: 'start', from: 'none', to: 'a'},
-
-                {name: 'next', from: 'a', to: 'b'},
-                {name: 'next', from: 'b', to: 'c'},
-                {name: 'next', from: 'c', to: 'a'},
-
-                {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'},
-                {name: 'back', from: 'a', to: 'c'}
+            transitions: [
+                'start : none > a',
+                'next : a > b > c > a',
+                'back : a < b < c < a'
             ]
 
         };

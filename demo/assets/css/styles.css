@@ -3,7 +3,8 @@
  */
 
     body {
-        width: 1000px;
+        min-width: 670px;
+        max-width: 1000px;
         margin: 50px auto;
     }
 
@@ -11,10 +12,18 @@
         position: relative;
     }
 
-    h1{
+    h1 {
         border-bottom:1px solid #EEE;
         padding: 0 0 20px 30px;
         margin:0 0 30px 0;
+    }
+
+    h3 {
+        border-bottom:1px solid #EEE;
+        padding: 0 0 10px 30px;
+        margin:20px 0 10px -30px;
+        color:#18bc9c;
+        font-size:20px;
     }
 
     section {
@@ -29,7 +38,8 @@
     a#home{
         position: absolute;
         top:20px;
-        right:20px;
+        left:20px;
+        font-size: 0.8em;
     }
 
 
@@ -82,7 +92,7 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        margin: 0 5px 0 0;
+        margin: 0 5px 5px 0;
         transition: 0.5s all;
     }
 

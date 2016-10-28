@@ -33,12 +33,10 @@
         <section id="info">
 
             <p>This page allows you to test out some event handler ids of your own.</p>
-            <p>A StateMachine instance is instantiated, so type above to try out some expressions.</p>
-
-            <p>The following properties available:</p>
+            <p>A StateMachine instance is instantiated with the following properties available:</p>
             <ul>
-                <li>States: <code>a</code>, <code>b</code>, <code>c</code></li>
-                <li>Actions: <code>back</code>, <code>next</code></li>
+                <li>States: <code>a</code>, <code>b</code>, <code>c</code>, <code>d</code>, <code>e</code>, <code>exit</code></li>
+                <li>Actions: <code>back</code>, <code>next</code>, <code>quit</code></li>
             </ul>
 
             <p>The following grammar is available:</p>
@@ -49,6 +47,7 @@
                 <li><code>@foo</code> action, filter to actions only</li>
                 <li><code>(foo|bar|baz)</code> multiple targets; either actions or states</li>
             </ul>
+            <p>Type above to test out some matches!</p>
 
         </section>
 
@@ -57,17 +56,13 @@
     <script>
 
         var fsm = new StateMachine({
+
             transitions: [
-                {name: 'initialize', from: 'none', to: 'a'},
-
-                {name: 'next', from: 'a', to: 'b'},
-                {name: 'next', from: 'b', to: 'c'},
-                {name: 'next', from: 'c', to: 'a'},
-
-                {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'},
-                {name: 'back', from: 'a', to: 'c'}
+                'next : a > b > c > d > e',
+                'back : a < b < c < d < e',
+                'quit : a b c d e > exit',
             ]
+
         });
 
         $('#id')

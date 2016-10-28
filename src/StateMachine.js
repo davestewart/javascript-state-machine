@@ -1,19 +1,25 @@
 import ValueMap from './utils/ValueMap';
 import Transition from './Transition';
+import Config from './Config';
 import { SystemEvent, TransitionEvent } from './Events';
 import { isString, isFunction } from './utils/utils';
 import { parse } from './utils/handlers'
 
-export default function StateMachine (scope, config)
+export default function StateMachine (scope, options)
 {
     // allow [scope, config] or [config] as parameters
     if(arguments.length == 1)
     {
-        [config, scope] = [scope, this];
+        [options, scope] = [scope, this];
+    }
+
+    // assign default scope if not set
+    if(!options.scope)
+    {
+        options.scope = scope;
     }
 
     // assignment
-    this.scope          = scope;
     this.state          = '';
     this.states         = [];
     this.transitions    = new ValueMap();
@@ -21,9 +27,15 @@ export default function StateMachine (scope, config)
     this.handlers       = new ValueMap();
 
     // initialize
-    if(config)
+    if(options)
     {
-        this.initialize(config);
+        this.initialize(options);
+    }
+
+    // change event
+    if(!this.config.defer)
+    {
+        this.update('system', 'change', 'state', this.state);
     }
 }
 
@@ -48,41 +60,12 @@ StateMachine.prototype =
         /**
          * Available state names
          *
-         * - [
-         *     intro,
-         *     settings,
-         *     summary,
-         *     final
-         *   ]
-         *
          * @var {string[]}
          */
         states      : null,
 
         /**
          * Available transitions for each action
-         *
-         * action.from => to
-         *
-         * - next: {
-         *     intro: settings,
-         *     settings: summary
-         *   },
-         * - back: {
-         *     settings: intro
-         *   },
-         * - restart: {
-         *     summary:intro
-         *   },
-         * - finish: {
-         *     summary:final
-         *   },
-         *
-         * Transitions can also be functions
-         *
-         * - next: {
-         *     intro: function() { return '<random state>' } // jump to a random state
-         *   }
          *
          * @var {ValueMap}
          */
@@ -91,53 +74,12 @@ StateMachine.prototype =
         /**
          * Actions that are available to be called from each state
          *
-         * state => [ action, action, ... ]
-         *
-         * - intro: [
-         *     'next'
-         *   ],
-         * - settings: [
-         *     'next',
-         *     'back'
-         *   ],
-         * - summary: [
-         *     'restart'
-         *     'finish',
-         *   ]
-         *
-         * Actions can also be expressed as wildcards
-         *
-         * - intro: [
-         *     '*' // any action is allowed from intro
-         *   ]
-         *
          * @var {ValueMap}
          */
         actions     : null,
 
         /**
          * Handler functions that should be called on each action event / state change
-         *
-         * name.type => [ handler, handler, ... ]
-         *
-         * - next: {
-         *   - start: [
-         *       hideModal
-         *     ],
-         *   - end: [
-         *       showModal
-         *     ]
-         *   },
-         * - summary: {
-         *   - enter: [
-         *       resetForm
-         *     ],
-         *   - leave: [
-         *       validateForm,
-         *       postData,
-         *     ]
-         *   },
-         *   ...
          *
          * @var {ValueMap}
          */
@@ -158,16 +100,9 @@ StateMachine.prototype =
         transition  : null,
 
         /**
-         * The scope in which to call all handlers
+         * Configuration object
          *
-         * @var {*}
-         */
-        scope       : null,
-
-        /**
-         * The original config object
-         *
-         * @var {Object}
+         * @var {Config}
          */
         config      : null,
 
@@ -179,188 +114,62 @@ StateMachine.prototype =
          * Initialize the FSM with a config object
          *
          * @private
-         * @param config
+         * @param options
          */
-        initialize:function (config)
+        initialize:function (options)
         {
-            // assign config
-            this.config     = config;
+            // build config
+            let config = new Config(options);
+            this.config = config;
 
-            // scope
-            if(config.scope)
+            // pre-process all transitions
+            let transitions = [];
+            if(Array.isArray(options.transitions))
             {
-                this.scope = config.scope;
+                options.transitions.map( tx =>
+                {
+                    transitions = transitions.concat(config.parseTransition(tx));
+                });
             }
 
-            // pre-process transitions
-            if(config.transitions)
+            // pre-collate all states
+            transitions.map( tx =>
             {
-                let transitions = [];
+                [tx.from, tx.to].map( state => addState(this, state) );
+            });
 
-                function newError(tx, message)
-                {
-                    return new Error('Invalid transition shorthand pattern "' +tx+ '" - ' + message);
-                }
-
-                function add(name, from, to)
-                {
-                    transitions.push({name, from, to});
-                }
-
-                config.transitions.map( tx =>
-                {
-                    // convert shorthand to objects
-                    if(isString(tx))
-                    {
-                        // pre-process string
-                        tx = tx
-                            .replace(/([|=:<>])/g, ' $1 ')
-                            .replace(/\s+/g, ' ')
-                            .replace(/^\s+|\s+$/g,'');
-
-                        // ensure string is valid
-                        if(!/^\w+ [:|=] \w[\w ]*[<>] \w[\w ]*/.test(tx))
-                        {
-                            throw newError(tx, 'cannot determine action and states');
-                        }
-
-                        // initialize variables
-                        let matches = tx.match(/([*\w ]+|[<>])/g),
-                            action  = matches.shift().replace(/\s+/g, ''),
-                            stack   = [],
-                            match   = '',
-                            op      = '',
-                            a       = '',
-                            b       = '';
-
-                        // process remaining tokens
-                        while(matches.length)
-                        {
-                            // get the next match
-                            match = matches.shift();
-                            if(/[<>]/.test(match))
-                            {
-                                op = match;
-                            }
-                            else
-                            {
-                                match = match.match(/[*\w]+/g);
-                                match = match.length === 1 ? match[0] : match;
-                                stack.push(match);
-                            }
-
-                            // process matches if stack is full
-                            if(stack.length === 2)
-                            {
-                                [a, b] = op === '<'
-                                    ? [stack[1], stack[0]]
-                                    : stack;
-                                if(Array.isArray(a) && Array.isArray(b))
-                                {
-                                    throw newError(tx, 'transitioning between 2 arrays doesn\'t make sense');
-                                }
-                                if(Array.isArray(a))
-                                {
-                                    a.map( a => add(action, a, b) );
-                                }
-                                else if(Array.isArray(b))
-                                {
-                                    b.map( b => add(action, a, b) );
-                                }
-                                else
-                                {
-                                    add(action, a, b);
-                                }
-
-                                // once processed, shift the original
-                                stack.shift();
-                            }
-
-                        }
-                    }
-
-                    // just add objects as-is
-                    else
-                    {
-                        transitions.push(tx);
-                    }
-                });
-
-                // pre-collate all states
-                transitions.map( tx =>
-                {
-                    [tx.from, tx.to].map( state => addState(this, state) );
-                });
-
-                // initial state (must be done after
-                if( ! config.initial )
-                {
-                    config.initial = this.states[0];
-                }
-
-                // add transitions
-                if(Array.isArray(transitions))
-                {
-                    transitions.map( transition =>
-                    {
-                        this.add(transition.name, transition.from, transition.to);
-                    });
-                }
+            // get initial state (must be done after state collation)
+            if( ! config.initial )
+            {
+                config.initial = this.states[0];
             }
 
-            // start automatically unless defer is set to true
+            // set initial state, unless defer is set to true
             if( ! config.defer )
             {
                 this.state = config.initial;
             }
 
-            /**
-             * Sets the default order to run transition callbacks in
-             *
-             * @type {string[]} type.target
-             */
-            config.order = config.order ||
-            [
-                'action.*.start',
-                'action.{action}.start',
-                'state.*.{action}',
-                'state.{from}.{action}',
-                'state.{from}.leave',
-                'state.*.leave',
-                'state.*.enter',
-                'state.{to}.enter',
-                'action.{action}.end',
-                'action.*.end'
-            ];
-
-            /**
-             * Sets defaults for various declarations
-             *
-             * @type {Object}
-             */
-            config.defaults = Object.assign({
-
-                // initialize event
-                initialize  :'initialize',
-
-                // handler defaults
-                action      :'start',
-                state       :'enter'
-
-            }, config.defaults);
+            // add transitions
+            transitions.map( transition =>
+            {
+                this.add(transition.name, transition.from, transition.to);
+            });
 
             // add handlers
-            if(config.handlers)
+            if(options.handlers)
             {
-                for(let name in config.handlers)
+                for(let name in options.handlers)
                 {
-                    if(config.handlers.hasOwnProperty(name))
+                    if(options.handlers.hasOwnProperty(name))
                     {
-                        this.on(name, config.handlers[name]);
+                        this.on(name, options.handlers[name]);
                     }
                 }
             }
 
+            // return
+            return this;
         },
 
         /**
@@ -732,14 +541,14 @@ StateMachine.prototype =
         /**
          * Remove a transition
          *
-         * @param   {string}    action
-         * @param   {string}    from
-         * @param   {string}    to
+         * @param   {string}    state
          * @return  {StateMachine}
          */
-        remove: function (action, from, to)
+        remove: function (state)
         {
-            this.states.remove(action, from);
+            this.handlers.remove('state.' + state);
+            this.transitions.remove(state);
+            Object.keys(this.actions.get()).map(action => this.actions.remove(action + '.' + state));
             return this;
         },
 

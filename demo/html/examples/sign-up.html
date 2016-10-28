@@ -120,25 +120,16 @@
 
         var config = {
 
-            transitions:
-            [
-                // next:   intro > form > finish
-                // back:   intro < form
-                // error:          form          > error
-
-                {name: 'next', from: 'intro', to: 'form'},
-                {name: 'next', from: 'form',  to: 'finish'},
-
-                {name: 'back', from: 'form',  to: 'intro'},
-                {name: 'back', from: 'error', to: 'form'},
-                {name: 'exit', from: 'finish', to: 'intro'},
-
-                {name: 'error', from: 'form', to: 'error'}
+            transitions: [
+                'next  : intro > form > finish',
+                'back  : intro < form           < error',
+                'error :         form >           error',
+                'exit  : intro        < finish'
             ],
 
             handlers:
             {
-                'form:enter':function ()
+                'form':function ()
                 {
                     $('form').removeClass('has-error');
                 },
@@ -151,9 +142,9 @@
                         return fsm.cancel();
                     }
 
-                    // submit
-                    fsm.pause();
+                    // simulate server call
                     console.log('Submitting data...');
+                    fsm.pause();
                     setTimeout(function ()
                     {
                         if(document.getElementById('invalid').checked)
@@ -169,7 +160,7 @@
                     }, 2000);
                 },
 
-                'finish:enter':function()
+                'finish':function()
                 {
                     console.log('Form cleared');
                     $form.get(0).reset();

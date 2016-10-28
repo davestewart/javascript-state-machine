@@ -37,15 +37,8 @@
         var config = {
 
             transitions: [
-                {name: 'next', from: 'a', to: 'b'},
-                {name: 'next', from: 'b', to: 'c'},
-                {name: 'next', from: 'c', to: 'd'},
-                {name: 'next', from: 'd', to: 'a'},
-
-                {name: 'back', from: 'd', to: 'c'},
-                {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'},
-                {name: 'back', from: 'a', to: 'd'}
+                'next : a > b > c > d > a',
+                'back : a < b < c < d < a'
             ]
         };
 
