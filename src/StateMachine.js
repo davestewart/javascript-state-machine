@@ -31,6 +31,12 @@ export default function StateMachine (scope, options)
     {
         this.initialize(options);
     }
+
+    // change event
+    if(!this.config.defer)
+    {
+        this.update('system', 'change', 'state', this.state);
+    }
 }
 
 StateMachine.parse = parse;
@@ -535,14 +541,14 @@ StateMachine.prototype =
         /**
          * Remove a transition
          *
-         * @param   {string}    action
-         * @param   {string}    from
-         * @param   {string}    to
+         * @param   {string}    state
          * @return  {StateMachine}
          */
-        remove: function (action, from, to)
+        remove: function (state)
         {
-            this.states.remove(action, from);
+            this.handlers.remove('state.' + state);
+            this.transitions.remove(state);
+            Object.keys(this.actions.get()).map(action => this.actions.remove(action + '.' + state));
             return this;
         },
 

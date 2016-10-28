@@ -55,7 +55,8 @@
 
         // update
         update();
-        console.log(fsm)
+        console.log(fsm);
+        return fsm;
     }
 
     if (window.StateMachine) {
