@@ -2,7 +2,7 @@ import { isString } from './utils/utils';
 
 export default function Config (options)
 {
-    'scope transitions initial final defer debug'
+    'initial final defer debug scope transitions'
         .match(/\w+/g)
         .map( name =>
         {
@@ -12,9 +12,11 @@ export default function Config (options)
             }
         });
 
-    this.order = options.order || this.getDefaultOrder();
+    // order
+    this.order      = options.order || this.getDefaultOrder();
 
-    this.defaults = Object.assign({
+    // defaults
+    this.defaults   = Object.assign({
 
         // allow user to specify a custom initialize event name
         initialize  :'initialize',
@@ -24,22 +26,27 @@ export default function Config (options)
         state       :'enter'
 
     }, options.defaults);
-
 }
 
 Config.prototype =
 {
-    // the scope to call all handlers in
+    /** @var string */
+    initial     : '',
+
+    /** @var string */
+    final       : '',
+
+    /** @var boolean */
+    defer       : false,
+
+    /** @var boolean */
+    debug       : false,
+
+    /** @var object */
     scope       : null,
 
-    // states
-    initial     : null,
-    final       : null,
+    /** @var *[] */
     transitions : null,
-
-    // flags
-    defer       : null,
-    debug       : null,
 
     /**
      * The order to run transition callbacks in

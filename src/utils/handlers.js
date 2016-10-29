@@ -2,13 +2,14 @@ let lookup =
 {
     namespaces:
     {
+        add     :'system',
+        remove  :'system',
+
         start   :'system',
         change  :'system',
         update  :'system',
         complete:'system',
         reset   :'system',
-        add     :'system',
-        remove  :'system',
 
         pause   :'transition',
         resume  :'transition',
@@ -42,11 +43,11 @@ export function parse(fsm, id)
 
     // utility functions
     function isState(value) {
-        return fsm.states.indexOf(value) !== -1;
+        return fsm.transitions.hasState(value);
     }
 
     function isAction(value) {
-        return fsm.actions.has(value);
+        return fsm.transitions.hasAction(value);
     }
 
     function getTargets(value) {
