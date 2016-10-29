@@ -154,6 +154,11 @@ StateMachine.prototype =
                 }
             }
 
+            // pre-bind transition handlers
+            'pause resume cancel end reset'
+                .match(/\w+/g)
+                .forEach(fn => this[fn] = this[fn].bind(this));
+
             // return
             return this;
         },
