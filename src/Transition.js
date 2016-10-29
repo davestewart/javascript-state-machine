@@ -31,7 +31,7 @@ import { isFunction } from './utils/utils';
  * - return true to pause the transition
  * - not return a value (the transition continues)
  *
- * Transitions can also be paused, resumed, or cancelled by calling
+ * TransitionMap can also be paused, resumed, or cancelled by calling
  * the appropriate method on, or from:
  *
  * - the event
@@ -142,14 +142,14 @@ export default
         // transition properties
         let scope   = fsm.config.scope;
         let from    = fsm.state;
-        let to      = fsm.actions.get(action)[from];
+        let to      = fsm.transitions.get(from, action);
         let vars    = {action, to, from};
 
         // handle "to" being a function
         if(isFunction(to))
         {
             to = to.apply(scope, params);
-            if(fsm.states.indexOf(to) === -1)
+            if(!fsm.transitions.hasState(to))
             {
                 throw new Error('Invalid "to" state "' +to+ '"');
             }

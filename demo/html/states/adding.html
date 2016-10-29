@@ -37,26 +37,33 @@
 
     <section id="info">
         <p>StateMachine supports adding and removing states on the fly .</p>
-        <p>This example allows you to add and remove states, adding the correct transitions for you, and StateMachine takes care of removing them for you when you remove the state.</p>
-        <p>When you remove a state, you can optionally specify a state to go to, should you be on the state you are deleting.</p>
+        <p>This example allows you to add and remove states, adding or removing the correct transitions automatically.</p>
+        <p>When you remove a state, you can use logic in the event handler to determine whether you should also update the StateMachine's current state, as this is not automatically.</p>
     </section>
 
     <script>
 
         var config = {
 
-            initial: 'A',
+            initial: 'a',
 
             transitions: [
 
             ],
 
             handlers: {
-                add: function () {
-                    console.log('state added!')
+                change: function change (event, fsm) {
+                    console.log('state changed!');
                 },
-                remove: function () {
-                    console.log('state removed!')
+                'system.add': function add (event, fsm) {
+                    console.log('state added!');
+                },
+                'system.remove': function remove (event, fsm) {
+                    console.log('state removed!');
+                    if( ! fsm.has(fsm.state) )
+                    {
+                        fsm.go(fsm.transitions.getStates().pop(), true);
+                    }
                 }
             }
 
@@ -65,7 +72,7 @@
         var fsm = setup(new StateMachine(config));
 
         var $states = $('#states');
-        var states  = 'ABCDEFGHIJKL'.split('');
+        var states  = 'abcdefghijkl'.split('');
 
         function addState()
         {
@@ -79,7 +86,7 @@
                     fsm.add('next', from, to);
                     fsm.add('back', to, from);
                 }
-                $states.append('<article id="' +to+ '">State ' +to+ '</article>');
+                $states.append('<article id="' +to+ '">State ' +to.toUpperCase()+ '</article>');
                 update();
             }
 

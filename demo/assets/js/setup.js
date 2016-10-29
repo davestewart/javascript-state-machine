@@ -32,7 +32,7 @@
         // update buttons
         $buttons
             .each(function(i, e){
-                e.disabled = ! fsm.can(e.name) || fsm.isPaused();
+                e.disabled = ! fsm.canDo(e.name) || fsm.isPaused();
             });
     }
 

@@ -1,16 +1,32 @@
 import ValueMap from './utils/ValueMap';
 import Transition from './Transition';
+import TransitionMap from './TransitionMap';
 import Config from './Config';
 import { SystemEvent, TransitionEvent } from './Events';
-import { isString, isFunction } from './utils/utils';
+import { isFunction } from './utils/utils';
 import { parse } from './utils/handlers'
+
+window.ValueMap = ValueMap;
 
 export default function StateMachine (scope, options)
 {
+    // logic
+    this.transitions    = new TransitionMap();
+    this.handlers       = new ValueMap();
+
+    // state
+    this.state          = '';
+
     // allow [scope, config] or [config] as parameters
     if(arguments.length == 1)
     {
         [options, scope] = [scope, this];
+    }
+
+    // if no options, create default
+    if(!options)
+    {
+        options = {};
     }
 
     // assign default scope if not set
@@ -19,20 +35,10 @@ export default function StateMachine (scope, options)
         options.scope = scope;
     }
 
-    // assignment
-    this.state          = '';
-    this.states         = [];
-    this.transitions    = new ValueMap();
-    this.actions        = new ValueMap();
-    this.handlers       = new ValueMap();
-
     // initialize
-    if(options)
-    {
-        this.initialize(options);
-    }
+    this.initialize(options);
 
-    // change event
+    // dispatch change event
     if(!this.config.defer)
     {
         this.update('system', 'change', 'state', this.state);
@@ -58,39 +64,25 @@ StateMachine.prototype =
     // properties
 
         /**
-         * Available state names
+         * Configuration object
          *
-         * @var {string[]}
+         * @var {Config}
          */
-        states      : null,
+        config      : null,
 
         /**
-         * Available transitions for each action
+         * Map of all transitions
          *
-         * @var {ValueMap}
+         * @var {TransitionMap}
          */
         transitions : null,
 
         /**
-         * Actions that are available to be called from each state
-         *
-         * @var {ValueMap}
-         */
-        actions     : null,
-
-        /**
-         * Handler functions that should be called on each action event / state change
+         * Map of all handler functions
          *
          * @var {ValueMap}
          */
         handlers    : null,
-
-        /**
-         * The current state
-         *
-         * @var {string}
-         */
-        state       : '',
 
         /**
          * Any active Transition object that is driving the state change
@@ -100,11 +92,11 @@ StateMachine.prototype =
         transition  : null,
 
         /**
-         * Configuration object
+         * The current state
          *
-         * @var {Config}
+         * @var {string}
          */
-        config      : null,
+        state       : '',
 
 
     // ------------------------------------------------------------------------------------------------
@@ -119,7 +111,7 @@ StateMachine.prototype =
         initialize:function (options)
         {
             // build config
-            let config = new Config(options);
+            let config  = new Config(options);
             this.config = config;
 
             // pre-process all transitions
@@ -132,16 +124,16 @@ StateMachine.prototype =
                 });
             }
 
-            // pre-collate all states
-            transitions.map( tx =>
+            // add transitions
+            transitions.map( transition =>
             {
-                [tx.from, tx.to].map( state => addState(this, state) );
+                this.transitions.add(transition.name, transition.from, transition.to);
             });
 
             // get initial state (must be done after state collation)
             if( ! config.initial )
             {
-                config.initial = this.states[0];
+                config.initial = this.transitions.getStates()[0];
             }
 
             // set initial state, unless defer is set to true
@@ -149,12 +141,6 @@ StateMachine.prototype =
             {
                 this.state = config.initial;
             }
-
-            // add transitions
-            transitions.map( transition =>
-            {
-                this.add(transition.name, transition.from, transition.to);
-            });
 
             // add handlers
             if(options.handlers)
@@ -204,7 +190,7 @@ StateMachine.prototype =
          */
         do: function (action, ...rest)
         {
-            if(this.can(action) && !this.isPaused())
+            if(this.canDo(action) && !this.isPaused())
             {
                 this.transition = Transition.create(this, action, rest);
                 if(action === this.config.defaults.initialize)
@@ -221,7 +207,7 @@ StateMachine.prototype =
         /**
          * Attempt to go to a state
          *
-         * Finds if an appropriate transition exists, then calls the related action if it does
+         * Queries TransitionMap instance to see if a transition exists, then calls the related action if it does
          *
          * @param   {string}    state
          * @param   {boolean}   [force]
@@ -236,16 +222,12 @@ StateMachine.prototype =
                     this.transition = Transition.force(this, state);
                     return this.end();
                 }
-                var action = this.getActionForState(state);
+                var action = this.transitions.getActionTo(this.state, state);
                 if(action)
                 {
                     return this.do(action);
                 }
-                this.config.debug && console.info('No transition exists from "%s" to "%s"', this.state, state);
-            }
-            else
-            {
-                this.config.debug && console.warn('No such state "%s"', state);
+                this.config.debug && console.warn('No transition exists from "%s" to "%s"', this.state, state);
             }
             return false;
         },
@@ -253,42 +235,22 @@ StateMachine.prototype =
         /**
          * Query a transition to see if a named action is available
          *
-         * @param   {string}    action
+         * @param   {string}        action
          * @returns {boolean}
          */
-        can: function (action)
+        canDo: function (action)
         {
-            if( ! this.actions.has(action) )
-            {
-                this.config.debug && console.warn('No such action "%s"', action);
-            }
-            return !! this.transitions.has(this.state, action);
+            return this.transitions.has(this.state, action);
         },
 
         /**
-         * Query a transition to see if a named action is unavailable
          *
-         * @param   {string}    action
-         * @returns {boolean}
+         * @param to
+         * @return {boolean}
          */
-        cannot: function (action)
+        canGo: function (to)
         {
-            return ! this.can(action);
-        },
-
-        /**
-         * Test if the current state is the same as the supplied one
-         *
-         * @param   {string}    state       A state name to compare against the current state
-         * @returns {boolean}
-         */
-        is: function (state)
-        {
-            if(this.states.indexOf(state) === -1)
-            {
-                this.config.debug && console.warn('No such state "%s"', state);
-            }
-            return state === this.state;
+            return this.transitions.getActionTo(this.state, to) !== null;
         },
 
         /**
@@ -299,62 +261,23 @@ StateMachine.prototype =
          */
         has: function(state)
         {
-            return this.states.indexOf(state) !== -1;
+            if( ! this.transitions.hasState(state) )
+            {
+                this.config.debug && console.warn('No such state "%s"', state);
+                return false;
+            }
+            return true;
         },
 
         /**
-         * Get the available "to" states for the current or supplied state
+         * Test if the current state is the same as the supplied one
          *
-         * @param   {string}    [state]     Optional name of a state to get states for. Defaults to the current state
-         * @returns {string[]}              An array of string states
+         * @param   {string}    state       A state name to compare against the current state
+         * @returns {boolean}
          */
-        getStatesFor: function (state = null)
+        is: function (state)
         {
-            state       = state || this.state;
-            let actions = this.getActionsFor(state, true);
-            return Object.keys(actions).map( name => actions[name] );
-        },
-
-        /**
-         * Get the available actions (or actions and states) for the current or supplied state
-         *
-         * @param   {string}    [state]     Optional name of a state to get actions for. Defaults to the current state
-         * @param   {boolean}   [asMap]     Optional boolean to return a Object of action:state properties. Defaults to false
-         * @returns {string[]|Object}       An array of string actions, or a hash of action:states
-         */
-        getActionsFor: function (state = '', asMap = false)
-        {
-            state       = state || this.state;
-            let actions = this.transitions.get(state || this.state);
-            if(asMap)
-            {
-                let states  = {};
-                actions.map( action =>
-                {
-                    states[action] = this.actions.get(action + '.' + state);
-                });
-                return states;
-            }
-            else
-            {
-                return actions;
-            }
-        },
-
-        getActionForState: function (state)
-        {
-            if(this.has(state))
-            {
-                let actions = this.getActionsFor(state, true);
-                for(let action in actions)
-                {
-                    if(actions[action] === state)
-                    {
-                        return action;
-                    }
-                }
-            }
-            return null;
+            return state === this.state;
         },
 
 
@@ -531,10 +454,10 @@ StateMachine.prototype =
          */
         add: function (action, from, to)
         {
-            this.actions.set(action + '.' + from, to);
-            this.transitions.add(from, action);
-            addState(this, from);
-            addState(this, to);
+            this.transitions.add(action, from, to);
+            let states = this.transitions.getStates();
+            this.update('system', 'add', 'states', states);
+            this.update('system', 'update', 'states', states);
             return this;
         },
 
@@ -548,7 +471,9 @@ StateMachine.prototype =
         {
             this.handlers.remove('state.' + state);
             this.transitions.remove(state);
-            Object.keys(this.actions.get()).map(action => this.actions.remove(action + '.' + state));
+            let states = this.transitions.getStates();
+            this.update('system', 'remove', 'states', states);
+            this.update('system', 'update', 'states', states);
             return this;
         },
 
@@ -609,14 +534,14 @@ StateMachine.prototype =
                 {
                     if(result.namespace === 'state')
                     {
-                        if(this.states.indexOf(target) === -1)
+                        if(!this.transitions.hasState(target))
                         {
                             this.config.debug && console.warn('StateMachine: Warning assigning state.%s handler; no such state "%s"', result.type, target);
                         }
                     }
                     else if(result.namespace === 'action')
                     {
-                        if(!this.actions.has(target))
+                        if(!this.transitions.hasAction(target))
                         {
                             this.config.debug && console.warn('StateMachine: Warning assigning action.%s handler; no such action "%s"', result.type, target);
                         }
@@ -656,11 +581,3 @@ StateMachine.prototype =
         }
 
 };
-
-function addState (fsm, state)
-{
-    if (isString(state) && fsm.states.indexOf(state) === -1)
-    {
-        fsm.states.push(state);
-    }
-}

@@ -12,9 +12,10 @@ Whilst the code is tight, this implementation is optimised for ease of use rathe
 
 ## Classes
 
-The state machine comprises 2 main classes:
+The state machine comprises 3 main class:
 
 - `StateMachine` - the instantiated class and main entry point to managing state
+- `TransitionMap` - the brain of the state machine; determines allowable transitions, etc
 - `Transition` - class that manages the lifecycle between states, calling event handlers, etc
 
 There are 4 event classes:
@@ -24,9 +25,11 @@ There are 4 event classes:
 - `ActionEvent` - dispatched for any action lifecycle events, i.e. `start` and `end`
 - `StateEvent` - dispatched for any state lifecycle events, i.e. `leave` and `enter`
 
-There is one main helper class:
+There are 2 helper classes:
 
-- `ValueMap` - manages teh assignment and retrieval via dot-path notation of transitions, handlers, etc.
+- `Config` - a class to process instantiation options and manage default values
+- `ValueMap` - a utility to conveniently manage nested properties such as transitions, handlers, etc.
+
 
 ## Vocabulary
 

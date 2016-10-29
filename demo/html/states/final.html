@@ -76,7 +76,7 @@
                  *
                  * @param {SystemEvent} event
                  */
-                change:function (event) {
+                change:function (event, fsm) {
                     $('#states').toggleClass('complete', fsm.isComplete());
                 }
             }

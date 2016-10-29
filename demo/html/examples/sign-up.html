@@ -79,7 +79,7 @@
         <section id="controls">
             <button class="btn btn-sm" name="back">Back</button>
             <button class="btn btn-sm" name="next">Next</button>
-            <button class="btn btn-sm" name="exit">Finish</button>
+            <button class="btn btn-sm" name="restart">Restart</button>
         </section>
 
     </main>
@@ -121,10 +121,10 @@
         var config = {
 
             transitions: [
-                'next  : intro > form > finish',
-                'back  : intro < form           < error',
-                'error :         form >           error',
-                'exit  : intro        < finish'
+                'next    : intro > form > finish',
+                'back    : intro < form           < error',
+                'error   :         form >           error',
+                'restart : intro        < finish'
             ],
 
             handlers:
