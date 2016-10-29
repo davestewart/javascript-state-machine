@@ -89,3 +89,82 @@ The vocabulary of the state machine is represented by the following entities:
 - `source` - the source entity of the action or state event, i.e. "next" or "intro"
 - `type` - the type of action or state event, i.e. "start" or "enter"
 
+
+## Visual
+
+The following ASCII output give you an idea of how the classes work together:
+
+```
+ +- [object StateMachine]
+     +- state: "none"
+     +- config: [object Config]
+     |   +- initial: "none"
+     |   +- final: "c"
+     |   +- debug: true
+     |   +- scope: [object StateMachine] <recursion>
+     |   +- transitions: Array[3]
+     |   |   +- 0: "start : none > a"
+     |   |   +- 1: "next : a > b > c > a"
+     |   |   +- 2: "back : a < b < c < a"
+     |   +- order: Array[10]
+     |   |   +- 0: "action.*.start"
+     |   |   +- 1: "action.{action}.start"
+     |   |   +- 2: "state.*.{action}"
+     |   |   +- 3: "state.{from}.{action}"
+     |   |   +- 4: "state.{from}.leave"
+     |   |   +- 5: "state.*.leave"
+     |   |   +- 6: "state.*.enter"
+     |   |   +- 7: "state.{to}.enter"
+     |   |   +- 8: "action.{action}.end"
+     |   |   +- 9: "action.*.end"
+     |   +- defaults: Object
+     |       +- initialize: "initialize"
+     |       +- action: "start"
+     |       +- state: "enter"
+     +- transitions: [object Transitions]
+     |   +- map: [object ValueMap]
+     |   |   +- data: Object
+     |   |       +- none: Object
+     |   |       |   +- start: "a"
+     |   |       +- a: Object
+     |   |       |   +- next: "b"
+     |   |       |   +- back: "c"
+     |   |       +- b: Object
+     |   |       |   +- next: "c"
+     |   |       |   +- back: "a"
+     |   |       +- c: Object
+     |   |           +- next: "a"
+     |   |           +- back: "b"
+     |   +- states: Array[4]
+     |   |   +- 0: "none"
+     |   |   +- 1: "a"
+     |   |   +- 2: "b"
+     |   |   +- 3: "c"
+     |   +- actions: Array[3]
+     |       +- 0: "start"
+     |       +- 1: "next"
+     |       +- 2: "back"
+     +- handlers: [object ValueMap]
+         +- data: Object
+             +- system: Object
+             |   +- update: Array[1]
+             |   |   +- 0: function update()
+             |   +- start: Array[1]
+             |   |   +- 0: function onSystem(event)
+             |   +- change: Array[1]
+             |       +- 0: function onSystem(event)
+             +- transition: Object
+             |   +- pause: Array[1]
+             |       +- 0: function onTransition(event)
+             +- action: Object
+             |   +- *: Object
+             |       +- start: Array[1]
+             |           +- 0: function onAction(event)
+             +- state: Object
+                 +- *: Object
+                 |   +- enter: Array[1]
+                 |       +- 0: function onState(event)
+                 +- a: Object
+                     +- next: Array[1]
+                         +- 0: function onState(event)
+```
