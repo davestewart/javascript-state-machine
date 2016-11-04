@@ -33,13 +33,33 @@
 
     pre {
         margin:20px;
+        font-size:0.8em;
+        color:inherit;
     }
+
+    ul ul{
+        margin: 10px 0 20px;
+    }
+
+
+/* ------------------------------------------------------------------------------------------------
+ * special
+ */
 
     a#home{
         position: absolute;
         top:20px;
         left:20px;
+        background:#ecf0f1;
+        padding:3px 6px;
+        border-radius: 3px;
         font-size: 0.8em;
+    }
+
+    a#home:hover{
+        text-decoration: none;
+        background: #dde4e6;
+        color: #15a589;
     }
 
 
@@ -110,6 +130,3 @@
 
     }
 
-    ul ul{
-        margin: 10px 0 20px;
-    }
