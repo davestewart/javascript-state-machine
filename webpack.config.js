@@ -24,10 +24,10 @@ var config = {
   devtool: 'source-map',
   output: {
     path: __dirname + '/lib',
+    //libraryTarget: 'umd',
+    //umdNamedDefine: true
     filename: outputFile,
-    library: libraryName,
-    libraryTarget: 'umd',
-    umdNamedDefine: true
+    library: libraryName
   },
   module: {
     loaders: [
