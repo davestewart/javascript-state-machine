@@ -5,18 +5,22 @@ var env = require('yargs').argv.mode;
 
 var libraryName = 'StateMachine';
 var fileName = 'state-machine';
-
-var plugins = [], outputFile;
+var outputFile;
+var plugins = [
+  //new webpack.optimize.CommonsChunkPlugin("components", "components.min.js")
+];
 
 if (env === 'build') {
   plugins.push(new UglifyJsPlugin({ minimize: true }));
-  outputFile = fileName + '.min.js';
+  outputFile = '[name].min.js';
 } else {
-  outputFile = fileName + '.js';
+  outputFile = '[name].js';
 }
 
 var config = {
-  entry: __dirname + '/src/StateMachine.js',
+  entry: {
+    'state-machine': __dirname + '/src/StateMachine.js'
+  },
   devtool: 'source-map',
   output: {
     path: __dirname + '/lib',

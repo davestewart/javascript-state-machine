@@ -9,6 +9,8 @@
     "build": "webpack --mode=build",
     "demo": "cpx ./lib/state-machine.js ./demo/assets/js --watch | lite-server"
   },
+  "dependencies": {
+  },
   "devDependencies": {
     "babel": "6.3.13",
     "babel-cli": "^6.16.0",
