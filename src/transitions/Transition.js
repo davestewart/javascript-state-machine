@@ -1,5 +1,5 @@
-import { StateEvent, ActionEvent } from './Events';
-import { isFunction } from './utils/utils';
+import { StateEvent, ActionEvent } from '../Events';
+import { isFunction } from '../utils/utils';
 
 /**
  * Transition class

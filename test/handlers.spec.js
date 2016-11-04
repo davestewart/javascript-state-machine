@@ -1,7 +1,7 @@
 import mocha from 'mocha';
 import chai from 'chai';
 import StateMachine from '../src/StateMachine';
-import {parse, getPath} from '../src/utils/handlers';
+import {parse, getPath} from '../src/handlers/handlers';
 
 //const describe = mocha.describe;
 //const it = mocha.it;

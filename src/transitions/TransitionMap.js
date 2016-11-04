@@ -1,4 +1,4 @@
-import ValueMap from './utils/ValueMap';
+import ValueMap from '../utils/ValueMap';
 
 export default function TransitionMap ()
 {
