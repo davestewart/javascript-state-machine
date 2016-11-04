@@ -199,6 +199,8 @@ TransitionMap.prototype =
 
 };
 
+TransitionMap.prototype.constructor = TransitionMap;
+
 /**
  * Private utility function to update existing states and actions
  *

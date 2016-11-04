@@ -1,12 +1,11 @@
 import ValueMap from './utils/ValueMap';
-import Transition from './Transition';
 import TransitionMap from './TransitionMap';
+import Transition from './Transition';
+
 import Config from './Config';
 import { SystemEvent, TransitionEvent } from './Events';
 import { isFunction } from './utils/utils';
 import { parse } from './utils/handlers'
-
-window.ValueMap = ValueMap;
 
 export default function StateMachine (scope, options)
 {
@@ -153,11 +152,6 @@ StateMachine.prototype =
                     }
                 }
             }
-
-            // pre-bind transition handlers
-            'pause resume cancel end reset'
-                .match(/\w+/g)
-                .forEach(fn => this[fn] = this[fn].bind(this));
 
             // return
             return this;
@@ -586,3 +580,5 @@ StateMachine.prototype =
         }
 
 };
+
+StateMachine.prototype.constructor = StateMachine;

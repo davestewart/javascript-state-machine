@@ -59,7 +59,7 @@
         return fsm;
     }
 
-    if (window.StateMachine) {
+    if (window.StateMachine && StateMachine.default) {
         window.StateMachine = StateMachine.default;
     }
 
