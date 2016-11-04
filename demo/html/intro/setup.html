@@ -36,7 +36,7 @@
             <li>A page script to configure the states and handlers and create the StateMachine</li>
             <li>A call to a simple reusable setup function which listens to StateMachine events and updates the UI on changes</li>
         </ol>
-        <p>The code for the example above is essentially:</p>
+        <p>The code for the example above is:</p>
 <pre>
 setup(new StateMachine({
     transitions: [
@@ -51,15 +51,12 @@ setup(new StateMachine({
 
     <script>
 
-        var config = {
-
+        setup(new StateMachine({
             transitions: [
                 'next : a > b > c',
                 'back : a < b < c'
             ]
-        };
-
-        setup(new StateMachine(config));
+        }));
 
     </script>
 </body>
