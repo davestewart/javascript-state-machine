@@ -45,7 +45,7 @@
                 <li><code>.foo</code> property, including event types, actions and states</li>
                 <li><code>:foo</code> event, action or state events, such as "start" and "enter"</li>
                 <li><code>@foo</code> action, filter to actions only</li>
-                <li><code>(foo|bar|baz)</code> multiple targets; either actions or states</li>
+                <li><code>(foo bar baz)</code> multiple targets; either actions or states</li>
             </ul>
             <p>Type above to test out some matches!</p>
 
@@ -70,14 +70,23 @@
             {
                 // get results
                 var input   = event.target.value;
-                var result  = StateMachine.parse(fsm, input);
-                delete result.targets;
+                try
+                {
+                    // update
+                    var result  = fsm.handlers.parse(input);
+                    delete result.targets;
 
-                // update
-                $('#result').html(result.namespace ? JSON.stringify(result, null, '    ') : 'No result');
+                    // update
+                    $('#result').html(result.namespace ? JSON.stringify(result, null, '    ') : 'No result');
 
-                // save
-                localStorage.handlerId = input;
+                    // save
+                    localStorage.handlerId = input;
+                }
+                catch(error)
+                {
+                    $('#result').html(error.message);
+                }
+
             })
             .val(localStorage.handlerId || '')
             .trigger('input');

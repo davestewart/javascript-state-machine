@@ -8,14 +8,20 @@
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
     <style>
-        tr.error{
-            color:red;
+        table tr.section th {
+            font-size: 1.1em;
+            background: #FFF;
+            border-bottom:1px solid #CCC;
+            padding-top:1em;
         }
-        td, th {
+        tr.error {
+            color: red;
+        }
+        .table > tbody > tr > td,
+        .table > thead > tr > th {
             font-size: 0.9em;
-            padding:2px 6px!important;
+            padding: 2px 6px;
         }
-
     </style>
 </head>
 <body>
@@ -28,7 +34,7 @@
 
             <p>This page just tests a variety of event handler ids and outputs the results.</p>
 
-            <table class="table table-bordered table-striped">
+            <table class="table table-striped">
                 <thead>
                 <tr>
                     <th>id</th>
@@ -45,83 +51,133 @@
 
     <script>
 
-        var fsm = new StateMachine({
+        // ------------------------------------------------------------------------------------------------
+        // variables
 
-            transitions: [
-                'next : a > b',
-            ]
+            var fsm     = new StateMachine({ transitions: [ 'next : a > b' ] });
+            var $table  = $('#results').empty();
+            var data    = [];
+            var count   = 0;
 
-        });
 
-        var $table  = $('#results').empty();
-        var total   = 0;
-        var count   = 0;
+        // ------------------------------------------------------------------------------------------------
+        // functions
 
-        function addRow(id, path, targets, ok)
-        {
-            $table.append('<tr class="' +(ok ? '' : 'error')+ '"><td>' +[id, path, targets].join('</td><td>')+ '</td></tr>');
-        }
+            function addSection(text)
+            {
+                $table.append('<tr class="section"><th colspan="3">' +text+ '</th></tr>');
+            }
 
-        function test (id, input)
-        {
-            // variables
-            var result  = StateMachine.parse(fsm, id);
-            var paths   = result.paths.join(' ');
-            var ok      = input == paths;
+            function add(id, expected)
+            {
+                data.push({id:id, expected:expected});
+                $table.append('<tr><td>' +[id, expected, ''].join('</td><td>')+ '</td></tr>');
+            }
 
-            // debug
-            console.log(result);
+            function test (input, index)
+            {
+                // variables
+                var result, text, ok;
 
-            // update
-            total++;
-            if(ok)count++;
+                // test
+                try
+                {
+                    result  = fsm.handlers.parse(input.id);
+                    text    = result.paths.join(' ');
+                    ok      = input.expected == text;
+                }
+                catch(error)
+                {
+                    console.log(error, error.message);
+                    text    = error.message;
+                    ok      = input.expected == null;
+                }
 
-            // render
-            addRow(id, input, paths, ok);
-        }
+                if(ok)
+                {
+                    count++;
+                }
 
-        test('start', 'system.start');
-        test('change', 'system.change');
-        test('update', 'system.update');
-        test('complete', 'system.complete');
-        test('reset', 'system.reset');
-        test('add', 'system.add');
-        test('remove', 'system.remove');
-        test('pause', 'transition.pause');
-        test('resume', 'transition.resume');
-        test('cancel', 'transition.cancel');
+                // debug
+                //console.log(result);
 
-        test('system.start', 'system.start');
-        test('transition.pause', 'transition.pause');
+                // render
+                $table
+                    .find('tr:not(.section)')
+                    .eq(index)
+                    .toggleClass('error', ! ok)
+                    .find('td:eq(2)')
+                    .text(text);
+            }
 
-        test('action', 'action.*.start');
-        test('next', 'action.next.start');
-        test('(next|back)', 'action.next.start action.back.start');
 
-        test(':start', 'action.*.start');
-        test(':end', 'action.*.end');
-        test('next:start', 'action.next.start');
-        test('next:end', 'action.next.end');
-        test('action.next:end', 'action.next.end');
-        test('(next|back):end', 'action.next.end action.back.end');
+        // ------------------------------------------------------------------------------------------------
+        // add rows
 
-        test('state', 'state.*.enter');
-        test('a', 'state.a.enter');
-        test(':enter', 'state.*.enter');
-        test(':leave', 'state.*.leave');
-        test('a:leave', 'state.a.leave');
-        test('(b|c):enter', 'state.b.enter state.c.enter');
+            addSection('shortcuts');
+            add('start', 'system.start');
+            add('change', 'system.change');
+            add('update', 'system.update');
+            add('complete', 'system.complete');
+            add('reset', 'system.reset');
+            add('add', 'system.add');
+            add('remove', 'system.remove');
+            add('pause', 'transition.pause');
+            add('resume', 'transition.resume');
+            add('cancel', 'transition.cancel');
 
-        test('a.next', 'state.a.next');
-        test('a.leave', 'state.a.leave');
-        test('(a|b).next', 'state.a.next state.b.next');
-        test('state.(a|b).next', 'state.a.next state.b.next');
+            addSection('absolute');
+            add('system.start', 'system.start');
+            add('transition.pause', 'transition.pause');
 
-        test('@next', 'state.*.next');
-        test('a@next', 'state.a.next');
-        test('(a|b)@next', 'state.a.next state.b.next');
+            addSection('actions');
+            add('action', 'action.*.start');
+            add('next', 'action.next.start');
+            add('(next back)', 'action.next.start action.back.start');
 
-        $('h1').append(count + '/' + total);
+            addSection('state & action types');
+            add(':start', 'action.*.start');
+            add(':end', 'action.*.end');
+            add('next:start', 'action.next.start');
+            add('next:end', 'action.next.end');
+            add('action.next:end', 'action.next.end');
+            add('(next back):end', 'action.next.end action.back.end');
+
+            addSection('actions');
+            add('a.next', 'state.a.next');
+            add('a:leave', 'state.a.leave');
+            add('(a b).next', 'state.a.next state.b.next');
+            add('state.(a b).next', 'state.a.next state.b.next');
+
+            addSection('states');
+            add('state', 'state.*.enter');
+            add('a', 'state.a.enter');
+            add(':enter', 'state.*.enter');
+            add(':leave', 'state.*.leave');
+            add('a:leave', 'state.a.leave');
+            add('(b c):enter', 'state.b.enter state.c.enter');
+
+            addSection('states + actions');
+            add('@next', 'action.next.start');
+            add('a@next', 'state.a.next');
+            add('(a b c)@next', 'state.a.next state.b.next state.c.next');
+
+            addSection('errors');
+            add('blah');
+            add('a.leave');
+            add('a:hello');
+            add('state.action');
+            add('state.next:end');
+        /*
+        */
+
+        // ------------------------------------------------------------------------------------------------
+        // test
+
+            setTimeout(function(){
+                data.map(test);
+                $('h1').append(count + '/' + data.length);
+            }, 100);
 
     </script>
 
