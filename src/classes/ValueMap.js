@@ -1,4 +1,4 @@
-import {isObject, isArray, isDefined, isUndefined} from './utils';
+import {isObject, isArray, isDefined, isUndefined} from '../utils/utils';
 
 /**
  * Utility class to create, modify and delete nested hashes and values

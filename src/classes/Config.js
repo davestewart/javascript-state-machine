@@ -1,4 +1,4 @@
-import { isString } from './utils/utils';
+import { isString } from '../utils/utils';
 
 export default function Config (options)
 {
@@ -144,11 +144,6 @@ Config.prototype =
 
         // return objects wrapped in an array
         return [tx];
-    },
-
-    parseHandler: function ()
-    {
-        // move event handler parsing here at some point
     },
 
     getDefaultOrder: function ()

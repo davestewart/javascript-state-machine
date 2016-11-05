@@ -1,4 +1,4 @@
-import { StateEvent, ActionEvent } from '../Events';
+import { StateEvent, ActionEvent } from '../classes/Events';
 import { isFunction } from '../utils/utils';
 
 /**

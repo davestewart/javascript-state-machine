@@ -1,11 +1,12 @@
-import ValueMap from './utils/ValueMap';
 import TransitionMap from './transitions/TransitionMap';
 import Transition from './transitions/Transition';
 
-import Config from './Config';
-import { SystemEvent, TransitionEvent } from './Events';
+
+import { SystemEvent, TransitionEvent } from './classes/Events';
+import ValueMap from './classes/ValueMap';
+import Config from './classes/Config';
+
 import { isFunction } from './utils/utils';
-import { parse } from './handlers/handlers'
 
 export default function StateMachine (scope, options)
 {
