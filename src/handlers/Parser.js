@@ -53,6 +53,13 @@ import Lexer from '../classes/Lexer'
 // ------------------------------------------------------------------------------------------------
 // export
 
+    /**
+     * Parses event handler id into ParseResult instance
+     *
+     * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
+     * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
+     * @return  {ParseResult}
+     */
     export default function parse(id, fsm)
     {
         return parser.parseHandler(id, fsm);
@@ -75,7 +82,9 @@ import Lexer from '../classes/Lexer'
         result  :null,
 
         /**
-         * Parses event handler id into namespace, type, and target variables
+         * Parses event handler id into ParseResult instance
+         *
+         * Resolving namespace, type and target properties
          *
          * @param   {string}        id
          * @param   {StateMachine}  fsm

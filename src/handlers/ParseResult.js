@@ -1,6 +1,6 @@
 import ParseError from './ParseError';
 
-export default function ParseResult (id)
+function ParseResult (id)
 {
     this.id = id;
     this.targets = ['*'];
@@ -64,3 +64,4 @@ ParseResult.prototype =
 
 };
 
+export default ParseResult;
