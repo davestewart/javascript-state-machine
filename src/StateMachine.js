@@ -3,14 +3,21 @@ import Transition from './transitions/Transition';
 
 import StateHelper from './plugins/StateHelper';
 
-import parse from './handlers/Parser'
+import parseHandler from './handlers/Parser';
+import parseTransition from './transitions/Parser';
 
-import { SystemEvent, TransitionEvent } from './classes/Events';
-import ValueMap from './classes/ValueMap';
 import Config from './classes/Config';
+import ValueMap from './classes/ValueMap';
+import { SystemEvent, TransitionEvent } from './classes/Events';
 
 import { isFunction } from './utils/utils';
 
+/**
+ * StateMachine constructor
+ *
+ * @param   {Object|null}    options
+ * @constructor
+ */
 function StateMachine (options)
 {
     this.transitions    = new TransitionMap();
@@ -94,14 +101,14 @@ StateMachine.prototype =
             {
                 options.transitions.map( tx =>
                 {
-                    transitions = transitions.concat(config.parseTransition(tx));
+                    transitions = transitions.concat(parseTransition(tx));
                 });
             }
 
             // add transitions
             transitions.map( transition =>
             {
-                this.transitions.add(transition.name, transition.from, transition.to);
+                this.transitions.add(transition.action, transition.from, transition.to);
             });
 
             // get initial state (must be done after state collation)
@@ -110,8 +117,12 @@ StateMachine.prototype =
                 config.initial = this.transitions.getStates()[0];
             }
 
-            // add event handler parsing
-            this.handlers.parse = id => parse(id, this);
+            /**
+             * Add event handler parsing
+             * @param   {string}    id
+             * @returns {ParseResult}
+             */
+            this.handlers.parse = id => parseHandler(id, this);
 
             // add handlers
             if(options.handlers)
@@ -341,6 +352,7 @@ StateMachine.prototype =
         {
             if(this.transition && this.isPaused())
             {
+                this.transition.paused = false;
                 this.update('transition', 'resume');
                 this.update('system', 'update', 'pause', false);
                 this.transition.resume();
@@ -440,6 +452,15 @@ StateMachine.prototype =
          */
         add: function (action, from, to)
         {
+            // 1 argument: shorthand transition, i.e 'next : a > b'
+            if(arguments.length === 1)
+            {
+                var transitions = parseTransition(action);
+                transitions.map( tx => this.add(tx.action, tx.from, tx.to));
+                return this;
+            }
+
+            // 3 arguments: longhand transition
             this.transitions.add(action, from, to);
             let states = this.transitions.getStates();
             this.update('system', 'add', 'states', states);
@@ -448,7 +469,7 @@ StateMachine.prototype =
         },
 
         /**
-         * Remove a transition
+         * Remove a state
          *
          * @param   {string}    state
          * @return  {StateMachine}
