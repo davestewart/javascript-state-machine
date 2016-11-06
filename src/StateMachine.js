@@ -1,11 +1,13 @@
-import ValueMap from './utils/ValueMap';
-import TransitionMap from './TransitionMap';
-import Transition from './Transition';
+import TransitionMap from './transitions/TransitionMap';
+import Transition from './transitions/Transition';
 
-import Config from './Config';
-import { SystemEvent, TransitionEvent } from './Events';
+import parse from './handlers/Parser'
+
+import { SystemEvent, TransitionEvent } from './classes/Events';
+import ValueMap from './classes/ValueMap';
+import Config from './classes/Config';
+
 import { isFunction } from './utils/utils';
-import { parse } from './utils/handlers'
 
 export default function StateMachine (scope, options)
 {
@@ -43,8 +45,6 @@ export default function StateMachine (scope, options)
         this.update('system', 'change', 'state', this.state);
     }
 }
-
-StateMachine.parse = parse;
 
 /**
  * StateMachine prototype
@@ -140,6 +140,14 @@ StateMachine.prototype =
             {
                 this.state = config.initial;
             }
+
+            /**
+             * Add event handler parsing
+             *
+             * @param   {string}    id
+             * @returns {ParseResult}
+             */
+            this.handlers.parse = id => parse(id, this);;
 
             // add handlers
             if(options.handlers)
@@ -516,8 +524,8 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
-            /** @type {ParseResult} */
-            let result = parse(this, id);
+            /** @var {ParseResult} */
+            let result = this.handlers.parse(id);
 
             if(this.config.debug)
             {
@@ -562,7 +570,7 @@ StateMachine.prototype =
 
         off: function (id, fn)
         {
-            let result = parse(this, id);
+            let result = this.handlers.parse(id);
             result.paths.map( path =>
             {
                 this.handlers.remove(path, fn)

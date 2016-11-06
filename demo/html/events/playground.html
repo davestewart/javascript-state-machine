@@ -172,7 +172,7 @@
                         <input type="checkbox" name="action" value="next"> next</label>
 
                     <label data-path="action.next.start action.back.start" data-desc="Actions 'next' and 'back' started (defaulting to the configured event type)">
-                        <input type="checkbox" name="action" value="(next|back)"> (next|back)</label>
+                        <input type="checkbox" name="action" value="(next back)"> (next back)</label>
 
                     <p>Events</p>
 
@@ -194,7 +194,7 @@
                         <input type="checkbox" name="action" value="action.next:end"> action.next:end</label>
 
                     <label data-path="action.next.end action.back.end" data-desc="Actions 'next' and 'back' ended">
-                        <input type="checkbox" name="action" value="(next|back):end"> (next|back):end</label>
+                        <input type="checkbox" name="action" value="(next back):end"> (next back):end</label>
 
                 </fieldset>
 
@@ -210,7 +210,7 @@
                         <input type="checkbox" name="state" value="a"> a</label>
 
                     <label data-path="state.b.enter state.c.enter" data-desc="States 'b' and 'c' entered (defaulting to the configured event type)">
-                        <input type="checkbox" name="state" value="(b|c):enter"> (b|c)</label>
+                        <input type="checkbox" name="state" value="(b c):enter"> (b c)</label>
 
                     <p>Events</p>
 
@@ -226,7 +226,7 @@
                         <input type="checkbox" name="state" value="a:leave"> a:leave</label>
 
                     <label data-path="state.b.enter state.c.enter" data-desc="States 'b' and 'c' entered">
-                        <input type="checkbox" name="state" value="(b|c):enter"> (b|c):enter</label>
+                        <input type="checkbox" name="state" value="(b c):enter"> (b c):enter</label>
 
                 </fieldset>
 
@@ -238,11 +238,8 @@
                     <label data-path="state.a.next" data-desc="Action 'next' called on state 'a'">
                         <input type="checkbox" name="state" value="a.next" checked> a.next</label>
 
-                    <label data-path="state.b.leave" data-desc="Event 'leave' (treated as an action) on state 'b'">
-                        <input type="checkbox" name="state" value="b.leave"> b.leave</label>
-
                     <label data-path="state.a.next state.b.next" data-desc="Action 'next' called on states 'a' and 'b'">
-                        <input type="checkbox" name="state" value="state.(a|b).next"> state.(a|b).next</label>
+                        <input type="checkbox" name="state" value="state.(a b).next"> state.(a b).next</label>
 
                     <p>Shorthand</p>
 
@@ -296,7 +293,7 @@
             <li><code>.foo</code> property, including event types, actions and states</li>
             <li><code>:foo</code> event, action or state events, such as "start" and "enter"</li>
             <li><code>@foo</code> action, filter to actions only</li>
-            <li><code>(foo|bar|baz)</code> multiple targets; either actions or states</li>
+            <li><code>(foo bar baz)</code> multiple targets; either actions or states</li>
         </ul>
 
         <p>Note that all handlers operate independently of one another:</p>

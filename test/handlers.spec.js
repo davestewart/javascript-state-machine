@@ -1,7 +1,6 @@
 import mocha from 'mocha';
 import chai from 'chai';
 import StateMachine from '../src/StateMachine';
-import {parse, getPath} from '../src/utils/handlers';
 
 //const describe = mocha.describe;
 //const it = mocha.it;
@@ -15,7 +14,7 @@ const expect = chai.expect;
 let fsm = new StateMachine({
     start: 'a',
     final: 'c',
-    events: [
+    transitions: [
         {name: 'initialize', from: 'none', to: 'a'},
 
         {name: 'next', from: 'a', to: 'b'},
@@ -31,8 +30,8 @@ let fsm = new StateMachine({
 function test (id, input)
 {
     let expected    = input.match(/\S+/g);
-    let result      = parse(fsm, id);
-    assert.deepEqual(expected, result.paths);
+    let paths       = fsm.handlers.parse(id).paths;
+    assert.deepEqual(expected, paths);
 }
 
 describe('Testing parsing of event handler ids for:', function () {
@@ -228,9 +227,9 @@ describe('Testing parsing of event handler ids for:', function () {
             });
         });
 
-        describe('b.leave', function () {
+        describe('b:leave', function () {
             it("results in 'state.b.leave'", function () {
-                test('a.leave', 'state.a.leave');
+                test('b:leave', 'state.b.leave');
             });
         });
 
@@ -247,8 +246,8 @@ describe('Testing parsing of event handler ids for:', function () {
         });
 
         describe('@next', function () {
-            it("results in 'state.*.next'", function () {
-                test('@next', 'state.*.next');
+            it("results in 'action.next.start'", function () {
+                test('@next', 'action.next.start');
             });
         });
 

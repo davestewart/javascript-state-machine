@@ -1,6 +1,6 @@
-import ValueMap from './utils/ValueMap';
+import ValueMap from '../classes/ValueMap';
 
-export default function TransitionMap ()
+function TransitionMap ()
 {
     this.map        = new ValueMap();
     this.states     = [];
@@ -26,18 +26,19 @@ TransitionMap.prototype =
          * @param   {string}    action
          * @param   {string}    from
          * @param   {string}    to
-         * @returns {this}
+         * @returns {TransitionMap}
          */
         add: function (action, from, to)
         {
             this.map.set(from + '.' + action, to);
-            update(this);
-            return this;
+            return update(this);
         },
 
         /**
-         * 
-         * @param state
+         * Removes an existing state
+         *
+         * @param   {string}    state
+         * @returns {TransitionMap}
          */
         remove: function (state)
         {
@@ -58,8 +59,8 @@ TransitionMap.prototype =
                 }
             }
 
-            // update caches
-            update(this);
+            // update and return
+            return update(this);
         },
 
 
@@ -205,6 +206,7 @@ TransitionMap.prototype.constructor = TransitionMap;
  * Private utility function to update existing states and actions
  *
  * @param   {TransitionMap} target
+ * @returns {TransitionMap}
  */
 function update(target)
 {
@@ -232,4 +234,9 @@ function update(target)
     // update
     target.states  = Object.keys(states);
     target.actions = Object.keys(actions);
+
+    // return
+    return target;
 }
+
+export default TransitionMap;

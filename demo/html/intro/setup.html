@@ -31,19 +31,21 @@
         <p>All of the examples are set up in the same way:</p>
 
         <ol>
-            <li>Some HTML elements to represent state, and some buttons to call actions</li>
-            <li>Some global styles to make the page look pretty, with some local styles if required</li>
+            <li>HTML elements to represent state, and some buttons to call actions</li>
+            <li>Global CSS styles to make the page look pretty, with some local styles if required</li>
             <li>A page script to configure the states and handlers and create the StateMachine</li>
             <li>A call to a simple reusable setup function which listens to StateMachine events and updates the UI on changes</li>
         </ol>
         <p>The code for the example above is:</p>
 <pre>
-setup(new StateMachine({
+var fsm = new StateMachine({
     transitions: [
         'next : a > b > c',
         'back : a < b < c'
     ]
-}));
+});
+
+setup(fsm);
 </pre>
         <p>Check out <code>demo/assets/setup.js</code> to view the very simple UI code.</p>
         <p>All the code for each example is in its file, and check the console for debug output.</p>
@@ -51,12 +53,16 @@ setup(new StateMachine({
 
     <script>
 
-        setup(new StateMachine({
+        // create state machine
+        var fsm = new StateMachine({
             transitions: [
                 'next : a > b > c',
                 'back : a < b < c'
             ]
-        }));
+        });
+
+        // helper function to listen to events and update ui
+        setup(fsm);
 
     </script>
 </body>
