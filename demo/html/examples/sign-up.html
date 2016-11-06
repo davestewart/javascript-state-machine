@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Sign-up form</title>
+    <title>Multi-step form</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
@@ -10,14 +10,14 @@
 </head>
 <body>
 
-    <h1>Sign-up form</h1>
+    <h1>Multi-step form</h1>
 
     <main class="steps">
 
         <section id="states">
 
             <article id="intro">
-                <h2>Welcome</h2>
+                <h2>Sign-up</h2>
                 <p>Lorem ipsum dolor sit amet, eos accusam evertitur ut. Meliore placerat elaboraret cu sit, cu est sonet ornatus, at mea sint velit. Et ius iriure deleniti persequeris, idque diceret ei usu. Eu has novum graeci.</p>
                 <p>Click "next" to get started</p>
             </article>
@@ -27,6 +27,8 @@
                 <h2>Details</h2>
 
                 <form class="form-horizontal">
+
+                    <p>Please provide some personal information</p>
 
                     <fieldset>
 
@@ -45,9 +47,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="col-md-3 control-label" for="terms"></label>
-                            <div class="col-md-9">
-                                <label class="checkbox-inline" for="terms">
+                            <div class="col-md-9 col-md-offset-3">
+                                <label class="checkbox-inline">
                                     <input type="checkbox" name="terms" id="terms" value="1">
                                     Agree terms and conditions
                                 </label>
@@ -55,6 +56,15 @@
                         </div>
 
                     </fieldset>
+
+                    <div class="form-group">
+                        <div class="col-md-9 col-md-offset-3">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="submit-error">
+                                Simulate submission error
+                            </label>
+                        </div>
+                    </div>
 
                 </form>
 
@@ -70,10 +80,6 @@
                 <p>There was a problem saving your details to the server</p>
             </article>
 
-        </section>
-
-        <section>
-            <label><input id="invalid" type="checkbox"> Simulate server error</label>
         </section>
 
         <section id="controls">
@@ -102,7 +108,7 @@
         function validate ()
         {
             var validated = true;
-            $form.find('input').each(function(i, e)
+            $form.find('input:not(#submit-error)').each(function(i, e)
             {
                 var valid = e.type === 'checkbox'
                     ? e.checked
@@ -147,7 +153,7 @@
                     fsm.pause();
                     setTimeout(function ()
                     {
-                        if(document.getElementById('invalid').checked)
+                        if(document.getElementById('submit-error').checked)
                         {
                             console.log('There was an error submitting your data!');
                             fsm.go('error', true);

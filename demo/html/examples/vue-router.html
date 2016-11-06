@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>State-based routing</title>
+    <title>Vue state-driven routing</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <h1>State-based routing</h1>
+    <h1>Vue state-driven routing</h1>
 
     <main class="states">
 
@@ -23,7 +23,7 @@
         </section>
 
         <section id="controls">
-            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="prev">Prev</button>
             <button class="btn btn-sm" name="next">Next</button>
         </section>
 
@@ -60,12 +60,13 @@
             - use getStatesForAction()
         */
 
-        Vue.use(VueRouter);
-
+        // component definitions
         var StateA = { template: '<article>State A</article>' };
         var StateB = { template: '<article>State B</article>' };
         var StateC = { template: '<article>State C</article>' };
 
+        // set up router
+        Vue.use(VueRouter);
         var router = new VueRouter({
             mode: 'hash',
             routes: [
@@ -75,11 +76,12 @@
             ]
         });
 
+        // set up app
         var app = new Vue(
         {
             el:'#states',
-            router:router,
-        }).$mount('#states');
+            router:router
+        });
 
     </script>
 
@@ -89,7 +91,7 @@
 
             transitions: [
                 'next :  a > b > c',
-                'back :  a < b < c'
+                'prev :  a < b < c'
             ],
 
             handlers: {
@@ -100,7 +102,7 @@
             }
         };
 
-        // state machine confif
+        // state machine config
         setup(new StateMachine(config));
 
         // on router change, cheat and directly set state
@@ -113,7 +115,10 @@
         // update title function
         function updateTitle (state) {
             // set timeout here, as VueRouter needs to update to the next "tick"
-            setTimeout(function(){ document.title = 'State-based routing / State ' + state.toUpperCase(); }, 100);
+            setTimeout(function() {
+                document.title = 'Vue state-driven routing / State ' + state.toUpperCase();
+                $('h1').text(document.title);
+            }, 10);
         }
 
     </script>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Vue multi-step form</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+
+    <!-- libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/vee-validate/2.0.0-beta.14/vee-validate.min.js"></script>
+
+    <style type="text/css">
+
+        main.steps article {
+            display:block;
+        }
+
+        .help-block {
+            display: none;
+            font-size: 0.8em;
+        }
+
+        .has-error .help-block {
+            display:block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Vue multi-step form</h1>
+
+    <main class="steps">
+
+        <fieldset :disabled="state.paused">
+
+            <section id="states">
+
+                <article id="intro" v-show="state.is.intro">
+                    <h2>Welcome</h2>
+                    <p>Lorem ipsum dolor sit amet, eos accusam evertitur ut. Meliore placerat elaboraret cu sit, cu est sonet ornatus, at mea sint velit. Et ius iriure deleniti persequeris, idque diceret ei usu. Eu has novum graeci.</p>
+                    <p>Click "next" to get started</p>
+                </article>
+
+                <article id="form" v-show="state.is.form">
+
+                    <h2>Details</h2>
+
+                    <form class="form-horizontal">
+
+                        <p>Please provide some personal information</p>
+
+                        <fieldset>
+
+                            <div v-show="state.paused" class="alert alert-info">Communicating with server...</div>
+
+                            <div :class="{'form-group':true, 'has-error':errors.has('email')}">
+                                <label class="col-md-3 control-label" for="email">Email</label>
+                                <div class="col-md-9">
+                                    <input id="email"
+                                           type="email"
+                                           name="email"
+                                           placeholder="Email"
+                                           autocomplete="off"
+                                           class="form-control input-md"
+                                           data-rules="required|email"
+                                           v-model="input.email"
+                                           v-validate>
+                                    <span class="help-block">{{ errors.first('email') }}</span>
+                                </div>
+                            </div>
+
+                            <div :class="{'form-group':true, 'has-error':errors.has('password')}">
+                                <label class="col-md-3 control-label" for="password">Password</label>
+                                <div class="col-md-9">
+                                    <input id="password"
+                                           name="password"
+                                           type="password"
+                                           placeholder="Password"
+                                           autocomplete="off"
+                                           class="form-control input-md"
+                                           data-rules="required|min:6"
+                                           v-model="input.password"
+                                           v-validate
+                                    >
+                                    <span class="help-block">{{ errors.first('password') }}</span>
+                                </div>
+                            </div>
+
+                            <div :class="{'form-group':true, 'has-error':errors.has('terms')}">
+                                <label class="col-md-3 control-label" for="terms"></label>
+                                <div class="col-md-9">
+                                    <label class="checkbox-inline">
+                                        <input id="terms"
+                                               name="terms"
+                                               type="checkbox"
+                                               value="1"
+                                               data-rules="required"
+                                               v-model="input.terms"
+                                               v-validate
+                                        >
+                                        Agree terms and conditions
+                                    </label>
+                                    <span class="help-block">You must agree to continue</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-9 col-md-offset-3">
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" v-model="app.error">
+                                        Simulate submission error
+                                    </label>
+                                </div>
+                            </div>
+
+                        </fieldset>
+
+                    </form>
+
+                </article>
+
+                <article id="finish" v-show="state.is.finish">
+                    <h2>Thank you!</h2>
+                    <p>Your membership information has been emailed to you</p>
+                </article>
+
+                <article id="error" v-show="state.is.error">
+                    <h2 style="color:red">Sorry</h2>
+                    <p>There was a problem saving your details to the server</p>
+                </article>
+
+            </section>
+
+            <section id="controls">
+                <button v-on:click="doAction" :disabled="!state.actions.back" class="btn btn-sm" name="back">Back</button>
+                <button v-on:click="doAction" :disabled="!state.actions.next" class="btn btn-sm" name="next">Next</button>
+                <button v-on:click="doAction" :disabled="!state.actions.restart" class="btn btn-sm" name="restart">Restart</button>
+            </section>
+
+        </fieldset>
+
+    </main>
+
+    <section id="info">
+        <p>This is the same <a href="sign-up.html">sign-up example</a> as before, but modified to use Vue's reactive state.</p>
+        <p>A StateMachine <code>change</code> handler updates a central <code>state</code> property on the app:</p>
+
+
+        <ul>
+            <li>Step <code>article</code>s are shown/hidden using <code>v-show</code></li>
+            <li>Buttons are enabled/disabled reactively to the updated <code>state.actions</code> property</li>
+        </ul>
+        <p>Validation is managed by the excellent <a href="https://github.com/logaretm/vee-validate" target="_blank">VeeValidate</a>.</p>
+        <p>The majority of the work is done in the <code>onUpdate</code> method; at some point this will be wrapped as a plugin.</p>
+    </section>
+
+
+    <script>
+
+        Vue.use(VeeValidate);
+
+        var app = new Vue(
+        {
+            el : 'main',
+
+            data: {
+                app: {
+                    error    : false
+                },
+                input: {
+                    email    : '',
+                    password : '',
+                    terms    : false
+                },
+                state: null // this will be populated by StateHelper data
+            },
+
+            created:function()
+            {
+                // create state machine
+                this.fsm = StateMachine.create({
+
+                    transitions: [
+                        'next    : intro > form > finish',
+                        'back    : intro < form           < error',
+                        'error   :         form >           error',
+                        'restart : intro        < finish'
+                    ],
+
+                    handlers:
+                    {
+                        'form@next' : this.onSubmit,
+                        'finish'    : this.onComplete
+                    }
+                });
+
+                // create and assign state helper object / data to application state
+                this.state = StateMachine.helper(this.fsm).data;
+            },
+
+            methods:
+            {
+
+            // ------------------------------------------------------------------------------------------------
+            // ui code
+
+                doAction:function(event)
+                {
+                    this.fsm.do(event.target.name);
+                },
+
+
+            // ------------------------------------------------------------------------------------------------
+            // application code
+
+                onSubmit:function (event, fsm)
+                {
+                    if(this.validate())
+                    {
+                        return this.submit();
+                    }
+                    fsm.cancel();
+                },
+
+                onComplete:function()
+                {
+                    console.log('Yay! We submitted the form :)');
+                    this.reset();
+                },
+
+                validate:function()
+                {
+                    this.$validator.validateAll();
+                    if (this.errors.any()) {
+                        console.log('The form is invalid');
+                        return false;
+                    }
+                    return true;
+                },
+
+                submit:function()
+                {
+                    this.fsm.pause();
+                    console.log('Submitting data...');
+                    setTimeout(function ()
+                    {
+                        if(this.app.error)
+                        {
+                            console.log('There was an error submitting your data!');
+                            this.fsm.go('error', true);
+                        }
+                        else
+                        {
+                            console.log('Data submitted!');
+                            this.fsm.resume();
+                        }
+                    }.bind(this), 2000);
+                },
+
+                reset:function()
+                {
+                    this.input.email = '';
+                    this.input.password = '';
+                    this.input.terms = false;
+                }
+
+            },
+
+            filters:
+            {
+                json:function(data) { return JSON.stringify(data); }
+            }
+
+        });
+
+    </script>
+
+    <script>
+
+
+    </script>
+</body>
+</html>

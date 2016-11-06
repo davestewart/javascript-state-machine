@@ -31,6 +31,10 @@
         clear:both;
     }
 
+    p + fieldset {
+        margin-top:30px;
+    }
+
     pre {
         margin:20px;
         font-size:0.8em;

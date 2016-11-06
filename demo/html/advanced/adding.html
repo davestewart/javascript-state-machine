@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Adding & removing states</title>
+    <title>Adding & removing transitions</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
+
     <style type="text/css">
         #more-controls button{
             width: 35px;
@@ -15,7 +16,7 @@
 </head>
 <body>
 
-    <h1>Adding & removing states</h1>
+    <h1>Adding & removing transitions</h1>
 
     <main class="states">
 
@@ -36,13 +37,26 @@
     </main>
 
     <section id="info">
-        <p>StateMachine supports adding and removing states on the fly .</p>
+        <p>StateMachine supports adding and removing states / transitions on the fly .</p>
         <p>This example allows you to add and remove states, adding or removing the correct transitions automatically.</p>
         <p>When you remove a state, you can use logic in the event handler to determine whether you should also update the StateMachine's current state, as this is not automatically.</p>
+        <p>Note that the syntax for adding and removing transitions and states is slightly different:</p>
+        <pre>
+// adding a transition (longhand)
+fsm.add('next', 'a', 'b');
+
+// adding a transition (shorthand)
+fsm.add('next : a > b');
+
+// removing a state
+fsm.remove('a'); // state only
+</pre>
+        <p>There are also <a href="../events/playground.html">events</a> for transition addition and removal.</p>
     </section>
 
-    <script>
+    <script title="setup state machine">
 
+        // config
         var config = {
 
             initial: 'a',
@@ -69,16 +83,23 @@
 
         };
 
+        // create state machine
         var fsm = setup(new StateMachine(config));
 
-        var $states = $('#states');
-        var states  = 'abcdef'.split('');
+    </script>
 
+    <script title="add and remove states">
+
+        // function to add state
         function addState()
         {
+            // get the index of the next state
             var index = $states.children().length;
+
+            // add transition if we have room
             if(index < states.length)
             {
+                // add the transition
                 var to    = states[index];
                 var from  = states[index - 1];
                 if(from && to)
@@ -86,26 +107,42 @@
                     fsm.add('next', from, to);
                     fsm.add('back', to, from);
                 }
+
+                // add a visual element
                 $states.append('<article id="' +to+ '">State ' +to.toUpperCase()+ '</article>');
+
+                // TODO update visuals using events
+
+                // update the UI using setup.js
                 update();
             }
 
         }
 
+        // function to remove state
         function removeState()
         {
             var index = $states.children().length;
             if(index > 1)
             {
+                // remove system and visual state
                 var $state = $states.find('article:last-child');
                 fsm.remove($state.attr('id'));
+
+                // update ui
                 $state.remove();
             }
         }
 
+        // variables to modify states
+        var $states = $('#states');
+        var states  = 'abcdef'.split('');
+
+        // attach handlers
         $('#btnAdd').on('click', addState);
         $('#btnRemove').on('click', removeState);
 
+        // kick off by adding a new state
         addState();
 
     </script>
