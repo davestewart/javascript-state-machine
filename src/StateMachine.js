@@ -1,6 +1,8 @@
 import TransitionMap from './transitions/TransitionMap';
 import Transition from './transitions/Transition';
 
+import StateHelper from './plugins/StateHelper';
+
 import parse from './handlers/Parser'
 
 import { SystemEvent, TransitionEvent } from './classes/Events';
@@ -577,6 +579,11 @@ StateMachine.prototype.constructor = StateMachine;
 StateMachine.create = function(options)
 {
     return new StateMachine(options);
+};
+
+StateMachine.helper = function(fsm)
+{
+    return new StateHelper(fsm);
 };
 
 export default StateMachine;

@@ -32,3 +32,10 @@ export function trim (value)
 {
     return String(value || '').replace(/^\s+|\s+$/g, '');
 }
+
+export function toHash(values) {
+    return values.reduce(function (obj, value) {
+        obj[value] = true;
+        return obj;
+    }, {})
+}
