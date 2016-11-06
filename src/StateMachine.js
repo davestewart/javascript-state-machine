@@ -1,16 +1,17 @@
-import TransitionMap from './transitions/TransitionMap';
-import Transition from './transitions/Transition';
+import TransitionMap from './core/maps/TransitionMap';
+import Transition from './core/classes/Transition';
+import ValueMap from './core/maps/ValueMap';
+
+import Config from './core/classes/Config';
+
+import parseTransition from './core/parsers/TransitionParser';
+import parseHandler from './core/parsers/HandlerParser';
+
+import { SystemEvent, TransitionEvent } from './core/objects/events';
 
 import StateHelper from './plugins/StateHelper';
 
-import parseHandler from './handlers/Parser';
-import parseTransition from './transitions/Parser';
-
-import Config from './classes/Config';
-import ValueMap from './classes/ValueMap';
-import { SystemEvent, TransitionEvent } from './classes/Events';
-
-import { isFunction } from './utils/utils';
+import { isFunction } from './core/utils/utils';
 
 /**
  * StateMachine constructor
@@ -120,7 +121,7 @@ StateMachine.prototype =
             /**
              * Add event handler parsing
              * @param   {string}    id
-             * @returns {ParseResult}
+             * @returns {HandlerMeta}
              */
             this.handlers.parse = id => parseHandler(id, this);
 
@@ -524,7 +525,7 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
-            /** @var {ParseResult} */
+            /** @var {HandlerMeta} */
             let result = this.handlers.parse(id);
 
             if(this.config.debug)

@@ -1,6 +1,6 @@
-import ParseResult from './ParseResult';
-import ParseError from './ParseError';
-import Lexer from '../classes/Lexer'
+import HandlerMeta from './HandlerMeta';
+import { ParseError } from '../objects/errors';
+import Lexer from '../utils/Lexer'
 
 
 // ------------------------------------------------------------------------------------------------
@@ -54,15 +54,15 @@ import Lexer from '../classes/Lexer'
 // export
 
     /**
-     * Parses event handler id into ParseResult instance
+     * Parses event handler id into HandlerMeta instance
      *
      * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
      * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
-     * @return  {ParseResult}
+     * @return  {HandlerMeta}
      */
     export default function parse(id, fsm)
     {
-        return parser.parseHandler(id, fsm);
+        return parser.parse(id, fsm);
     }
 
 
@@ -82,20 +82,20 @@ import Lexer from '../classes/Lexer'
         result  :null,
 
         /**
-         * Parses event handler id into ParseResult instance
+         * Parses event handler id into HandlerMeta instance
          *
          * Resolving namespace, type and target properties
          *
          * @param   {string}        id
          * @param   {StateMachine}  fsm
-         * @return  {ParseResult}
+         * @return  {HandlerMeta}
          */
-        parseHandler:function(id, fsm)
+        parse:function(id, fsm)
         {
             // variables
             let defaults    = fsm.config.defaults;
             let tokens      = lexer.process(id);
-            let result      = this.result = new ParseResult(id);
+            let result      = this.result = new HandlerMeta(id);
 
             // process
             tokens.map( token => {

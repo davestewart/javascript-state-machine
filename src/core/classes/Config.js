@@ -77,4 +77,3 @@ Config.prototype =
     }
 
 };
-

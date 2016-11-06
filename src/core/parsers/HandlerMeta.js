@@ -1,12 +1,12 @@
-import ParseError from './ParseError';
+import { ParseError } from '../objects/errors';
 
-function ParseResult (id)
+function HandlerMeta (id)
 {
     this.id = id;
     this.targets = ['*'];
 }
 
-ParseResult.prototype =
+HandlerMeta.prototype =
 {
     id          : '',
     namespace   : '',
@@ -64,4 +64,4 @@ ParseResult.prototype =
 
 };
 
-export default ParseResult;
+export default HandlerMeta;

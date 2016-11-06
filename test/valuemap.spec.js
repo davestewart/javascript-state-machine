@@ -1,5 +1,5 @@
 import chai from 'chai';
-import ValueMap from '../src/classes/ValueMap';
+import ValueMap from '../src/core/maps/ValueMap';
 
 chai.expect();
 

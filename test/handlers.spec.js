@@ -15,15 +15,15 @@ let fsm = new StateMachine({
     start: 'a',
     final: 'c',
     transitions: [
-        {name: 'initialize', from: 'none', to: 'a'},
+        {action: 'initialize', from: 'none', to: 'a'},
 
-        {name: 'next', from: 'a', to: 'b'},
-        {name: 'next', from: 'b', to: 'c'},
-        {name: 'next', from: 'c', to: 'a'},
+        {action: 'next', from: 'a', to: 'b'},
+        {action: 'next', from: 'b', to: 'c'},
+        {action: 'next', from: 'c', to: 'a'},
 
-        {name: 'back', from: 'c', to: 'b'},
-        {name: 'back', from: 'b', to: 'a'},
-        {name: 'back', from: 'a', to: 'c'}
+        {action: 'back', from: 'c', to: 'b'},
+        {action: 'back', from: 'b', to: 'a'},
+        {action: 'back', from: 'a', to: 'c'}
     ]
 });
 

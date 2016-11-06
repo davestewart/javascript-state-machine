@@ -1,4 +1,6 @@
 import { isString } from '../utils/utils';
+import { ParseError } from '../objects/errors';
+import TransitionMeta from './TransitionMeta';
 
 // ------------------------------------------------------------------------------------------------
 // functions
@@ -11,13 +13,6 @@ import { isString } from '../utils/utils';
     function add(transitions, action, from, to)
     {
         transitions.push(new TransitionMeta(action, from, to));
-    }
-
-    function TransitionMeta(action, from, to)
-    {
-        this.action = action;
-        this.from = from;
-        this.to = to;
     }
 
 
@@ -42,7 +37,7 @@ import { isString } from '../utils/utils';
             // ensure string is valid
             if(!/^\w+ [:|=] \w[\w ]*[<>] \w[\w ]*/.test(tx))
             {
-                throw new Error(getError(tx, 'cannot determine action and states'));
+                throw new ParseError(getError(tx, 'cannot determine action and states'));
             }
 
             // initialize variables
@@ -79,7 +74,7 @@ import { isString } from '../utils/utils';
                         : stack;
                     if(Array.isArray(a) && Array.isArray(b))
                     {
-                        throw new Error(getError(tx, 'transitioning between 2 arrays doesn\'t make sense'));
+                        throw new ParseError(getError(tx, 'transitioning between 2 arrays doesn\'t make sense'));
                     }
                     if(Array.isArray(a))
                     {
