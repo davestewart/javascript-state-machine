@@ -53,18 +53,23 @@
 
     <script>
 
+        // state variable to be toggled
         var state = false;
+
+        // programatic state callback
         function choose(states) {
             return (state = !state) ? 'b1' : 'b2';
         }
 
+        // setup states
         var config = {
 
             transitions: [
-                {name: 'next', from: 'a', to:choose},
+                {action: 'next', from: 'a', to:choose},
                 'next : b1 > c1 > a',
                 'next : b2 > c2 > a'
             ]
+
         };
 
         setup(new StateMachine(config));

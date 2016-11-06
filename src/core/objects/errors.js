@@ -1,4 +1,4 @@
-export default function ParseError(message)
+export function ParseError(message)
 {
     this.name = 'ParseError';
     this.message = message;

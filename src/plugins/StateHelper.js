@@ -1,4 +1,4 @@
-import { toHash } from '../utils/utils';
+import { toHash } from '../core/utils/utils';
 
 export default function StateHelper (fsm)
 {

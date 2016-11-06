@@ -1,4 +1,4 @@
-import ValueMap from '../classes/ValueMap';
+import ValueMap from './ValueMap';
 
 function TransitionMap ()
 {
