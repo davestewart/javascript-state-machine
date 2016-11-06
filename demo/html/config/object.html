@@ -31,10 +31,10 @@
         <p>This example demonstrates assigning transitions via JavaScript objects with <code>name</code>, <code>from</code> and <code>to</code> properties:</p>
 <pre>
 transitions: [
-    {name: 'next', from: 'a', to: 'b'},
-    {name: 'next', from: 'b', to: 'c'},
-    {name: 'back', from: 'c', to: 'b'},
-    {name: 'back', from: 'b', to: 'a'}
+    {action: 'next', from: 'a', to: 'b'},
+    {action: 'next', from: 'b', to: 'c'},
+    {action: 'back', from: 'c', to: 'b'},
+    {action: 'back', from: 'b', to: 'a'}
 ]
 </pre>
         <p>However, it's generally easier to use <a href="shorthand.html">shorthand notation</a>.</p>
@@ -45,10 +45,10 @@ transitions: [
         var config = {
 
             transitions: [
-                {name: 'next', from: 'a', to: 'b'},
-                {name: 'next', from: 'b', to: 'c'},
-                {name: 'back', from: 'c', to: 'b'},
-                {name: 'back', from: 'b', to: 'a'}
+                {action: 'next', from: 'a', to: 'b'},
+                {action: 'next', from: 'b', to: 'c'},
+                {action: 'back', from: 'c', to: 'b'},
+                {action: 'back', from: 'b', to: 'a'}
             ],
 
             handlers: {
