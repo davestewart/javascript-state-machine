@@ -2,7 +2,7 @@ import { isString } from '../utils/utils';
 
 export default function Config (options)
 {
-    'initial final defer debug scope transitions'
+    'initial final start debug scope transitions'
         .match(/\w+/g)
         .map( name =>
         {
@@ -37,7 +37,7 @@ Config.prototype =
     final       : '',
 
     /** @var boolean */
-    defer       : false,
+    start       : true,
 
     /** @var boolean */
     debug       : false,
@@ -80,7 +80,7 @@ Config.prototype =
             // ensure string is valid
             if(!/^\w+ [:|=] \w[\w ]*[<>] \w[\w ]*/.test(tx))
             {
-                throw newError(tx, 'cannot determine action and states');
+                throw new Error(errorMessage(tx, 'cannot determine action and states'));
             }
 
             // initialize variables
@@ -117,7 +117,7 @@ Config.prototype =
                         : stack;
                     if(Array.isArray(a) && Array.isArray(b))
                     {
-                        throw newError(tx, 'transitioning between 2 arrays doesn\'t make sense');
+                        throw new Error(errorMessage(tx, 'transitioning between 2 arrays doesn\'t make sense'));
                     }
                     if(Array.isArray(a))
                     {
@@ -164,9 +164,9 @@ Config.prototype =
 
 };
 
-function newError(tx, message)
+function errorMessage(tx, message)
 {
-    return new Error('Invalid transition shorthand pattern "' +tx+ '" - ' + message);
+    return 'Invalid transition shorthand pattern "' +tx+ '" - ' + message;
 }
 
 function add(transitions, name, from, to)

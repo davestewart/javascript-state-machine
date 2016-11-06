@@ -9,41 +9,11 @@ import Config from './classes/Config';
 
 import { isFunction } from './utils/utils';
 
-export default function StateMachine (scope, options)
+function StateMachine (options)
 {
-    // logic
     this.transitions    = new TransitionMap();
     this.handlers       = new ValueMap();
-
-    // state
-    this.state          = '';
-
-    // allow [scope, config] or [config] as parameters
-    if(arguments.length == 1)
-    {
-        [options, scope] = [scope, this];
-    }
-
-    // if no options, create default
-    if(!options)
-    {
-        options = {};
-    }
-
-    // assign default scope if not set
-    if(!options.scope)
-    {
-        options.scope = scope;
-    }
-
-    // initialize
     this.initialize(options);
-
-    // dispatch change event
-    if(!this.config.defer)
-    {
-        this.update('system', 'change', 'state', this.state);
-    }
 }
 
 /**
@@ -109,6 +79,9 @@ StateMachine.prototype =
          */
         initialize:function (options)
         {
+            // state
+            this.state          = '';
+
             // build config
             let config  = new Config(options);
             this.config = config;
@@ -135,19 +108,8 @@ StateMachine.prototype =
                 config.initial = this.transitions.getStates()[0];
             }
 
-            // set initial state, unless defer is set to true
-            if( ! config.defer )
-            {
-                this.state = config.initial;
-            }
-
-            /**
-             * Add event handler parsing
-             *
-             * @param   {string}    id
-             * @returns {ParseResult}
-             */
-            this.handlers.parse = id => parse(id, this);;
+            // add event handler parsing
+            this.handlers.parse = id => parse(id, this);
 
             // add handlers
             if(options.handlers)
@@ -161,7 +123,22 @@ StateMachine.prototype =
                 }
             }
 
+            // start
+            if(this.config.start)
+            {
+                this.start();
+            }
+
             // return
+            return this;
+        },
+
+        start: function ()
+        {
+            this.state = this.config.initial;
+            this.update('system', 'start');
+            this.update('system', 'update', 'state', this.state);
+            this.update('system', 'change', 'state', this.state);
             return this;
         },
 
@@ -176,11 +153,11 @@ StateMachine.prototype =
          */
         update: function (namespace, type, key = '', value = null)
         {
-            let signature = namespace + '.' + type;
+            let path = namespace + '.' + type;
             let event = namespace === 'system'
                 ? new SystemEvent(type, key, value)
                 : new TransitionEvent(type);
-            this.dispatch(signature, event);
+            this.dispatch(path, event);
             return this;
         },
 
@@ -590,3 +567,16 @@ StateMachine.prototype =
 };
 
 StateMachine.prototype.constructor = StateMachine;
+
+/**
+ * Factory method
+ *
+ * @param   options
+ * @returns {StateMachine}
+ */
+StateMachine.create = function(options)
+{
+    return new StateMachine(options);
+};
+
+export default StateMachine;
