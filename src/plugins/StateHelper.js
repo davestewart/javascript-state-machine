@@ -62,8 +62,8 @@ StateHelper.prototype =
         var fsm                 = this.fsm;
         this.data.name          = fsm.state;
         this.data.index         = this.fsm.transitions.states.indexOf(this.data.name);
-        this.data.states        = toHash(fsm.transitions.getToStates(fsm.state));
-        this.data.actions       = toHash(fsm.transitions.getActionsFrom(fsm.state));
+        this.data.states        = toHash(fsm.transitions.getToStates(fsm.state) || []);
+        this.data.actions       = toHash(fsm.transitions.getActionsFrom(fsm.state) || []);
         this.data.is            = {};
         this.data.is[fsm.state] = true;
     }
