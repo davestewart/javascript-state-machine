@@ -1,10 +1,12 @@
 import object from './object';
 import jQuery from'./jQuery';
+import vueRouter from'./VueRouter';
 
 var StateHelper =
 {
-    object  :object,
-    jQuery  :jQuery
+    object,
+    jQuery,
+    vueRouter
 };
 
 export default StateHelper;
