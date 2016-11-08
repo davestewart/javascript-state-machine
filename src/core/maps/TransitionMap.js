@@ -1,4 +1,5 @@
 import ValueMap from './ValueMap';
+import parseTransition from '../parsers/TransitionParser';
 
 function TransitionMap ()
 {
@@ -19,6 +20,17 @@ TransitionMap.prototype =
 
     // ------------------------------------------------------------------------------------------------
     // add and remove states
+
+        /**
+         * Add event handler parsing
+         *
+         * @param   {string}    tx
+         * @returns {TransitionMeta[]}
+         */
+        parse: function (tx)
+        {
+            return parseTransition(tx);
+        },
 
         /**
          * Adds a new transition
