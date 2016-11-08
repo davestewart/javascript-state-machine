@@ -30,7 +30,7 @@ let fsm = new StateMachine({
 function test (id, input)
 {
     let expected    = input.match(/\S+/g);
-    let paths       = fsm.handlers.parse(id).paths;
+    let paths       = fsm.parse(id).paths;
     assert.deepEqual(expected, paths);
 }
 

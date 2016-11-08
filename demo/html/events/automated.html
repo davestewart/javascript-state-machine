@@ -83,7 +83,7 @@
                 // test
                 try
                 {
-                    result  = fsm.handlers.parse(input.id);
+                    result  = fsm.parse(input.id);
                     text    = result.paths.join(' ');
                     ok      = input.expected == text;
                 }
