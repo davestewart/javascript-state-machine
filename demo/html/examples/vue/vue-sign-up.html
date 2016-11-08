@@ -187,6 +187,7 @@
 
                     handlers:
                     {
+                        'form'      : this.onForm,
                         'form@next' : this.onSubmit,
                         'finish'    : this.onComplete
                     }
@@ -210,6 +211,11 @@
 
             // ------------------------------------------------------------------------------------------------
             // application code
+
+                onForm:function (event, fsm)
+                {
+                    this.$validator.errorBag.clear();
+                },
 
                 onSubmit:function (event, fsm)
                 {
