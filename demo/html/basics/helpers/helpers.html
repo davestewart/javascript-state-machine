@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Helpers</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Helpers</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>As a library to manage state, StateMachine does this via an <a href="../events/playground.html">event-based</a> system which allows any state machine in your system to remain decoupled from your application code.</p>
+        <p>It's not much effort to </p>
+
+        <ol>
+            <li>HTML elements to represent state, and some buttons to call actions</li>
+            <li>Global CSS styles to make the page look pretty, with some local styles if required</li>
+            <li>A page script to configure the states and handlers and create the StateMachine</li>
+            <li>A call to a simple reusable setup function which listens to StateMachine events and updates the UI on changes</li>
+        </ol>
+        <p>The code for the example above is:</p>
+<pre>
+var fsm = new StateMachine({
+    transitions: [
+        'next : a > b > c',
+        'back : a < b < c'
+    ]
+});
+
+setup(fsm);
+</pre>
+        <p>Check out <code>demo/assets/setup.js</code> to view the very simple UI code.</p>
+        <p>All the code for each example is in its file, and check the console for debug output.</p>
+    </section>
+
+    <script>
+
+        // create state machine
+        var fsm = new StateMachine({
+            transitions: [
+                'next : a > b > c',
+                'back : a < b < c'
+            ]
+        });
+
+        // helper function to listen to events and update ui
+        setup(fsm);
+
+    </script>
+</body>
+</html>

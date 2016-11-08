@@ -1,0 +1,25 @@
+
+    main, section {
+        padding:0 0 20px 20px;
+    }
+
+    p {
+        font-size: 1em;
+        color:#777;
+    }
+
+    ul {
+        margin-bottom: 30px;
+    }
+
+    h2{
+        border-bottom:1px double #EEE;
+        padding: 0 0 10px 20px;
+        margin:0 0 15px 0;
+    }
+
+    a[disabled] {
+        color: #CCC;
+        pointer-events: none;
+    }
+
