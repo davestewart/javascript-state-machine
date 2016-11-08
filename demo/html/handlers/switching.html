@@ -4,7 +4,8 @@
     <title>Switching transitions</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
-    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
     <style type="text/css">
@@ -77,7 +78,7 @@
             }
         };
 
-        setup(new StateMachine(config));
+        var fsm = setup(new StateMachine(config));
 
         $('#skip').on('change', function (event) {
             $('#states').toggleClass('skipping', event.currentTarget.checked);

@@ -4,7 +4,8 @@
     <title>State-driven components</title>
     <script src="/assets/vendor/jquery.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
-    <script src="/assets/js/state-machine.js"></script>
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
 
@@ -122,7 +123,7 @@
                 });
 
                 // create and assign state helper object / data to application state
-                this.state = StateMachine.helper(this.fsm).data;
+                this.state = StateHelper.object(this.fsm).data;
             },
 
             methods:
