@@ -15,7 +15,7 @@ import Config from './core/classes/Config';
 function StateMachine (options)
 {
     this.transitions    = new TransitionMap();
-    this.handlers       = new HandlerMap(this);
+    this.handlers       = new HandlerMap();
     this.initialize(options);
 }
 
@@ -490,7 +490,7 @@ StateMachine.prototype =
             }
 
             /** @var {HandlerMeta} */
-            let result = this.handlers.parse(id);
+            let result = this.handlers.parse(id, this);
 
             if(this.config.debug)
             {
@@ -530,13 +530,17 @@ StateMachine.prototype =
 
         off: function (id, fn)
         {
-            let result = this.handlers.parse(id);
+            let result = this.handlers.parse(id, this);
             result.paths.map( path =>
             {
                 this.handlers.remove(path, fn)
             });
-        }
+        },
 
+        parse: function (id)
+        {
+            return this.handlers.parse(id, this);
+        }
 
 };
 

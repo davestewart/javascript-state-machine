@@ -4,28 +4,26 @@ import { isFunction } from '../utils/utils';
 
 import parseHandler from '../parsers/HandlerParser';
 
-function HandlerMap (fsm)
+function HandlerMap ()
 {
-	this.fsm    = fsm;
     this.map    = new ValueMap();
 }
 
 HandlerMap.prototype =
 {
 
-	fsm: null,
-
 	map: null,
 
     /**
      * Parse event handler grammar into a HandlerMeta structure
      *
-     * @param   {string}    id      A valid event handler id signature
+     * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
+     * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
      * @returns {HandlerMeta}
      */
-    parse: function (id)
+    parse: function (id, fsm)
     {
-        return parseHandler(id, this.fsm);
+        return parseHandler(id, fsm);
     },
 
     /**
@@ -83,9 +81,6 @@ HandlerMap.prototype =
     {
         // create lookup path
         let path = namespace + '.' + type;
-
-        //debug
-        this.fsm.config.debug && console.info('StateMachine: dispatch "%s"', path);
 
         // build event
         let event = namespace === 'system'
