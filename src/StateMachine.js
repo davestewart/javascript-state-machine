@@ -1,6 +1,7 @@
 import HandlerMap from './core/maps/HandlerMap';
 import TransitionMap from './core/maps/TransitionMap';
 import Transition from './core/classes/Transition';
+import { trim } from './core/utils/utils';
 
 import Config from './core/classes/Config';
 
@@ -471,6 +472,23 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
+            // pre-parse handler
+            id = trim(id);
+
+            // pre-process multiple event handlers
+            if(id.indexOf('|') > -1)
+            {
+                let ids = id
+                    .split('|')
+                    .map( id => trim(id))
+                    .filter( id => id !== '');
+                if(ids.length)
+                {
+                    ids.map( id => this.on(id, fn))
+                }
+                return this;
+            }
+
             /** @var {HandlerMeta} */
             let result = this.handlers.parse(id);
 
@@ -479,6 +497,7 @@ StateMachine.prototype =
                 console.log('StateMachine on: ' + id, [result.namespace, result.type], result.paths)
             }
 
+            // process handlers
             result.paths.map( (path, index) =>
             {
                 let target = result.targets[index];
