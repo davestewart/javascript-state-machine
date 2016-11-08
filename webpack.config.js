@@ -1,5 +1,6 @@
 var webpack = require('webpack');
 var UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
+
 var path = require('path');
 var env = require('yargs').argv.mode;
 
@@ -19,15 +20,17 @@ if (env === 'build') {
 
 var config = {
   entry: {
-    'state-machine': __dirname + '/src/StateMachine.js'
+    'StateMachine': __dirname + '/src/StateMachine.js',
+    'StateHelper': __dirname + '/src/helpers/index.js'
   },
   devtool: 'source-map',
   output: {
     path: __dirname + '/lib',
-    //libraryTarget: 'umd',
-    //umdNamedDefine: true
+    //umdNamedDefine: true,
+    //libraryTarget: 'var',
+    libraryTarget: 'umd',
     filename: outputFile,
-    library: libraryName
+    library: '[name]'
   },
   module: {
     loaders: [
