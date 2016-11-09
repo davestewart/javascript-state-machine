@@ -19,7 +19,7 @@
 
     <main class="states">
 
-        <section id="states">
+        <section id="states" :class="{paused:state.paused}">
             <router-view>Loading...</router-view>
         </section>
 
@@ -72,40 +72,6 @@
 
     </script>
 
-    <script title="router helper">
-
-        /**
-         * Reusable function to setup relationship between VueRouter and StateHelper
-         *
-         * @param   {VueRouter}     router      The VueRouter instance
-         * @param   {StateHelper}   helper      The StateHelper instance
-         */
-        function setupRouter(router, helper)
-        {
-            function updateRoute()
-            {
-                router.push('/' + helper.fsm.state);
-            }
-
-            // update route when state updates
-            helper.fsm.on('change', updateRoute);
-
-            // update state when route updates
-            router.afterEach(function(route)
-            {
-                // directly set state so state machine event handlers are not triggered
-                helper.fsm.state = route.name;
-
-                // manually update helper
-                helper.update();
-            });
-
-            // immediately update route
-            updateRoute();
-        }
-
-    </script>
-
     <script title="app">
 
         var app = new Vue(
@@ -126,7 +92,16 @@
                     transitions: [
                         'next :  a > b > c',
                         'prev :  a < b < c'
-                    ]
+                    ],
+
+                    handlers: {
+                        c:function (event, fsm) {
+                            fsm.pause();
+                            setTimeout(function(){
+                                fsm.resume();
+                            }, 1000);
+                        }
+                    }
                 });
 
                 // 2. setup state helper
@@ -137,7 +112,7 @@
                 this.state = helper.data;
 
                 // 4. setup router / helper relationship
-                setupRouter(router, helper);
+                StateHelper.vueRouter(router, helper);
             },
 
             methods:

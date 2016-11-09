@@ -60,19 +60,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	
-	var _HandlerMap = __webpack_require__(4);
+	var _HandlerMap = __webpack_require__(5);
 	
 	var _HandlerMap2 = _interopRequireDefault(_HandlerMap);
 	
-	var _TransitionMap = __webpack_require__(11);
+	var _TransitionMap = __webpack_require__(12);
 	
 	var _TransitionMap2 = _interopRequireDefault(_TransitionMap);
 	
-	var _Transition = __webpack_require__(14);
+	var _Transition = __webpack_require__(15);
 	
 	var _Transition2 = _interopRequireDefault(_Transition);
 	
-	var _Config = __webpack_require__(15);
+	var _utils = __webpack_require__(2);
+	
+	var _Config = __webpack_require__(16);
 	
 	var _Config2 = _interopRequireDefault(_Config);
 	
@@ -86,7 +88,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function StateMachine(options) {
 	    this.transitions = new _TransitionMap2.default();
-	    this.handlers = new _HandlerMap2.default(this);
+	    this.handlers = new _HandlerMap2.default();
 	    this.initialize(options);
 	}
 	
@@ -508,13 +510,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	    on: function on(id, fn) {
 	        var _this3 = this;
 	
+	        // pre-parse handler
+	        id = (0, _utils.trim)(id);
+	
+	        // pre-process multiple event handlers
+	        if (id.indexOf('|') > -1) {
+	            var ids = id.split('|').map(function (id) {
+	                return (0, _utils.trim)(id);
+	            }).filter(function (id) {
+	                return id !== '';
+	            });
+	            if (ids.length) {
+	                ids.map(function (id) {
+	                    return _this3.on(id, fn);
+	                });
+	            }
+	            return this;
+	        }
+	
 	        /** @var {HandlerMeta} */
-	        var result = this.handlers.parse(id);
+	        var result = this.handlers.parse(id, this);
 	
 	        if (this.config.debug) {
 	            console.log('StateMachine on: ' + id, [result.namespace, result.type], result.paths);
 	        }
 	
+	        // process handlers
 	        result.paths.map(function (path, index) {
 	            var target = result.targets[index];
 	
@@ -541,10 +562,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    off: function off(id, fn) {
 	        var _this4 = this;
 	
-	        var result = this.handlers.parse(id);
+	        var result = this.handlers.parse(id, this);
 	        result.paths.map(function (path) {
 	            _this4.handlers.remove(path, fn);
 	        });
+	    },
+	
+	    parse: function parse(id) {
+	        return this.handlers.parse(id, this);
 	    }
 	
 	};
@@ -626,7 +651,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 3 */,
-/* 4 */
+/* 4 */,
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -635,39 +661,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	
-	var _ValueMap = __webpack_require__(5);
+	var _ValueMap = __webpack_require__(6);
 	
 	var _ValueMap2 = _interopRequireDefault(_ValueMap);
 	
-	var _events = __webpack_require__(6);
+	var _events = __webpack_require__(7);
 	
 	var _utils = __webpack_require__(2);
 	
-	var _HandlerParser = __webpack_require__(7);
+	var _HandlerParser = __webpack_require__(8);
 	
 	var _HandlerParser2 = _interopRequireDefault(_HandlerParser);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function HandlerMap(fsm) {
-	    this.fsm = fsm;
+	function HandlerMap() {
 	    this.map = new _ValueMap2.default();
 	}
 	
 	HandlerMap.prototype = {
-	
-	    fsm: null,
 	
 	    map: null,
 	
 	    /**
 	     * Parse event handler grammar into a HandlerMeta structure
 	     *
-	     * @param   {string}    id      A valid event handler id signature
+	     * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
+	     * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
 	     * @returns {HandlerMeta}
 	     */
-	    parse: function parse(id) {
-	        return (0, _HandlerParser2.default)(id, this.fsm);
+	    parse: function parse(id, fsm) {
+	        return (0, _HandlerParser2.default)(id, fsm);
 	    },
 	
 	    /**
@@ -726,9 +750,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // create lookup path
 	        var path = namespace + '.' + type;
 	
-	        //debug
-	        this.fsm.config.debug && console.info('StateMachine: dispatch "%s"', path);
-	
 	        // build event
 	        var event = namespace === 'system' ? new _events.SystemEvent(type, key, value) : new _events.TransitionEvent(type);
 	
@@ -746,7 +767,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HandlerMap;
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -943,7 +964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.values = _values;
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1024,7 +1045,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1034,13 +1055,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.default = parse;
 	
-	var _HandlerMeta = __webpack_require__(8);
+	var _HandlerMeta = __webpack_require__(9);
 	
 	var _HandlerMeta2 = _interopRequireDefault(_HandlerMeta);
 	
-	var _errors = __webpack_require__(9);
+	var _errors = __webpack_require__(10);
 	
-	var _Lexer = __webpack_require__(10);
+	var _Lexer = __webpack_require__(11);
 	
 	var _Lexer2 = _interopRequireDefault(_Lexer);
 	
@@ -1217,7 +1238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1226,7 +1247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	
-	var _errors = __webpack_require__(9);
+	var _errors = __webpack_require__(10);
 	
 	function HandlerMeta(id) {
 	    this.id = id;
@@ -1281,7 +1302,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HandlerMeta;
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1298,7 +1319,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	ParseError.prototype = Error.prototype;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1382,7 +1403,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1393,11 +1414,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _ValueMap = __webpack_require__(5);
+	var _ValueMap = __webpack_require__(6);
 	
 	var _ValueMap2 = _interopRequireDefault(_ValueMap);
 	
-	var _TransitionParser = __webpack_require__(12);
+	var _TransitionParser = __webpack_require__(13);
 	
 	var _TransitionParser2 = _interopRequireDefault(_TransitionParser);
 	
@@ -1634,7 +1655,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = TransitionMap;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1651,9 +1672,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _utils = __webpack_require__(2);
 	
-	var _errors = __webpack_require__(9);
+	var _errors = __webpack_require__(10);
 	
-	var _TransitionMeta = __webpack_require__(13);
+	var _TransitionMeta = __webpack_require__(14);
 	
 	var _TransitionMeta2 = _interopRequireDefault(_TransitionMeta);
 	
@@ -1754,7 +1775,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1771,7 +1792,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = TransitionMeta;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1782,7 +1803,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _events = __webpack_require__(6);
+	var _events = __webpack_require__(7);
 	
 	var _utils = __webpack_require__(2);
 	
@@ -1980,7 +2001,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	'use strict';

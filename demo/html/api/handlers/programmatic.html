@@ -31,13 +31,12 @@
             <div>
                 <div>
                     <article id="b1">State B1</article>
-                    <article id="c1">State C1</article>
                 </div>
                 <div>
                     <article id="b2">State B2</article>
-                    <article id="c2">State C2</article>
                 </div>
             </div>
+            <article id="c">State C</article>
         </section>
 
         <section id="controls">
@@ -48,8 +47,8 @@
 
     <section id="info">
         <p>By assigning a function to a transition <code>to</code> state, you can determine the target state at run time.</p>
-        <p>The example above will alternately choose the top or bottom route based.</p>
-        <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point, for example character animation states or game bonuses.</p>
+        <p>The example above will alternately choose the top or bottom route based on a toggling variable.</p>
+        <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point, for example character animation states, game bonuses, or the result of some other action, whilst staying inside the structure of the StateMachine.</p>
     </section>
 
     <script>
@@ -67,8 +66,8 @@
 
             transitions: [
                 {action: 'next', from: 'a', to:choose},
-                'next : b1 > c1 > a',
-                'next : b2 > c2 > a'
+                'next : b1 > c > a',
+                'next : b2 > c > a'
             ]
 
         };

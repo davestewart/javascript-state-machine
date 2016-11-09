@@ -68,11 +68,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _jQuery2 = _interopRequireDefault(_jQuery);
 	
+	var _VueRouter = __webpack_require__(4);
+	
+	var _VueRouter2 = _interopRequireDefault(_VueRouter);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var StateHelper = {
 	    object: _object2.default,
-	    jQuery: _jQuery2.default
+	    jQuery: _jQuery2.default,
+	    vueRouter: _VueRouter2.default
 	};
 	
 	exports.default = StateHelper;
@@ -273,6 +278,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    // return
 	    return fsm;
+	}
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.default = setup;
+	/**
+	 * Setup relationship between VueRouter and StateHelper
+	 *
+	 * @param   {VueRouter}     router      The VueRouter instance
+	 * @param   {StateObject}   object      The StateObject instance
+	 */
+	function setup(router, object) {
+	    function updateRoute() {
+	        router.push('/' + object.fsm.state);
+	    }
+	
+	    // update route when state updates
+	    object.fsm.on('change', updateRoute);
+	
+	    // update state when route updates
+	    router.afterEach(function (route) {
+	        // directly set state so state machine event handlers are not triggered
+	        object.fsm.state = route.name;
+	
+	        // manually update helper
+	        object.update();
+	    });
+	
+	    // immediately update route
+	    updateRoute();
 	}
 
 /***/ }
