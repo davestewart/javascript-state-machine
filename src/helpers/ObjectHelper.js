@@ -1,6 +1,6 @@
 import { toHash } from '../core/utils/utils';
 
-function StateObject (fsm)
+function ObjectHelper (fsm)
 {
     var onPause = this.onPause.bind(this);
     var onModify = this.onModify.bind(this);
@@ -16,7 +16,7 @@ function StateObject (fsm)
     this.update();
 }
 
-StateObject.prototype =
+ObjectHelper.prototype =
 {
     fsm : null,
 
@@ -72,5 +72,5 @@ StateObject.prototype =
 
 export default function setup (fsm)
 {
-    return new StateObject(fsm);
+    return new ObjectHelper(fsm);
 }
