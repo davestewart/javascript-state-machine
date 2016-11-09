@@ -26,9 +26,8 @@ function show (config)
 
 function setup (fsm)
 {
-    StateHelper.jQuery(fsm);
     console.log(fsm);
-    return fsm;
+    return window.helper = StateHelper.jQuery(fsm);
 }
 
 $(init);

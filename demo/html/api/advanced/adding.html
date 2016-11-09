@@ -85,7 +85,8 @@ fsm.remove('a'); // state only
         };
 
         // create state machine
-        var fsm = setup(new StateMachine(config));
+        var fsm     = new StateMachine(config);
+        var helper  = setup(fsm);
 
     </script>
 
@@ -115,7 +116,7 @@ fsm.remove('a'); // state only
                 // TODO update visuals using events
 
                 // update the UI using setup.js
-                update();
+                helper.update();
             }
 
         }
