@@ -1,5 +1,5 @@
-import jQuery from'./jQuery';
 import object from './ObjectHelper';
+import jQuery from'./jQueryHelper';
 import vueRouter from'./VueRouter';
 
 var StateHelper =
