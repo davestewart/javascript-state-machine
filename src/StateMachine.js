@@ -405,7 +405,7 @@ StateMachine.prototype =
             // 1 argument: shorthand transition, i.e 'next : a > b'
             if(arguments.length === 1)
             {
-                var transitions = parseTransition(action);
+                var transitions = this.transitions.parse(action);
                 transitions.map( tx => this.add(tx.action, tx.from, tx.to));
                 return this;
             }
