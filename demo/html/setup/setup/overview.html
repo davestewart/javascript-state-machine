@@ -66,7 +66,13 @@ StateHelper.jQuery(fsm);
 </pre>
         <p>This code sets up the StateMachine's transitions (actions and states) and in is where you add additional event listeners, configuration, etc.</p>
         <p>The call to StateHelper is optional, but it can used to quickly wire up a UI (see below).</p>
-        <p class="text-danger">Note that all code is in each demo file, and the code is similar across demos; view the source of each file and check console for output!</p>
+        <p class="text-danger">Note the following things about all demo files:</p>
+        <ul>
+            <li>The code is similar across demos</li>
+            <li>All the code on the page in each demo</li>
+            <li>Check console for additional output</li>
+            <li>You can directly manipulate each demo's StateMachine from the console, e.g. <code>fsm.do('next')</code></li>
+        </ul>
     </section>
 
     <section id="events">
@@ -94,7 +100,7 @@ fsm.on('change', function(event, fsm) { ... });
 
     <section id="helpers">
         <h3>Helpers</h3>
-        <p>Although it's quite straightforward to set this up yourself, the JavaScript code is fundamentally the same between applications, so a class, <code>StateHelper</code>, is provided to give you one-liner setup of the very basics, including:</p>
+        <p>Although it's quite straightforward to set up event handlers yourself, the JavaScript code is fundamentally the same between applications, so a class, <code>StateHelper</code>, is provided to give you one-liner setup of the very basics, including:</p>
         <ul>
             <li>Current state</li>
             <li>Available actions</li>

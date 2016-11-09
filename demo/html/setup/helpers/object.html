@@ -33,9 +33,8 @@
 
 
         <section id="info">
-            <p>The <code>StateHelper.object()</code> method provides a constantly-updated state <code>Object</code> that can be used in frameworks like <a href="https://vuejs.org/v2/guide/reactivity.html">Vue</a> or <a
+            <p>The <code>StateHelper.object()</code> method returns a <code>ObjectHelper</code> instance which has a constantly-updated <code>data</code> property that can be watched in frameworks like <a href="https://vuejs.org/v2/guide/reactivity.html">Vue</a> or <a
                     href="https://docs.angularjs.org/guide/scope">Angular</a>.</p>
-            <p>The internal wiring and external implementation for this setup is substantially different that for jQuery, with the helper function returning an instance of a class, on which is a <code>data</code> property.</p>
             <p>The syntax to obtain the data object is as follows:</p>
 
             <pre>var helper = StateHelper.object(fsm);
