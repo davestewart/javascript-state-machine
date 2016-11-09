@@ -6,17 +6,15 @@ function jQueryHelper (fsm, states, controls, state, control)
     // selectors
     this.selectors =
     {
-        states   : states   || '#states',
-        controls : controls || '#controls',
-        state    : state    || '[id]',
-        control  : control  || '[name]'
+        state    : state || '[id]',
+        control  : control || '[name]'
     };
 
     // elements
     this.elements =
     {
-        states      : $(this.selectors.states),
-        controls    : $(this.selectors.controls)
+        states      : $(states || '#states'),
+        controls    : $(controls || '#controls')
     };
 
     // live-bind button clicks to fsm actions
