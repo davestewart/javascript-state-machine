@@ -38,21 +38,26 @@
     </main>
 
     <section id="info">
-        <p>StateMachine supports adding and removing states / transitions on the fly .</p>
-        <p>This example allows you to add and remove states, adding or removing the correct transitions automatically.</p>
-        <p>When you remove a state, you can use logic in the event handler to determine whether you should also update the StateMachine's current state, as this is not automatically.</p>
-        <p>Note that the syntax for adding and removing transitions and states is slightly different:</p>
+        <p>This example demonstrates adding and removing transitions on-the-fly, and handling subsequent events to update the UI.</p>
+        <p>The syntax for adding transitions is as follows:</p>
         <pre>
-// adding a transition (longhand)
-fsm.add('next', 'a', 'b');
-
-// adding a transition (shorthand)
-fsm.add('next : a > b');
-
-// removing a state
-fsm.remove('a'); // state only
+fsm.add('next', 'a', 'b'); // longhand
+fsm.add('next : a > b');   // shorthand
 </pre>
-        <p>There are also <a href="../events/playground.html">events</a> for transition addition and removal.</p>
+        <p>Currently, only states can be removed:</p>
+        <pre>
+fsm.remove('a');           // state only
+</pre>
+        <p>Upon removal of a state, any orphaned actions or states are also removed.</p>
+        <p>Upon addition or removal of states or actions, a <code>StateEvent</code> or <code>ActionEvent</code> is dispatched, the <code>value</code> property of which can be used to determine the state or action in question.</p>
+        <p>Use the following event handler ids to listen to these events:</p>
+<pre>
+state:add
+state:remove
+action:add
+action:remove
+</pre>
+        <p>As you can see above, using these event handlers, it's possible to easily update any system on the fly.</p>
     </section>
 
     <script title="setup state machine">
@@ -62,23 +67,43 @@ fsm.remove('a'); // state only
 
             initial: 'a',
 
-            transitions: [
-
-            ],
-
-            handlers: {
-                change: function change (event, fsm) {
-                    console.log('state changed!');
+            handlers:
+            {
+                change: function change (event, fsm)
+                {
+                    console.log('changed state: ' + event.value);
                 },
-                'system.add': function add (event, fsm) {
-                    console.log('state added!');
+
+                'system.add': function add (event, fsm)
+                {
+                    // add state
+                    var state = event.value;
+                    $states.append('<article id="' +state+ '">State ' +state.toUpperCase()+ '</article>');
+
+                    // update ui
+                    helper.update();
+
+                    // debug
+                    console.log('added state: ' + state);
                 },
-                'system.remove': function remove (event, fsm) {
-                    console.log('state removed!');
+
+                'system.remove': function remove (event, fsm)
+                {
+                    // remove state
+                    var state = event.value;
+                    $states.find('#' + state).remove();
+
+                    // force state update if we've deleted the current state
                     if( ! fsm.has(fsm.state) )
                     {
                         fsm.go(fsm.transitions.getStates().pop(), true);
                     }
+
+                    // update ui
+                    helper.update();
+
+                    // debug
+                    console.log('removed state: ' + state);
                 }
             }
 
@@ -92,7 +117,7 @@ fsm.remove('a'); // state only
 
     <script title="add and remove states">
 
-        // function to add state
+        // add and remove state functions
         function addState()
         {
             // get the index of the next state
@@ -102,42 +127,32 @@ fsm.remove('a'); // state only
             if(index < states.length)
             {
                 // add the transition
-                var to    = states[index];
+                if(index == 0)
+                {
+                    index = 1;
+                }
                 var from  = states[index - 1];
+                var to    = states[index];
                 if(from && to)
                 {
                     fsm.add('next', from, to);
                     fsm.add('back', to, from);
                 }
-
-                // add a visual element
-                $states.append('<article id="' +to+ '">State ' +to.toUpperCase()+ '</article>');
-
-                // TODO update visuals using events
-
-                // update the UI using setup.js
-                helper.update();
             }
 
         }
 
-        // function to remove state
         function removeState()
         {
-            var index = $states.children().length;
-            if(index > 1)
+            var state = fsm.transitions.getStates().pop();
+            if(state && state !== 'a')
             {
-                // remove system and visual state
-                var $state = $states.find('article:last-child');
-                fsm.remove($state.attr('id'));
-
-                // update ui
-                $state.remove();
+                fsm.remove(state);
             }
         }
 
         // variables to modify states
-        var $states = $('#states');
+        var $states = helper.elements.states;
         var states  = 'abcdef'.split('');
 
         // attach handlers
