@@ -4,13 +4,16 @@ import { isFunction } from '../utils/utils';
 
 import parseHandler from '../parsers/HandlerParser';
 
-function HandlerMap ()
+function HandlerMap (fsm)
 {
+    this.fsm    = fsm;
     this.map    = new ValueMap();
 }
 
 HandlerMap.prototype =
 {
+
+	fsm: null,
 
 	map: null,
 
@@ -21,9 +24,9 @@ HandlerMap.prototype =
      * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
      * @returns {HandlerMeta}
      */
-    parse: function (id, fsm)
+    parse: function (id)
     {
-        return parseHandler(id, fsm);
+        return parseHandler(id, this.fsm);
     },
 
     /**
@@ -71,27 +74,25 @@ HandlerMap.prototype =
     /**
      * Dispatch an event
      *
-     * @param   {string}    namespace
-     * @param   {string}    type
-     * @param   {string}    key
+     * @param   {string}    path
      * @param   {*}         value
      * @returns {StateMachine}
      */
-    update: function (namespace, type, key = '', value = null)
+    update: function (path, value = null)
     {
         // create lookup path
-        let path = namespace + '.' + type;
+        let [namespace, type] = path.match(/\w+/g);
 
         // build event
         let event = namespace === 'system'
-            ? new SystemEvent(type, key, value)
+            ? new SystemEvent(type, value)
             : new TransitionEvent(type);
 
         // dispatch
         let handlers = this.map.get(path);
         if(handlers)
         {
-            handlers.map(fn => fn(event, this) );
+            handlers.map(fn => fn(event, this.fsm) );
         }
     }
 

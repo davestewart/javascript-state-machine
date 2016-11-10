@@ -1,7 +1,7 @@
 import HandlerMap from './core/maps/HandlerMap';
 import TransitionMap from './core/maps/TransitionMap';
 import Transition from './core/classes/Transition';
-import { trim } from './core/utils/utils';
+import { trim, diff } from './core/utils/utils';
 
 import Config from './core/classes/Config';
 
@@ -15,7 +15,7 @@ import Config from './core/classes/Config';
 function StateMachine (options)
 {
     this.transitions    = new TransitionMap();
-    this.handlers       = new HandlerMap();
+    this.handlers       = new HandlerMap(this);
     this.initialize(options);
 }
 
@@ -136,8 +136,8 @@ StateMachine.prototype =
         start: function ()
         {
             this.state = this.config.initial;
-            this.handlers.update('system', 'start');
-            this.handlers.update('system', 'change', 'state', this.state);
+            this.handlers.update('system.start');
+            this.handlers.update('system.change', this.state);
             return this;
         },
     
@@ -159,7 +159,7 @@ StateMachine.prototype =
                 this.transition = Transition.create(this, action, rest);
                 if(action === this.config.defaults.initialize)
                 {
-                    this.handlers.update('system', 'initialize');
+                    this.handlers.update('system.initialize');
                 }
                 this.transition.exec();
                 return true;
@@ -304,7 +304,7 @@ StateMachine.prototype =
             if(this.transition && !this.isPaused())
             {
                 this.transition.pause();
-                this.handlers.update('transition', 'pause');
+                this.handlers.update('transition.pause');
             }
             return this;
         },
@@ -337,7 +337,7 @@ StateMachine.prototype =
                 this.state = this.transition.from;
                 this.transition.clear();
                 delete this.transition;
-                this.handlers.update('transition', 'cancel');
+                this.handlers.update('transition.cancel');
             }
             return this;
         },
@@ -355,10 +355,10 @@ StateMachine.prototype =
                 this.state = this.transition.to;
                 this.transition.clear();
                 delete this.transition;
-                this.handlers.update('system', 'change', 'state', this.state);
+                this.handlers.update('system.change', this.state);
                 if(this.isComplete())
                 {
-                    this.handlers.update('system', 'complete');
+                    this.handlers.update('system.complete');
                 }
             }
             return this;
@@ -372,18 +372,18 @@ StateMachine.prototype =
         reset:function(initial = '')
         {
             let state = initial || this.config.initial;
-            this.handlers.update('system', 'reset');
+            this.handlers.update('system.reset');
             if(this.transition)
             {
                 unpause(this);
                 this.transition.clear();
                 delete this.transition;
-                this.handlers.update('transition', 'cancel');
+                this.handlers.update('transition.cancel');
             }
             if(this.state !== state)
             {
                 this.state = state;
-                this.handlers.update('system', 'change', 'state', this.state);
+                this.handlers.update('system.change', this.state);
             }
             return this;
         },
@@ -411,9 +411,7 @@ StateMachine.prototype =
             }
 
             // 3 arguments: longhand transition
-            this.transitions.add(action, from, to);
-            let states = this.transitions.getStates();
-            this.handlers.update('system', 'add', 'states', states);
+            updateTransitions(this, 'add', () => this.transitions.add(action, from, to) );
             return this;
         },
 
@@ -426,9 +424,7 @@ StateMachine.prototype =
         remove: function (state)
         {
             this.handlers.remove('state.' + state);
-            this.transitions.remove(state);
-            let states = this.transitions.getStates();
-            this.handlers.update('system', 'remove', 'states', states);
+            updateTransitions(this, 'remove', () => this.transitions.remove(state) );
             return this;
         },
 
@@ -490,7 +486,7 @@ StateMachine.prototype =
             }
 
             /** @var {HandlerMeta} */
-            let result = this.handlers.parse(id, this);
+            let result = this.handlers.parse(id);
 
             if(this.config.debug)
             {
@@ -530,7 +526,7 @@ StateMachine.prototype =
 
         off: function (id, fn)
         {
-            let result = this.handlers.parse(id, this);
+            let result = this.handlers.parse(id);
             result.paths.map( path =>
             {
                 this.handlers.remove(path, fn)
@@ -564,6 +560,32 @@ function unpause(fsm)
     if(fsm.isPaused())
     {
         fsm.transition.paused = false;
-        fsm.handlers.update('transition', 'resume');
+        fsm.handlers.update('transition.resume');
     }
+}
+
+/**
+ * Utility method to update transitions and dispatch events
+ *
+ * Saves duplicating the following code in both add() and remove() methods
+ *
+ * @param   {StateMachine}  fsm
+ * @param   {string}        method
+ * @param   {Function}      callback
+ */
+function updateTransitions(fsm, method, callback)
+{
+    var statesBefore    = fsm.transitions.getStates();
+    var actionsBefore   = fsm.transitions.getActions();
+    callback();
+    var statesAfter     = fsm.transitions.getStates();
+    var actionsAfter    = fsm.transitions.getActions();
+
+    // calculate differences
+    var states          = diff(statesBefore, statesAfter);
+    var actions         = diff(actionsBefore, actionsAfter);
+
+    // dispatch events
+    states.map ( state  => fsm.handlers.update('system.'  + method, state) );
+    //actions.map( action => fsm.handlers.update('action.' + method, action) );
 }

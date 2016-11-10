@@ -48,10 +48,9 @@
 // ------------------------------------------------------------------------------------------------
 // SystemEvent
 
-    export function SystemEvent (type, key, value)
+    export function SystemEvent (type, value)
     {
         this.type   = type;
-        this.key    = key;
         this.value  = value;
     }
 
@@ -59,7 +58,6 @@
     {
         namespace   : 'system',
         type        : '',
-        key         : '',
         value       : null
     };
 
