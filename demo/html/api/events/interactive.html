@@ -16,6 +16,22 @@
             font-size: 12px;
         }
     </style>
+
+    <style>
+        .indent {
+            margin-left:30px;
+        }
+
+        .table > tbody > tr > td,
+        .table > thead > tr > th {
+            padding: 4px 6px;
+        }
+
+        table code {
+            font-size:0.8em;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -52,6 +68,7 @@
                             <li role="separator" class="divider"></li>
                             <li><a href="#">(a b)</a></li>
                             <li><a href="#">(a b c)@next</a></li>
+                            <li><a href="#">(a b c)@(next back)</a></li>
                             <li><a href="#">(pause resume)</a></li>
                             <li><a href="#">(change pause a @next)</a></li>
                         </ul>
@@ -61,19 +78,19 @@
             </div>
 
             <div id="errors" class="form-group">
-                <label class="radio-inline">Invalid states / actions:</label>
+                <label class="radio-inline" style="padding-left: 10px">Invalid states / actions:</label>
                 <label class="radio-inline">
-                    <input type="radio" name="errors" id="errors-1" value="0" checked> Ignore
+                    <input type="radio" name="errors" value="0" checked> Ignore
                 </label>
                 <label class="radio-inline">
-                    <input type="radio" name="errors" id="errors-2" value="1"> Warn
+                    <input type="radio" name="errors" value="1"> Warn
                 </label>
                 <label class="radio-inline">
-                    <input type="radio" name="errors" id="errors-3" value="2"> Error
+                    <input type="radio" name="errors" value="2"> Error
                 </label>
             </div>
 
-            <div>
+            <div class="indent">
                 <pre class="well well-sm" id="results">Awaiting input...</pre>
             </div>
 
@@ -81,7 +98,8 @@
 
         <section id="info">
 
-            <p>This page allows you to test out some event handler ids of your own.</p>
+            <p>This page allows you to test out some event handler ids of your own. Type above or use the examples to test out some matches!</p>
+
             <p>A StateMachine instance is instantiated with the following properties available:</p>
             <ul>
                 <li>States: <code>a</code>, <code>b</code>, <code>c</code>, <code>d</code>, <code>e</code>, <code>exit</code></li>
@@ -89,16 +107,45 @@
             </ul>
 
             <p>The following grammar is available:</p>
-            <ul>
-                <li><code>namespace.foo</code> namespaced events, for system and transition</li>
-                <li><code>foo</code> tokens, including namespace aliases, actions and states</li>
-                <li><code>:foo</code> event types, for global, action or state events, such as "start" and "enter"</li>
-                <li><code>@foo</code> action, filter to actions only</li>
-                <li><code>#foo</code> state, provided in case you need to disambiguate tokens</li>
-                <li><code>(foo bar baz)</code> multiple grammars, which are expanded to multiple paths</li>
-            </ul>
-            <p>Type above or use the examples to test out some matches!</p>
-            <p>The "Invalid states / actions" option a value you can set in config to handle missing states or actions as you add event handlers.</p>
+
+            <div class="indent">
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Format</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>&lt;any&gt;</code></td>
+                            <td>Any single word that resolves to a namespaced-type alias, action or state name</td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;namespace&gt;.&lt;type&gt;</code></td>
+                            <td>A namespaced-type, for system, transition, action or state</td>
+                        </tr>
+                        <tr>
+                            <td><code>:&lt;type&gt;</code></td>
+                            <td>An event type, for action or state events</td>
+                        </tr>
+                        <tr>
+                            <td><code>@&lt;action&gt;</code></td>
+                            <td>An action name</td>
+                        </tr>
+                        <tr>
+                            <td><code>#&lt;state&gt;</code></td>
+                            <td>A state name (provided in case you need to disambiguate from a namespaced alias)</td>
+                        </tr>
+                        <tr>
+                            <td><code>(&lt;foo&gt; &lt;bar&gt; &lt;baz&gt;)</code></td>
+                            <td>Grouping for multiple grammars, which are expanded to multiple paths</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>The "Invalid states / actions" option mimics the <code>errors</code> value you can set in config to determine which way to handle missing states or actions.</p>
 
         </section>
 
