@@ -40,7 +40,7 @@ jQueryHelper.prototype =
 
     selectors : null,
 
-    update:function()
+    update ()
     {
         this.updateStates();
         this.updateButtons();
