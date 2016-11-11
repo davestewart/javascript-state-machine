@@ -122,6 +122,22 @@ StateMachine.prototype =
                 }
             }
 
+            // methods
+            if(options.methods)
+            {
+                if(!this.config.scope)
+                {
+                    this.config.scope = this;
+                }
+                for(var name in options.methods)
+                {
+                    if(options.methods.hasOwnProperty(name) && !this.hasOwnProperty(name))
+                    {
+                        this[name] = options.methods[name];
+                    }
+                }
+            }
+
             // start
             if(this.config.start)
             {
