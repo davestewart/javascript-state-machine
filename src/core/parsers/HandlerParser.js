@@ -149,7 +149,7 @@ import { trim } from '../utils/utils';
             }
             catch(error)
             {
-                return addError(path, error.message);
+                return addError(path, 'Invalid event handler id');
             }
 
             if(tokens && tokens.length)
