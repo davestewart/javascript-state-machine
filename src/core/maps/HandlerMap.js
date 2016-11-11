@@ -21,11 +21,11 @@ HandlerMap.prototype =
      * Parse event handler grammar into a HandlerMeta structure
      *
      * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
-     * @returns {HandlerMeta}
+     * @returns {HandlerMeta[]}
      */
     parse: function (id)
     {
-        return parseHandler(id, this.fsm);
+        return parseHandler(id, this.fsm.config.defaults);
     },
 
     /**
@@ -77,7 +77,7 @@ HandlerMap.prototype =
      * @param   {*}         value
      * @returns {StateMachine}
      */
-    update: function (path, value = null)
+    trigger: function (path, value = null)
     {
         // create lookup path
         let [namespace, type] = path.match(/\w+/g);

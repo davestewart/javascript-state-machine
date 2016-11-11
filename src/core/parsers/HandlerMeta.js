@@ -1,25 +1,23 @@
-function HandlerMeta (id)
+function HandlerMeta (id, path, namespace = '', target = '')
 {
-    this.id = id;
-    this.type = '';
-    this.paths = [];
-    this.targets = [];
+    this.id         = id;
+    this.path       = path;
+    if(namespace)
+    {
+        this.namespace  = namespace;
+    }
+    if(target)
+    {
+        this.target     = target;
+    }
 }
 
 HandlerMeta.prototype =
 {
     id          : '',
-    type        : '',
-    paths       : [],
-    targets     : [],
-
-    setType (value)
-    {
-        if(!this.type)
-        {
-            this.type = value;
-        }
-    }
+    path        : '',
+    namespace   : '',
+    target      : ''
 };
 
 export default HandlerMeta;

@@ -1,5 +1,6 @@
 import HandlerMeta from './HandlerMeta';
 import Lexer from '../lexer/Lexer'
+import { trim } from '../utils/utils';
 
 
 // ------------------------------------------------------------------------------------------------
@@ -13,24 +14,6 @@ import Lexer from '../lexer/Lexer'
     function isTransition(token)
     {
         return /^(pause|resume|cancel)$/.test(token);
-    }
-
-    function isAction(token)
-    {
-        if(fsm.transitions.hasAction(token))
-        {
-            return true;
-        }
-        //throw new ParseError('Unrecognised action "' + token + '"');
-    }
-
-    function isState(token)
-    {
-        if(fsm.transitions.hasState(token))
-        {
-            return true;
-        }
-        //throw new ParseError('Unrecognised state "' + token + '"');
     }
 
     function expandGroups (input)
@@ -56,25 +39,55 @@ import Lexer from '../lexer/Lexer'
         return [input];
     }
 
+    function addPath (path, namespace, target)
+    {
+        results.push(new HandlerMeta(_id, path, namespace, target));
+        return true;
+    }
+
+    function addError (path, error)
+    {
+        var meta = new HandlerMeta(_id, path);
+        meta.error = error;
+        results.push(meta);
+        return false;
+    }
+
 
 // ------------------------------------------------------------------------------------------------
 // export
 
     /**
-     * Parses event handler id into a HandlerMeta result containing handler paths
+     * Parses event handler id into a HandlerMeta results containing handler paths
      *
-     * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
-     * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
-     * @return  {HandlerMeta}
+     * @param   {string}    id          The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
+     * @param   {Object}    defaults     A StateMachine instance to test for states and actions
+     * @return  {HandlerMeta[]}
      */
-    export default function parse(id, fsm)
+    export default function parse(id, defaults)
     {
-        return parser.parse(id, fsm);
+        // pre-parse handler
+        id          = trim(id);
+
+        // objects
+        _id         = id;
+        _defaults   = defaults;
+        results     = [];
+
+        // parse
+        parser.parse(id, defaults);
+
+        // return
+        return results;
     }
 
 
 // ------------------------------------------------------------------------------------------------
 // objects
+
+    let results,
+        _defaults,
+        _id;
 
     var patterns  =
     {
@@ -108,10 +121,6 @@ import Lexer from '../lexer/Lexer'
 
     let lexer   = new Lexer(patterns);
 
-    let fsm,
-        defaults,
-        result;
-
     var parser =
     {
         /**
@@ -120,27 +129,18 @@ import Lexer from '../lexer/Lexer'
          * Resolving namespace, type and target properties
          *
          * @param   {string}        id
-         * @param   {StateMachine}  _fsm
-         * @return  {HandlerMeta}
+         * @param   {Object}        defaults
          */
-        parse (id, _fsm)
+        parse (id, defaults)
         {
-            // objects
-            fsm         = _fsm;
-            defaults    = _fsm.config.defaults;
-            result      = new HandlerMeta(id);
-
             // expand groups
             let paths   = expandGroups(id);
 
             // process paths
-            paths.map( id => this.parsePath(id, fsm) );
-
-            // return
-            return result;
+            paths.map( path => this.parsePath(path) );
         },
 
-        parsePath:function(path, fsm)
+        parsePath:function(path)
         {
             let tokens;
             try
@@ -149,8 +149,7 @@ import Lexer from '../lexer/Lexer'
             }
             catch(error)
             {
-                result.paths.push('[invalid].' + error.message);
-                return;
+                return addError(path, error.message);
             }
 
             if(tokens && tokens.length)
@@ -158,87 +157,79 @@ import Lexer from '../lexer/Lexer'
                 // variables
                 let token   = tokens.shift();
                 var fn      = this[token.type];
-                result.setType(token.type);
 
                 // process
                 if(fn)
                 {
-                    let path = fn.apply(this, token.values);
-                    result.paths.push(path || '[invalid].' + token.match);
-                    return path;
+                    return fn.apply(this, token.values);
                 }
-                throw new Error('Unknown token type "' +token.type+ '"');
+                return addError(id, path, 'Unknown token type "' +token.type+ '"');
             }
         },
 
         alias (value)
         {
-            if (isSystem(value)) return 'system.' + value;
-            if (isTransition(value)) return 'transition.' + value;
+            if (isSystem(value))
+            {
+                return addPath('system.' + value, 'system');
+            }
+            if (isTransition(value))
+            {
+                return addPath('transition.' + value, 'transition');
+            }
             return this.oneState(value);
         },
 
         namespaced (namespace, type)
         {
-            if(namespace === 'system' && isSystem(type) || namespace === 'transition' && isTransition(type)) return namespace + '.' + type;
-            if(/^(state|action)$/.test(namespace) && /^(add|remove)$/.test(type)) return 'system.' + namespace + '.' + type;
+            var path = namespace + '.' + type;
+
+            if(namespace === 'system' && isSystem(type) || namespace === 'transition' && isTransition(type))
+            {
+                return addPath(path, namespace);
+            }
+
+            if(/^(state|action)$/.test(namespace) && /^(add|remove)$/.test(type))
+            {
+                return addPath('system.' + path, 'system');
+            }
+
+            addError(path, 'Unrecognised namespaced event "' +path+'"')
         },
 
         oneState (state)
         {
-            if (isState(state, fsm))
-            {
-                result.targets.push(state);
-                return 'state.' + state + '.' + defaults.state;
-            }
+            return addPath('state.' + state + '.' + _defaults.state, 'state', state);
         },
 
         oneAction (action)
         {
-            if(isAction(action))
-            {
-                result.targets.push(action);
-                return 'action.' +action+ '.' +defaults.action;
-            }
+            return addPath('action.' +action+ '.' +_defaults.action, 'action', action);
         },
 
         anyActionEvent (event)
         {
-            result.targets.push('*');
-            return 'action.*.' + event;
+            return addPath('action.*.' + event, 'action', '*');
         },
 
         oneActionEvent (action, event)
         {
-            if(isAction(action))
-            {
-                result.targets.push(action);
-                return 'action.' +action+ '.' + event;
-            }
+            return addPath('action.' +action+ '.' + event, 'action', action);
         },
 
         anyStateEvent (event)
         {
-            result.targets.push('*');
-            return 'state.*.' + event;
+            return addPath('state.*.' + event, 'state', '*');
         },
 
         oneStateEvent (state, event)
         {
-            if(isState(state))
-            {
-                result.targets.push(state);
-                return 'state.' +state+ '.' + event;
-            }
+            return addPath('state.' +state+ '.' + event, 'state', state);
         },
 
         oneStateAction (state, action)
         {
-            if(isState(state) && isAction(action))
-            {
-                result.targets.push(state);
-                return 'state.' +state+ '.' + action;
-            }
+            return addPath('state.' +state+ '.' + action, 'state', state);
         }
 
     };
