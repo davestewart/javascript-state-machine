@@ -3,6 +3,7 @@
 <head>
     <title>Interactive id tester</title>
     <script src="/assets/vendor/jquery.min.js"></script>
+    <script src="/assets/vendor/bootstrap.min.js"></script>
     <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/StateMachine.js"></script>
     <script src="/assets/js/StateHelper.js"></script>
@@ -23,12 +24,59 @@
     <main class="states">
 
         <section id="app">
+
             <div class="form-group">
-                <input id="id" type="text" placeholder="Type a valid event handler id here..." class="form-control input-md">
+                <div class="input-group">
+                    <input id="id" type="text" placeholder="Type a valid event handler id here..." class="form-control input-md">
+
+                    <div class="input-group-btn">
+                        <button type="button"
+                                data-toggle="dropdown"
+                                class="btn btn-default dropdown-toggle"
+                                >Examples... <span class="caret"></span></button>
+                        <ul id="examples" class="dropdown-menu dropdown-menu-right">
+                            <li><a href="#">a</a></li>
+                            <li><a href="#">a:leave</a></li>
+                            <li><a href="#">:leave</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">@next</a></li>
+                            <li><a href="#">@next:end</a></li>
+                            <li><a href="#" title="Special case: target an action on a state">a@next</a></li>
+                            <li><a href="#">:end</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">change</a></li>
+                            <li><a href="#">pause</a></li>
+                            <li><a href="#">transition.pause</a></li>
+                            <li><a href="#">action.add</a></li>
+                            <li><a href="#">state.remove</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">(a b)</a></li>
+                            <li><a href="#">(a b c)@next</a></li>
+                            <li><a href="#">(pause resume)</a></li>
+                            <li><a href="#">(change pause a @next)</a></li>
+                        </ul>
+                    </div>
+
+                </div>
             </div>
+
+            <div id="errors" class="form-group">
+                <label class="radio-inline">Invalid states / actions:</label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" id="errors-1" value="0" checked> Ignore
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" id="errors-2" value="1"> Warn
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" id="errors-3" value="2"> Error
+                </label>
+            </div>
+
             <div>
-                <pre class="well well-sm" id="result">Awaiting input...</pre>
+                <pre class="well well-sm" id="results">Awaiting input...</pre>
             </div>
+
         </section>
 
         <section id="info">
@@ -42,13 +90,15 @@
 
             <p>The following grammar is available:</p>
             <ul>
-                <li><code>foo</code> tokens, including namespaces, event-type shortcuts, actions and states</li>
-                <li><code>.foo</code> property, including event types, actions and states</li>
-                <li><code>:foo</code> event, action or state events, such as "start" and "enter"</li>
+                <li><code>namespace.foo</code> namespaced events, for system and transition</li>
+                <li><code>foo</code> tokens, including namespace aliases, actions and states</li>
+                <li><code>:foo</code> event types, for global, action or state events, such as "start" and "enter"</li>
                 <li><code>@foo</code> action, filter to actions only</li>
-                <li><code>(foo bar baz)</code> multiple targets; either actions or states</li>
+                <li><code>#foo</code> state, provided in case you need to disambiguate tokens</li>
+                <li><code>(foo bar baz)</code> multiple grammars, which are expanded to multiple paths</li>
             </ul>
-            <p>Type above to test out some matches!</p>
+            <p>Type above or use the examples to test out some matches!</p>
+            <p>The "Invalid states / actions" option a value you can set in config to handle missing states or actions as you add event handlers.</p>
 
         </section>
 
@@ -56,41 +106,77 @@
 
     <script>
 
-        var fsm = new StateMachine({
+        // ------------------------------------------------------------------------------------------------
+        // setup
 
-            transitions: [
-                'next : a > b > c > d > e',
-                'back : a < b < c < d < e',
-                'quit : a b c d e > exit',
-            ]
+            var handlerId = '';
 
-        });
+            var error = 0;
 
-        $('#id')
-            .on('input', function(event)
+            var fsm = new StateMachine({
+
+                transitions: [
+                    'next : a > b > c > d > e',
+                    'back : a < b < c < d < e',
+                    'quit : a b c d e > exit'
+                ]
+
+            });
+
+            function update()
             {
-                // get results
-                var input   = event.target.value;
                 try
                 {
-                    // update
-                    var result  = fsm.parse(input);
-                    delete result.targets;
+                    // get results
+                    var results  = fsm.parse(handlerId, error)
+                        .map(function(result) {
+                            delete result.id;
+                            return result;
+                        });
 
-                    // update
-                    $('#result').html(result.namespace ? JSON.stringify(result, null, '    ') : 'No result');
+                    // show code
+                    $results.html(JSON.stringify(results, null, '    '));
 
                     // save
-                    localStorage.handlerId = input;
+                    localStorage.handlerId = handlerId;
                 }
                 catch(error)
                 {
-                    $('#result').html(error.message);
+                    $results.html(error.message);
                 }
+            }
 
-            })
-            .val(localStorage.handlerId || '')
-            .trigger('input');
+
+        // ------------------------------------------------------------------------------------------------
+        // elements
+
+            var $results = $('#results');
+
+            var $id = $('#id')
+                .val(localStorage.handlerId || '')
+                .on('input', function (event) {
+                    handlerId = event.target.value;
+                    update();
+                })
+                .trigger('input')
+                .focus();
+
+            $('#examples a')
+                .on('click', function(event)
+                {
+                    event.preventDefault();
+                    handlerId = $(event.target).text();
+                    $id.val(handlerId);
+                    update()
+                });
+
+            $('input[name="errors"]')
+                .on('click', function(event)
+                {
+                    error = parseInt(event.target.value);
+                    update();
+                });
+
 
     </script>
 

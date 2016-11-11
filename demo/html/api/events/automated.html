@@ -23,6 +23,10 @@
             font-size: 0.9em;
             padding: 2px 6px;
         }
+
+        tr td:first-child {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -55,7 +59,10 @@
         // ------------------------------------------------------------------------------------------------
         // variables
 
-            var fsm     = new StateMachine({ transitions: [ 'next : a > b' ] });
+            var fsm = new StateMachine({ transitions: [
+                'next : a > b > c',
+                'back : a < b < c'
+            ] });
             var $table  = $('#results').empty();
             var data    = [];
             var count   = 0;
@@ -78,13 +85,13 @@
             function test (input, index)
             {
                 // variables
-                var result, text, ok;
+                var results, text, ok;
 
                 // test
                 try
                 {
-                    result  = fsm.parse(input.id);
-                    text    = result.paths.join(' ');
+                    results = fsm.parse(input.id);
+                    text    = results.map( result => result.error || result.path).join(' ');
                     ok      = input.expected == text;
                 }
                 catch(error)
@@ -100,7 +107,7 @@
                 }
 
                 // debug
-                //console.log(result);
+                //console.log(results);
 
                 // render
                 $table
@@ -115,56 +122,49 @@
         // ------------------------------------------------------------------------------------------------
         // add rows
 
-            addSection('shortcuts');
+            addSection('aliases');
             add('start', 'system.start');
             add('change', 'system.change');
-            add('update', 'system.update');
             add('complete', 'system.complete');
             add('reset', 'system.reset');
-            add('add', 'system.add');
-            add('remove', 'system.remove');
             add('pause', 'transition.pause');
             add('resume', 'transition.resume');
             add('cancel', 'transition.cancel');
 
-            addSection('absolute');
+            addSection('namespaced');
             add('system.start', 'system.start');
             add('transition.pause', 'transition.pause');
 
-            addSection('actions');
-            add('action', 'action.*.start');
-            add('next', 'action.next.start');
-            add('(next back)', 'action.next.start action.back.start');
-
-            addSection('state & action types');
-            add(':start', 'action.*.start');
-            add(':end', 'action.*.end');
-            add('next:start', 'action.next.start');
-            add('next:end', 'action.next.end');
-            add('action.next:end', 'action.next.end');
-            add('(next back):end', 'action.next.end action.back.end');
-
-            addSection('actions');
-            add('a.next', 'state.a.next');
-            add('a:leave', 'state.a.leave');
-            add('(a b).next', 'state.a.next state.b.next');
-            add('state.(a b).next', 'state.a.next state.b.next');
-
             addSection('states');
-            add('state', 'state.*.enter');
             add('a', 'state.a.enter');
+            add('(a b)', 'state.a.enter state.b.enter');
+            add('a:leave', 'state.a.leave');
+            add('(a b):leave', 'state.a.leave state.b.leave');
             add(':enter', 'state.*.enter');
             add(':leave', 'state.*.leave');
-            add('a:leave', 'state.a.leave');
-            add('(b c):enter', 'state.b.enter state.c.enter');
+
+            addSection('actions');
+            add('@next', 'action.next.start');
+            add('@(next back)', 'action.next.start action.back.start');
+            add('@next:end', 'action.next.end');
+            add('@(next back):end', 'action.next.end action.back.end');
+            add(':start', 'action.*.start');
+            add(':end', 'action.*.end');
 
             addSection('states + actions');
-            add('@next', 'action.next.start');
             add('a@next', 'state.a.next');
             add('(a b c)@next', 'state.a.next state.b.next state.c.next');
 
+            addSection('mixes');
+            add('(a @next change)', 'state.a.enter action.next.start system.change');
+
+            addSection('adding + removing entities');
+            add('state.add', 'system.state.add');
+            add('action.remove', 'system.action.remove');
+
             addSection('errors');
             add('blah');
+            add('system.blah');
             add('a.leave');
             add('a:hello');
             add('state.action');

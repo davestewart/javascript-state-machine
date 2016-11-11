@@ -74,24 +74,27 @@ action:remove
                     console.log('changed state: ' + event.value);
                 },
 
-                'system.add': function add (event, fsm)
+                'state.add': function add (event, fsm)
                 {
                     // add state
                     var state = event.value;
                     $states.append('<article id="' +state+ '">State ' +state.toUpperCase()+ '</article>');
 
                     // update ui
-                    helper.update();
+                    helper.trigger();
 
                     // debug
                     console.log('added state: ' + state);
                 },
 
-                'system.remove': function remove (event, fsm)
+                'state.remove': function remove (event, fsm)
                 {
                     // remove state
                     var state = event.value;
                     $states.find('#' + state).remove();
+
+                    // debug
+                    console.log('removed state: ' + state);
 
                     // force state update if we've deleted the current state
                     if( ! fsm.has(fsm.state) )
@@ -100,10 +103,8 @@ action:remove
                     }
 
                     // update ui
-                    helper.update();
+                    helper.trigger();
 
-                    // debug
-                    console.log('removed state: ' + state);
                 }
             }
 
