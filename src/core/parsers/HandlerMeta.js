@@ -1,67 +1,25 @@
-import { ParseError } from '../objects/errors';
-
 function HandlerMeta (id)
 {
     this.id = id;
-    this.targets = ['*'];
+    this.type = '';
+    this.paths = [];
+    this.targets = [];
 }
 
 HandlerMeta.prototype =
 {
     id          : '',
-    namespace   : '',
     type        : '',
-    targets     : [],
     paths       : [],
+    targets     : [],
 
-    setNamespace:function(value)
+    setType (value)
     {
-        if(this.namespace && value !== this.namespace)
+        if(!this.type)
         {
-            throw new ParseError('Cannot set namespace "' +value+ '" for existing result ' +this.toString());
+            this.type = value;
         }
-        this.namespace = value;
-        return this;
-    },
-
-    setType:function(value)
-    {
-        if(this.type && value !== this.type)
-        {
-            throw new ParseError('Cannot set type "' +value+ '" for existing result ' +this.toString());
-        }
-        this.type = value;
-        return this;
-    },
-
-    setTarget:function(value)
-    {
-        this.targets = Array.isArray(value) ? value : [value];
-        return this;
-    },
-
-    update:function()
-    {
-        this.paths = this.targets.map( target =>
-        {
-            var segments = this.namespace === 'action' || this.namespace === 'state'
-                ? [this.namespace, target, this.type]
-                : [this.namespace, this.type];
-            return segments.join('.');
-        });
-        return this;
-    },
-
-    toString:function()
-    {
-        var parts = this.namespace && this.type
-            ? [this.namespace, this.type]
-            : this.namespace
-                ? [this.namespace]
-                : [this.type];
-        return '[' + parts.join(':') + ']';
     }
-
 };
 
 export default HandlerMeta;

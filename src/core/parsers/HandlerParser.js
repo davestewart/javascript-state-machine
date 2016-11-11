@@ -1,19 +1,13 @@
 import HandlerMeta from './HandlerMeta';
-import { ParseError } from '../objects/errors';
-import Lexer from '../utils/Lexer'
+import Lexer from '../lexer/Lexer'
 
 
 // ------------------------------------------------------------------------------------------------
 // functions
 
-    function isNamespace(token)
-    {
-        return /^(system|transition|action|state)$/.test(token);
-    }
-
     function isSystem(token)
     {
-        return /^(add|remove|start|change|update|complete|reset)$/.test(token);
+        return /^(start|change|complete|reset)$/.test(token);
     }
 
     function isTransition(token)
@@ -21,32 +15,45 @@ import Lexer from '../utils/Lexer'
         return /^(pause|resume|cancel)$/.test(token);
     }
 
-    function isAction(token, fsm)
+    function isAction(token)
     {
-        return fsm.transitions.hasAction(token);
+        if(fsm.transitions.hasAction(token))
+        {
+            return true;
+        }
+        //throw new ParseError('Unrecognised action "' + token + '"');
     }
 
-    function isState(token, fsm)
+    function isState(token)
     {
-        return fsm.transitions.hasState(token);
+        if(fsm.transitions.hasState(token))
+        {
+            return true;
+        }
+        //throw new ParseError('Unrecognised state "' + token + '"');
     }
 
-    function getNamespace(token)
+    function expandGroups (input)
     {
-        return isSystem(token)
-            ? 'system'
-            : isTransition(token)
-                ? 'transition'
-                : null;
-    }
-
-    function getEventNamespace(token)
-    {
-        return /^(enter|leave)$/.test(token)
-            ? 'state'
-            : /^(start|end)$/.test(token)
-                ? 'action'
-                : null;
+        var rx 		= /\((.+?)\)/;
+        var matches = input.match(rx);
+        if(matches)
+        {
+            var group = matches[0];
+            var items = matches[1].match(/\S+/g);
+            if(items)
+            {
+                items = items.map(item => input.replace(group, item));
+                if(rx.test(items[0]))
+                {
+                    return items.reduce( (output, input) => {
+                        return output.concat(expandGroups(input));
+                    }, []);
+                }
+                return items;
+            }
+        }
+        return [input];
     }
 
 
@@ -54,7 +61,7 @@ import Lexer from '../utils/Lexer'
 // export
 
     /**
-     * Parses event handler id into HandlerMeta instance
+     * Parses event handler id into a HandlerMeta result containing handler paths
      *
      * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
      * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
@@ -69,145 +76,168 @@ import Lexer from '../utils/Lexer'
 // ------------------------------------------------------------------------------------------------
 // objects
 
-    var lexer = new Lexer({
-        targets  : /\.?\((.+?)\)/,
-        property : /\.(\w+)/,
-        action   : /@(\w+)/,
-        event    : /:(\w+)/,
-        word     : /(\w+)/
-    });
+    var patterns  =
+    {
+        // start pause intro
+        alias               : /^(\w+)$/,
+
+        // system.start state.add
+        namespaced          : /^(system|transition|state|action)\.(\w+)$/,
+
+        // @next @quit
+        oneAction           : /^@(\w+)$/,
+
+        // @next:start @next:end
+        oneActionEvent      : /^@(\w+):(start|end)$/,
+
+        // :start :end
+        anyActionEvent      : /^:(start|end)$/,
+
+        // intro form
+        oneState            : /^#(\w+)$/,
+
+        // intro:enter intro:leave
+        oneStateEvent       : /^#?(\w+):(leave|enter)$/,
+
+        // :enter :leave
+        anyStateEvent       : /^:(enter|leave)$/,
+
+        // intro@next
+        oneStateAction      : /^#?(\w+)@(\w+)$/
+    };
+
+    let lexer   = new Lexer(patterns);
+
+    let fsm,
+        defaults,
+        result;
 
     var parser =
     {
-        result  :null,
-
         /**
          * Parses event handler id into HandlerMeta instance
          *
          * Resolving namespace, type and target properties
          *
          * @param   {string}        id
-         * @param   {StateMachine}  fsm
+         * @param   {StateMachine}  _fsm
          * @return  {HandlerMeta}
          */
-        parse:function(id, fsm)
+        parse (id, _fsm)
         {
-            // variables
-            let defaults    = fsm.config.defaults;
-            let tokens      = lexer.process(id);
-            let result      = this.result = new HandlerMeta(id);
+            // objects
+            fsm         = _fsm;
+            defaults    = _fsm.config.defaults;
+            result      = new HandlerMeta(id);
 
-            // process
-            tokens.map( token => {
-                this.parseToken(token.name, token.value, fsm);
-            });
+            // expand groups
+            let paths   = expandGroups(id);
 
-            if(!result.type)
-            {
-                result.setType(defaults[result.namespace]);
-            }
+            // process paths
+            paths.map( id => this.parsePath(id, fsm) );
 
-            // return result
-            return result.update();
+            // return
+            return result;
         },
 
-        /**
-         * Parse token name and value
-         *
-         * @param   {string}        name
-         * @param   {string}        value
-         * @param   {StateMachine}  fsm
-         */
-        parseToken:function(name, value, fsm)
+        parsePath:function(path, fsm)
         {
-            // variables
-            let namespace,
-                values;
-
-            // process
-            switch(name)
+            let tokens;
+            try
             {
-                case 'targets':
+                tokens = lexer.process(path)
+            }
+            catch(error)
+            {
+                result.paths.push('[invalid].' + error.message);
+                return;
+            }
 
-                    values = value.match(/\w+/g);
-                    namespace = isState(values[0], fsm)
-                        ? 'state'
-                        : isAction(values[0], fsm)
-                            ? 'action'
-                            : null;
+            if(tokens && tokens.length)
+            {
+                // variables
+                let token   = tokens.shift();
+                var fn      = this[token.type];
+                result.setType(token.type);
 
-                    if(namespace)
-                    {
-                        return this.result
-                            .setNamespace(namespace)
-                            .setTarget(values);
-                    }
+                // process
+                if(fn)
+                {
+                    let path = fn.apply(this, token.values);
+                    result.paths.push(path || '[invalid].' + token.match);
+                    return path;
+                }
+                throw new Error('Unknown token type "' +token.type+ '"');
+            }
+        },
 
-                    throw new ParseError('Unknown target(s) type "(' +value+ ')"');
+        alias (value)
+        {
+            if (isSystem(value)) return 'system.' + value;
+            if (isTransition(value)) return 'transition.' + value;
+            return this.oneState(value);
+        },
 
-                case 'action':
+        namespaced (namespace, type)
+        {
+            if(namespace === 'system' && isSystem(type) || namespace === 'transition' && isTransition(type)) return namespace + '.' + type;
+            if(/^(state|action)$/.test(namespace) && /^(add|remove)$/.test(type)) return 'system.' + namespace + '.' + type;
+        },
 
-                    if(!isAction(value, fsm))
-                    {
-                        throw new ParseError('Unknown action "' +value+ '"');
-                    }
+        oneState (state)
+        {
+            if (isState(state, fsm))
+            {
+                result.targets.push(state);
+                return 'state.' + state + '.' + defaults.state;
+            }
+        },
 
-                    if(!this.result.namespace)
-                    {
-                        this.result.setNamespace('action')
-                    }
-                    return this.result.namespace === 'state'
-                        ? this.result.setType(value)
-                        : this.result.setTarget(value);
+        oneAction (action)
+        {
+            if(isAction(action))
+            {
+                result.targets.push(action);
+                return 'action.' +action+ '.' +defaults.action;
+            }
+        },
 
-                case 'event':
+        anyActionEvent (event)
+        {
+            result.targets.push('*');
+            return 'action.*.' + event;
+        },
 
-                    if((namespace = getEventNamespace(value)))
-                    {
-                        return this.result
-                            .setNamespace(namespace)
-                            .setType(value);
-                    }
-                    throw new ParseError('Unknown event "' +value+ '"');
+        oneActionEvent (action, event)
+        {
+            if(isAction(action))
+            {
+                result.targets.push(action);
+                return 'action.' +action+ '.' + event;
+            }
+        },
 
-                // any ".property"; could be system.change, intro.next
-                case 'property':
+        anyStateEvent (event)
+        {
+            result.targets.push('*');
+            return 'state.*.' + event;
+        },
 
-                    return this.parseToken('word', value, fsm);
+        oneStateEvent (state, event)
+        {
+            if(isState(state))
+            {
+                result.targets.push(state);
+                return 'state.' +state+ '.' + event;
+            }
+        },
 
-                default:
-
-                    // top-level namespace, like system, transition, state
-                    if(isNamespace(value))
-                    {
-                        return this.result
-                            .setNamespace(value);
-                    }
-
-                    // generic value, like change, add, update
-                    if((namespace = getNamespace(value)))
-                    {
-                        return this.result
-                            .setNamespace(namespace)
-                            .setType(value);
-                    }
-
-                    // existing state, like a, b, c
-                    if (isState(value, fsm))
-                    {
-                        return this.result
-                            .setNamespace('state')
-                            .setTarget(value);
-                    }
-
-                    // existing action, like next, back, quit
-                    if (isAction(value, fsm))
-                    {
-                        return this.parseToken('action', value, fsm);
-                    }
-
-                    // unknown
-                    throw new ParseError('Unknown token "' +value+ '"');
+        oneStateAction (state, action)
+        {
+            if(isState(state) && isAction(action))
+            {
+                result.targets.push(state);
+                return 'state.' +state+ '.' + action;
             }
         }
 

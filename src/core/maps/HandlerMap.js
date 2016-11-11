@@ -21,7 +21,6 @@ HandlerMap.prototype =
      * Parse event handler grammar into a HandlerMeta structure
      *
      * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
-     * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
      * @returns {HandlerMeta}
      */
     parse: function (id)
