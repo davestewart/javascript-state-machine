@@ -1,9 +1,8 @@
+import Config from './core/classes/Config';
 import HandlerMap from './core/maps/HandlerMap';
 import TransitionMap from './core/maps/TransitionMap';
 import Transition from './core/classes/Transition';
-import { trim, diff } from './core/utils/utils';
-
-import Config from './core/classes/Config';
+import { diff } from './core/utils/utils';
 
 
 /**
@@ -136,8 +135,8 @@ StateMachine.prototype =
         start: function ()
         {
             this.state = this.config.initial;
-            this.handlers.update('system.start');
-            this.handlers.update('system.change', this.state);
+            this.handlers.trigger('system.start');
+            this.handlers.trigger('system.change', this.state);
             return this;
         },
     
@@ -159,7 +158,7 @@ StateMachine.prototype =
                 this.transition = Transition.create(this, action, rest);
                 if(action === this.config.defaults.initialize)
                 {
-                    this.handlers.update('system.initialize');
+                    this.handlers.trigger('system.start');
                 }
                 this.transition.exec();
                 return true;
@@ -304,7 +303,7 @@ StateMachine.prototype =
             if(this.transition && !this.isPaused())
             {
                 this.transition.pause();
-                this.handlers.update('transition.pause');
+                this.handlers.trigger('transition.pause');
             }
             return this;
         },
@@ -337,7 +336,7 @@ StateMachine.prototype =
                 this.state = this.transition.from;
                 this.transition.clear();
                 delete this.transition;
-                this.handlers.update('transition.cancel');
+                this.handlers.trigger('transition.cancel');
             }
             return this;
         },
@@ -355,10 +354,10 @@ StateMachine.prototype =
                 this.state = this.transition.to;
                 this.transition.clear();
                 delete this.transition;
-                this.handlers.update('system.change', this.state);
+                this.handlers.trigger('system.change', this.state);
                 if(this.isComplete())
                 {
-                    this.handlers.update('system.complete');
+                    this.handlers.trigger('system.complete');
                 }
             }
             return this;
@@ -372,18 +371,18 @@ StateMachine.prototype =
         reset:function(initial = '')
         {
             let state = initial || this.config.initial;
-            this.handlers.update('system.reset');
+            this.handlers.trigger('system.reset');
             if(this.transition)
             {
                 unpause(this);
                 this.transition.clear();
                 delete this.transition;
-                this.handlers.update('transition.cancel');
+                this.handlers.trigger('transition.cancel');
             }
             if(this.state !== state)
             {
                 this.state = state;
-                this.handlers.update('system.change', this.state);
+                this.handlers.trigger('system.change', this.state);
             }
             return this;
         },
@@ -468,124 +467,142 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
-            // pre-parse handler
-            id = trim(id);
-
-            // pre-process multiple event handlers
-            if(id.indexOf('|') > -1)
-            {
-                let ids = id
-                    .split('|')
-                    .map( id => trim(id))
-                    .filter( id => id !== '');
-                if(ids.length)
-                {
-                    ids.map( id => this.on(id, fn))
-                }
-                return this;
-            }
-
-            /** @var {HandlerMeta} */
-            let result = this.handlers.parse(id);
-
-            if(this.config.debug)
-            {
-                console.log('StateMachine on: ' + id, [result.namespace, result.type], result.paths)
-            }
-
-            // process handlers
-            result.paths.map( (path, index) =>
-            {
-                let target = result.targets[index];
-
-                // warn for invalid actions / states
-                if(target !== '*')
-                {
-                    if(result.namespace === 'state')
-                    {
-                        if(!this.transitions.hasState(target))
-                        {
-                            this.config.debug && console.warn('StateMachine: Warning assigning state.%s handler; no such state "%s"', result.type, target);
-                        }
-                    }
-                    else if(result.namespace === 'action')
-                    {
-                        if(!this.transitions.hasAction(target))
-                        {
-                            this.config.debug && console.warn('StateMachine: Warning assigning action.%s handler; no such action "%s"', result.type, target);
-                        }
-                    }
-                }
-
-                // assign
-                this.handlers.add(path, fn);
-            });
-
+            this.parse(id, this.config.errors).forEach( meta => this.handlers.add(meta.path, fn) );
             return this;
         },
 
         off: function (id, fn)
         {
-            let result = this.handlers.parse(id);
-            result.paths.map( path =>
-            {
-                this.handlers.remove(path, fn)
-            });
+            this.handlers.parse(id).map( meta => this.handlers.remove(meta.path, fn) );
+            return this;
         },
 
-        parse: function (id)
+        /**
+         *
+         * @param id
+         * @param errors
+         * @returns {HandlerMeta[]}
+         */
+        parse: function (id, errors = 0)
         {
-            return this.handlers.parse(id, this);
+            // get results
+            let results = this.handlers.parse(id);
+
+            // warn for invalid actions / states
+            if(errors > 0)
+            {
+                results.forEach( (meta) =>
+                {
+                    let error = '';
+                    if(meta.target !== '*')
+                    {
+                        if(meta.namespace === 'state')
+                        {
+                            if(!this.transitions.hasState(meta.target))
+                            {
+                                error = 'StateMachine: no such state "' +meta.target+ '" parsing handler "' +meta.id+ '"';
+                            }
+                        }
+                        else if(meta.namespace === 'action')
+                        {
+                            if(!this.transitions.hasAction(meta.target))
+                            {
+                                error = 'StateMachine: no such action "' +meta.target+ '" parsing handler "' +meta.id+ '"';
+                            }
+                        }
+
+                        if(error)
+                        {
+                            if(errors === 2)
+                            {
+                                throw new Error(error);
+                            }
+                            console.warn(error);
+                        }
+                    }
+                });
+            }
+
+            // return
+            return results;
         }
 
 };
 
 StateMachine.prototype.constructor = StateMachine;
 
-/**
- * Factory method
- *
- * @param   options
- * @returns {StateMachine}
- */
-StateMachine.create = function(options)
-{
-    return new StateMachine(options);
-};
-
 export default StateMachine;
 
-function unpause(fsm)
-{
-    if(fsm.isPaused())
+
+// ------------------------------------------------------------------------------------------------
+// static methods
+
+    /**
+     * Factory method
+     *
+     * @param   options
+     * @returns {StateMachine}
+     */
+    StateMachine.create = function(options)
     {
-        fsm.transition.paused = false;
-        fsm.handlers.update('transition.resume');
+        return new StateMachine(options);
+    };
+
+    /**
+     * Gets the default order events should be called in
+     * @returns {string[]}
+     */
+    StateMachine.getDefaultOrder = function ()
+    {
+        return [
+            'action.*.start',
+            'action.{action}.start',
+            'state.*.{action}',
+            'state.{from}.{action}',
+            'state.{from}.leave',
+            'state.*.leave',
+            'state.*.enter',
+            'state.{to}.enter',
+            'action.{action}.end',
+            'action.*.end'
+        ];
+    };
+
+
+// ------------------------------------------------------------------------------------------------
+// helper functions
+
+    function unpause(fsm)
+    {
+        if(fsm.isPaused())
+        {
+            fsm.transition.paused = false;
+            fsm.handlers.trigger('transition.resume');
+        }
     }
-}
 
-/**
- * Utility method to update transitions and dispatch events
- *
- * Saves duplicating the following code in both add() and remove() methods
- *
- * @param   {StateMachine}  fsm
- * @param   {string}        method
- * @param   {Function}      callback
- */
-function updateTransitions(fsm, method, callback)
-{
-    var statesBefore    = fsm.transitions.getStates();
-    var actionsBefore   = fsm.transitions.getActions();
-    callback();
-    var statesAfter     = fsm.transitions.getStates();
-    var actionsAfter    = fsm.transitions.getActions();
+    /**
+     * Utility method to update transitions and dispatch events
+     *
+     * Saves duplicating the following code in both add() and remove() methods
+     *
+     * @param   {StateMachine}  fsm
+     * @param   {string}        method
+     * @param   {Function}      callback
+     */
+    function updateTransitions(fsm, method, callback)
+    {
+        var statesBefore    = fsm.transitions.getStates();
+        var actionsBefore   = fsm.transitions.getActions();
+        callback();
+        var statesAfter     = fsm.transitions.getStates();
+        var actionsAfter    = fsm.transitions.getActions();
 
-    // calculate differences
-    var states          = diff(statesBefore, statesAfter);
-    var actions         = diff(actionsBefore, actionsAfter);
+        // calculate differences
+        var states          = diff(statesBefore, statesAfter);
+        var actions         = diff(actionsBefore, actionsAfter);
 
-    // dispatch events
-    states.map ( state  => fsm.handlers.update('system.'  + method, state) );
-    //actions.map( action => fsm.handlers.update('action.' + method, action) );
-}
+        // dispatch events
+        states.map ( state  => fsm.handlers.trigger('system.state.'  + method, state) );
+        //actions.map( action => fsm.handlers.update('system.action.' + method, action) );
+    }

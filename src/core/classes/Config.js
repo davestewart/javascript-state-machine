@@ -1,6 +1,6 @@
 export default function Config (options)
 {
-    'initial final start debug scope transitions'
+    'initial final start debug errors scope transitions'
         .match(/\w+/g)
         .map( name =>
         {
@@ -11,7 +11,7 @@ export default function Config (options)
         });
 
     // order
-    this.order      = options.order || this.getDefaultOrder();
+    this.order      = options.order || StateMachine.getDefaultOrder();
 
     // defaults
     this.defaults   = Object.assign({
@@ -40,6 +40,17 @@ Config.prototype =
     /** @var boolean */
     debug       : false,
 
+    /**
+     * A number indicating how to handle errors
+     *
+     *  - 0 : ignore
+     *  - 1 : console.warn()
+     *  - 2 : throw an error
+     *
+     * @var number
+     */
+    errors      : 0,
+
     /** @var object */
     scope       : null,
 
@@ -59,21 +70,5 @@ Config.prototype =
      * @type {Object}
      */
     defaults    : null,
-
-    getDefaultOrder: function ()
-    {
-        return [
-            'action.*.start',
-            'action.{action}.start',
-            'state.*.{action}',
-            'state.{from}.{action}',
-            'state.{from}.leave',
-            'state.*.leave',
-            'state.*.enter',
-            'state.{to}.enter',
-            'action.{action}.end',
-            'action.*.end'
-        ];
-    }
 
 };
