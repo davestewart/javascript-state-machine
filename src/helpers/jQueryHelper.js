@@ -25,8 +25,7 @@ function jQueryHelper (fsm, states, controls, state, control)
     // bind event handlers
     this.fsm
         .on('change', this.onChange.bind(this))
-        .on('pause',  this.onPause.bind(this))
-        .on('resume', this.onPause.bind(this));
+        .on('(pause resume cancel)',  this.onPause.bind(this));
 
     // update
     this.update();

@@ -2,16 +2,12 @@ import { toHash } from '../core/utils/utils';
 
 function ObjectHelper (fsm)
 {
-    var onPause = this.onPause.bind(this);
-    var onModify = this.onModify.bind(this);
     this.data = {};
     this.fsm = fsm;
     this.fsm
         .on('change', this.onChange.bind(this))
-        .on('pause', onPause)
-        .on('resume', onPause)
-        .on('add', onModify)
-        .on('remove', onModify);
+        .on('(pause resume cancel)', this.onPause.bind(this))
+        .on('(state.add state.remove action.add action.remove)', this.onModify.bind(this));
     this.reset();
     this.update();
 }
