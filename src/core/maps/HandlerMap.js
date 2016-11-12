@@ -50,12 +50,13 @@ HandlerMap.prototype =
     /**
      * Directly remove a handler target
      *
-     * @param   {string}    path    A 'namespace.target.type' target to be removed
+     * @param   {string}    path    A 'namespace.target.type' parent to a handler removed from
+     * @param   {Function}  fn      The instance of the callback function
      * @returns {HandlerMap}
      */
-    remove: function (path)
+    remove: function (path, fn)
     {
-        this.map.remove(path);
+        this.map.remove(path, fn);
         return this;
     },
 
