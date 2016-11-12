@@ -620,5 +620,5 @@ export default StateMachine;
 
         // dispatch events
         states.map ( state  => fsm.handlers.trigger('system.state.'  + method, state) );
-        //actions.map( action => fsm.handlers.update('system.action.' + method, action) );
+        actions.map( action => fsm.handlers.trigger('system.action.' + method, action) );
     }

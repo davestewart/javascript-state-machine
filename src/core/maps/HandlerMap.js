@@ -1,5 +1,5 @@
 import ValueMap from './ValueMap';
-import { SystemEvent, TransitionEvent } from '../objects/events';
+import { SystemEvent, TransitionEvent, StateEvent, ActionEvent } from '../objects/events';
 import { isFunction } from '../utils/utils';
 
 import parseHandler from '../parsers/HandlerParser';
@@ -80,12 +80,22 @@ HandlerMap.prototype =
     trigger: function (path, value = null)
     {
         // create lookup path
-        let [namespace, type] = path.match(/\w+/g);
+        let [namespace, type, method] = path.match(/\w+/g);
 
         // build event
-        let event = namespace === 'system'
-            ? new SystemEvent(type, value)
-            : new TransitionEvent(type);
+        let event;
+        if(/^system\.(state|action)\./.test(path))
+        {
+            event = type === 'state'
+                ? new StateEvent(method, value)
+                : new ActionEvent(method, value);
+        }
+        else
+        {
+            event = namespace === 'system'
+                ? new SystemEvent(type, value)
+                : new TransitionEvent(type);
+        }
 
         // dispatch
         let handlers = this.map.get(path);
