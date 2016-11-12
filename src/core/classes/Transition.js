@@ -74,7 +74,7 @@ Transition.prototype =
 
     clear: function ()
     {
-        this.paused = false;
+        unpause(this);
         this.handlers = [];
     },
 
@@ -110,16 +110,41 @@ Transition.prototype =
 
     pause: function ()
     {
-        this.paused = true;
+        pause(this);
         return this;
     },
 
     resume: function ()
     {
-        this.paused = false;
+        unpause(this);
         return this.exec();
+    },
+
+    cancel: function()
+    {
+        this.paused = false;;
+        this.fsm.handlers.trigger('transition.cancel', false);
     }
+
 };
+
+function pause(transition)
+{
+    if(!transition.paused)
+    {
+        transition.paused = true;
+        transition.fsm.handlers.trigger('transition.pause', true);
+    }
+}
+
+function unpause(transition)
+{
+    if(transition.paused)
+    {
+        transition.paused = false;
+        transition.fsm.handlers.trigger('transition.resume', false);
+    }
+}
 
 export default
 {

@@ -122,7 +122,7 @@ StateMachine.prototype =
                 }
             }
 
-            // methods
+            // add methods
             if(options.methods)
             {
                 if(!this.config.scope)
@@ -197,7 +197,10 @@ StateMachine.prototype =
             {
                 if(force)
                 {
-                    unpause(this);
+                    if(this.transition)
+                    {
+                        this.transition.clear();
+                    }
                     this.transition = Transition.force(this, state);
                     return this.end();
                 }
@@ -319,7 +322,6 @@ StateMachine.prototype =
             if(this.transition && !this.isPaused())
             {
                 this.transition.pause();
-                this.handlers.trigger('transition.pause');
             }
             return this;
         },
@@ -333,7 +335,6 @@ StateMachine.prototype =
         {
             if(this.transition && this.isPaused())
             {
-                unpause(this);
                 this.transition.resume();
             }
             return this;
@@ -348,11 +349,9 @@ StateMachine.prototype =
         {
             if(this.transition)
             {
-                unpause(this);
                 this.state = this.transition.from;
-                this.transition.clear();
+                this.transition.cancel();
                 delete this.transition;
-                this.handlers.trigger('transition.cancel');
             }
             return this;
         },
@@ -366,7 +365,6 @@ StateMachine.prototype =
         {
             if(this.transition)
             {
-                unpause(this);
                 this.state = this.transition.to;
                 this.transition.clear();
                 delete this.transition;
@@ -390,10 +388,8 @@ StateMachine.prototype =
             this.handlers.trigger('system.reset');
             if(this.transition)
             {
-                unpause(this);
-                this.transition.clear();
+                this.transition.cancel();
                 delete this.transition;
-                this.handlers.trigger('transition.cancel');
             }
             if(this.state !== state)
             {
@@ -450,20 +446,20 @@ StateMachine.prototype =
         /**
          * Add an event handler
          *
-         * Event handler signatures are build from the following grammar:
+         * Event handler signatures are built from the following grammar:
          *
          * - token      foo
          * - property   .foo
          * - event      :foo
          * - action     @foo
-         * - targets    (foo|bar|baz)
+         * - targets    (foo bar baz)
          *
          * For example:
          *
          * - change
          * - transition.pause
          * - next:end
-         * - (a|b)@next
+         * - (a b)@next
          * - a@next
          *
          * The main event types are unique, so can be used without the namespace:
@@ -529,7 +525,7 @@ StateMachine.prototype =
 
                         if(error)
                         {
-                            if(errors === 2)
+                            if(errors == 2)
                             {
                                 throw new Error(error);
                             }
@@ -587,15 +583,6 @@ export default StateMachine;
 
 // ------------------------------------------------------------------------------------------------
 // helper functions
-
-    function unpause(fsm)
-    {
-        if(fsm.isPaused())
-        {
-            fsm.transition.paused = false;
-            fsm.handlers.trigger('transition.resume');
-        }
-    }
 
     /**
      * Utility method to update transitions and dispatch events
