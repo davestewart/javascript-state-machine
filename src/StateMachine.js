@@ -537,6 +537,12 @@ StateMachine.prototype =
 
             // return
             return results;
+        },
+
+        trigger: function (id, ...rest)
+        {
+            this.handlers.parse(id).map( meta => this.handlers.trigger.apply(this.handlers, [meta.path, ...rest]) );
+            return this;
         }
 
 };
