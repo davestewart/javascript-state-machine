@@ -55,8 +55,13 @@
             margin-left:10px;
         }
 
-        #control-set > section {
+        #control-set * {
             display: inline-block;
+        }
+
+        span.divider{
+            display: inline-block;
+            width:15px;
         }
 
         #handlers {
@@ -109,167 +114,37 @@
                 <article id="a">State A</article>
                 <article id="b">State B</article>
                 <article id="c">State C</article>
+                <article id="d" style="display:none">State D<br>(async)</article>
+            </section>
+
+            <section id="control-set">
+                <button class="btn btn-sm extra" name="start">Start</button>
+                <button class="btn btn-sm extra" name="reset">Reset</button>
+                <span class="divider"></span>
+                <div id="controls">
+                    <button class="btn btn-sm" name="back">Back</button>
+                    <button class="btn btn-sm" name="next">Next</button>
+                </div>
+                <button class="btn btn-sm extra" name="cancel">Cancel</button>
+                <span class="divider"></span>
+                <button class="btn btn-sm extra" name="add">Add</button>
+                <button class="btn btn-sm extra" name="remove">Remove</button>
             </section>
 
             <section id="handlers">
-
-                <div>
-
-                    <fieldset>
-                        <legend class="system">System</legend>
-
-                        <p>Types</p>
-
-                        <label data-path="system.start" data-desc="The FSM has been started and the system has entered the initial state">
-                            <input type="checkbox" name="system" value="start" checked> start</label>
-
-                        <label data-path="system.change" data-desc="The state of the system has changed">
-                            <input type="checkbox" name="system" value="change" checked> change</label>
-
-                        <label data-path="system.complete" data-desc="The system has entered the final state">
-                            <input type="checkbox" name="system" value="complete"> complete</label>
-
-                        <label data-path="system.reset" data-desc="The system was reset to its default state">
-                            <input type="checkbox" name="system" value="reset"> reset</label>
-
-                        <label data-path="system.add" data-desc="A new event is added to the system">
-                            <input type="checkbox" name="system" value="add"> add</label>
-
-                        <label data-path="system.remove" data-desc="An event is removed from the system">
-                            <input type="checkbox" name="system" value="remove"> remove</label>
-
-                    </fieldset>
-
-                </div>
-
+                <fieldset>
+                    <legend class="system">System</legend>
+                </fieldset>
                 <fieldset>
                     <legend class="transition">Transition</legend>
-
-                    <p>Types</p>
-
-                    <label data-path="transition.pause" data-desc="The current transition was paused">
-                        <input type="checkbox" name="transition" value="pause" checked> pause</label>
-
-                    <label data-path="transition.resume" data-desc="The current transition was resumed">
-                        <input type="checkbox" name="transition" value="resume"> resume</label>
-
-                    <label data-path="transition.cancel" data-desc="The current transition was cancelled">
-                        <input type="checkbox" name="transition" value="cancel"> cancel</label>
-
                 </fieldset>
-
                 <fieldset>
                     <legend class="action">Action</legend>
-
-                    <p>Targets</p>
-
-                    <label data-path="action.*.start" data-desc="Any action started (defaulting to the configured event type)">
-                        <input type="checkbox" name="action" value="action" checked> action</label>
-
-                    <label data-path="action.next.start" data-desc="Action 'next' started (defaulting to the configured event type)">
-                        <input type="checkbox" name="action" value="next"> next</label>
-
-                    <label data-path="action.next.start action.back.start" data-desc="Actions 'next' and 'back' started (defaulting to the configured event type)">
-                        <input type="checkbox" name="action" value="(next back)"> (next back)</label>
-
-                    <p>Events</p>
-
-                    <label data-path="action.*.start" data-desc="Any action started">
-                        <input type="checkbox" name="action" value=":start"> :start</label>
-
-                    <label data-path="action.*.end" data-desc="Any action ended">
-                        <input type="checkbox" name="action" value=":end"> :end</label>
-
-                    <p>Combinations</p>
-
-                    <label data-path="action.next.start" data-desc="Action 'next' started">
-                        <input type="checkbox" name="action" value="next:start"> next:start</label>
-
-                    <label data-path="action.next.end" data-desc="Action 'next' ended">
-                        <input type="checkbox" name="action" value="next:end"> next:end</label>
-
-                    <label data-path="action.next.end" data-desc="Action 'back' ended">
-                        <input type="checkbox" name="action" value="action.next:end"> action.next:end</label>
-
-                    <label data-path="action.next.end action.back.end" data-desc="Actions 'next' and 'back' ended">
-                        <input type="checkbox" name="action" value="(next back):end"> (next back):end</label>
-
                 </fieldset>
-
                 <fieldset>
                     <legend class="state">State</legend>
-
-                    <p>Targets</p>
-
-                    <label data-path="state.*.enter" data-desc="Any state entered (defaulting to the configured event type)">
-                        <input type="checkbox" name="state" value="state" checked> state</label>
-
-                    <label data-path="state.a.enter" data-desc="State 'a' entered (defaulting to the configured event type)">
-                        <input type="checkbox" name="state" value="a"> a</label>
-
-                    <label data-path="state.b.enter state.c.enter" data-desc="States 'b' and 'c' entered (defaulting to the configured event type)">
-                        <input type="checkbox" name="state" value="(b c):enter"> (b c)</label>
-
-                    <p>Events</p>
-
-                    <label data-path="state.*.leave" data-desc="Any state left">
-                        <input type="checkbox" name="state" value=":leave"> :leave</label>
-
-                    <label data-path="state.*.enter" data-desc="Any state entered">
-                        <input type="checkbox" name="state" value=":enter"> :enter</label>
-
-                    <p>Combinations</p>
-
-                    <label data-path="state.*.leave" data-desc="State 'a' left ">
-                        <input type="checkbox" name="state" value="a:leave"> a:leave</label>
-
-                    <label data-path="state.b.enter state.c.enter" data-desc="States 'b' and 'c' entered">
-                        <input type="checkbox" name="state" value="(b c):enter"> (b c):enter</label>
-
                 </fieldset>
-
-                <fieldset>
-                    <legend><span class="state">State</span> + <span class="action">Action</span></legend>
-
-                    <p>Targeted</p>
-
-                    <label data-path="state.a.next" data-desc="Action 'next' called on state 'a'">
-                        <input type="checkbox" name="state" value="a.next" checked> a.next</label>
-
-                    <label data-path="state.a.next state.b.next" data-desc="Action 'next' called on states 'a' and 'b'">
-                        <input type="checkbox" name="state" value="state.(a b).next"> state.(a b).next</label>
-
-                    <p>Shorthand</p>
-
-                    <label data-path="action.*.next.start" data-desc="Any action started">
-                        <input type="checkbox" name="shorthand" value="@next"> @next</label>
-
-                    <label data-path="state.a.next" data-desc="Action 'next' called on state 'a'">
-                        <input type="checkbox" name="shorthand" value="a@next"> a@next</label>
-
-                    <p>Special</p>
-
-                    <label data-path="state.c.next" data-desc="Action 'next' called on state 'c'">
-                        <input type="checkbox" name="shorthand" value="c@next" data-method="async"> c@next (async)</label>
-
-                </fieldset>
-
             </section>
-
-            <div id="control-set">
-                <section id="controls">
-                    <button class="btn btn-sm" name="start">Start</button>
-                    <button class="btn btn-sm" name="back">Back</button>
-                    <button class="btn btn-sm" name="next">Next</button>
-                </section>
-
-                <section id="more-controls">
-                    <button class="btn btn-sm" name="cancel">Cancel</button>
-                    <button class="btn btn-sm" name="reset">Reset</button>
-                    <button class="btn btn-sm" name="add">Add</button>
-                    <button class="btn btn-sm" name="remove">Remove</button>
-                </section>
-            </div>
 
         </div>
 
@@ -308,19 +183,163 @@
 
             debug: true,
 
-            start: 'a',
+            start: false,
+
+            initial: 'a',
 
             final: 'c',
 
             transitions: [
-                'start : none > a',
                 'next : a > b > c > a',
                 'back : a < b < c < a'
-            ]
+            ],
+
+            handlers: {
+                d: function (event, fsm) {
+                    fsm.pause();
+                    setTimeout(fsm.resume.bind(fsm), 2000);
+                },
+
+                '(start reset)': function (event, fsm) {
+                    $('button[name="start"]').attr('disabled', fsm.isStarted());
+                    $('button[name="reset"]').attr('disabled', ! fsm.isStarted());
+                },
+
+                '(:start :end)': function (event, fsm) {
+                    $('button[name="cancel"]').attr('disabled', event.type === 'end');
+                },
+
+                '(state.add state.remove)': function (event, fsm) {
+                    $('button[name="add"]').attr('disabled', event.type === 'add');
+                    $('button[name="remove"]').attr('disabled', event.type === 'remove');
+                }
+            }
 
         };
 
-        var fsm = setup(new StateMachine(config)).fsm;
+        var fsm = setup(new StateMachine(config)).fsm
+                    .trigger('start')
+                    .trigger('state.remove')
+                    .trigger(':end');
+
+    </script>
+
+        <script title="setup">
+
+        (function(){
+
+            function add(namespace, id, desc)
+            {
+                var paths = fsm.parse(id).map(function(meta){ return meta.path; });
+                var title = desc.replace(/"/g, "'") + '\n\nPaths:\n- ' + paths.join('\n- ');
+                var html = '<label title="' +title+ '"><input type="checkbox" name="state" value="' +id+ '"> ' +id+ '</label>';
+                $('legend.' + namespace)
+                    .parent()
+                    .append(html);
+            }
+
+            function label(namespace, text)
+            {
+                var html = '<p>' +text+ '</p>';
+                $('legend.' + namespace)
+                        .parent()
+                        .append(html);
+            }
+
+            var handlers =
+            {
+                system:
+                {
+                    aliases:
+                    {
+                        'start'		        :'The FSM has been started and the system has entered the initial state',
+                        'change'		    :'The state of the system has changed',
+                        'complete'		    :'The system has entered the final state',
+                        'reset'		        :'The system was reset to its default state',
+                    },
+                    namespaced:
+                    {
+                        'system.change'	    :'The FSM has been started and the system has entered the initial state',
+                    }
+                },
+                transition:
+                {
+                    aliases:
+                    {
+                        'pause'             :'The current transition was paused',
+                        'resume'            :'The current transition was resumed',
+                        'cancel'            :'The current transition was cancelled',
+                    },
+                    namespaced:
+                    {
+                        'transition.pause'  :'The current transition was paused',
+                    }
+                },
+                action:
+                {
+                    targets:
+                    {
+                        '@next'		        :'Action "next" started (defaulting to the configured event type)',
+                        '@back'		        :'Action "back" started (defaulting to the configured event type)',
+                        '@(next back)'		:'Actions "next" and "back" started (defaulting to the configured event type)',
+                    },
+                    types:
+                    {
+                        ':start'		    :'Any action started',
+                        ':end'		        :'Any action ended',
+                    },
+                    namespaced:
+                    {
+                        'action.add'		:'An action was added',
+                        'action.remove'		:'An action was removed',
+                    },
+                    combinations:
+                    {
+                        '@next:start'		:'Action "next" started',
+                        '@next:end'         :'Action "next" ended',
+                        '@(next back):end'	:'Actions "next" and "back" ended',
+                    }
+                },
+                state:
+                {
+                    targets:
+                    {
+                        'a'		            :'State "a" entered (defaulting to the configured event type)',
+                        '(b c)'		        :'States "b" and "c" entered (defaulting to the configured event type)',
+                    },
+                    types:
+                    {
+                        ':leave'		    :'Any state left',
+                        ':enter'		    :'Any state entered',
+                    },
+                    namespaced:
+                    {
+                        'state.add'		    :'A state was added',
+                        'state.remove'		:'A state was removed',
+                    },
+                    combinations:
+                    {
+                        'a:leave'		    :'State "a" left ',
+                        '(b c):leave'		:'States "b" and "c" left',
+                        'a@next'	    	:'Action "next" called on state "a"',
+                        '(a b)@next'		:'Action "next" called on states "a" and "b"',
+                    }
+                }
+            };
+
+            for(var namespace in handlers)
+            {
+                for(var group in handlers[namespace])
+                {
+                    label(namespace, group);
+                    for(var id in handlers[namespace][group])
+                    {
+                        add(namespace, id, handlers[namespace][group][id]);
+                    }
+                }
+            }
+
+        }());
 
     </script>
 
@@ -350,10 +369,6 @@
                     log(event.namespace, event.type, event.target);
                 },
 
-                shorthand: function onShorthandState (event) {
-                    log(event.namespace, event.type, event.target, 'orange');
-                },
-
                 async: function async (event, fsm) {
                     log(event.namespace, event.type, event.target);
                     fsm.pause();
@@ -364,20 +379,45 @@
 
             buttons: {
 
-                cancel: function onCancel () {
-                    window.fsm.cancel();
+                start: function onReset () {
+                    fsm.start();
                 },
 
                 reset: function onReset () {
-                    window.fsm.reset();
+                    fsm.reset();
+                },
+
+                cancel: function onCancel () {
+                    fsm.cancel();
                 },
 
                 add: function onAdd () {
-
+                    if(!fsm.has('d'))
+                    {
+                        $('#d').show();
+                        fsm.add('next : c > d > a');
+                        fsm.add('back : c < d < a');
+                    }
                 },
 
                 remove: function onRemove () {
+                    if(fsm.has('d'))
+                    {
+                        $('#d').hide();
+                        fsm.remove('d');
+                        fsm.add('next : c > a');
+                        fsm.add('back : c < a');
+                        if(fsm.state === 'd')
+                        {
+                            fsm.go('c', true);
+                            helper.update();
+                        }
+                    }
+                },
 
+                async: function onRemove () {
+                    fsm.on('d');
+                    fsm.add('next : c > a');
                 }
 
             }
@@ -404,27 +444,14 @@
             fsm[type](signature, handler);
         }
 
-        // Update titles
-        $('[data-desc]').each(function (i, e) {
-            var $e = $(e);
-            e.title = $e.data('desc') + '\n\n' + $e.data('path').replace(/\s+/, '\n');
-        });
-
         // Add or remove handler on checkbox toggle
         $('input[type="checkbox"]')
             .on('change', onHandlerClick)
             .filter(':checked')
             .trigger('change');
 
-        // Append a divider to the log on control click
-        $('#control-set button').on('mouseup', function () {
-            if($log[0].firstChild.tagName === 'P'){
-                $log.prepend('<hr>');
-            }
-        });
-
         // Execute additional commands
-        $('#more-controls button').on('click', function (event) {
+        $('button.extra').on('click', function (event) {
             handlers.buttons[event.target.name]();
         });
 
@@ -432,22 +459,43 @@
 
     <script title="logging">
 
-        /**
-         * Logging functionality
-         */
-        var index = 1;
-        var $log = $('#log');
-        function log(namespace, type, message) {
-            message = message || '';
-            var className = namespace+ ' ' +namespace+ '-' +type;
-            var html =
-            [
-                '<span class="index">' +(index++)+ '</span>',
-                '<span class="event">' +namespace+ '.' +type+ '</span>',
-                '<span class="message"> ' +message+ '</span>'
-            ];
-            $log.prepend('<p class="' +className+ '">' +html.join('')+'</p>');
-        }
+        (function(window){
+
+            // variables
+            var index = 1;
+            var group = false;
+            var $log = $('#log');
+
+            // log function
+            window.log = function (namespace, type, message) {
+
+                // divider
+                if(group)
+                {
+                    $log.prepend('<hr>');
+                }
+
+                // log entry
+                message = message || '';
+                var className = namespace+ ' ' +namespace+ '-' +type;
+                var html =
+                [
+                    '<span class="index">' +(index++)+ '</span>',
+                    '<span class="event">' +namespace+ '.' +type+ '</span>',
+                    '<span class="message"> ' +message+ '</span>'
+                ];
+                $log.prepend('<p class="' +className+ '">' +html.join('')+'</p>');
+                group = false;
+            }
+
+            // Append a divider to the log on control click
+            $('#control-set button').on('mouseup', function () {
+                if($log[0].firstChild.tagName === 'P'){
+                    group = true;
+                }
+            });
+
+        }(window));
 
     </script>
 </body>
