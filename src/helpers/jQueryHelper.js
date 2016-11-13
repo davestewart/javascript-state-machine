@@ -47,16 +47,20 @@ jQueryHelper.prototype =
 
     updateStates ()
     {
-        // assign state
-        this.elements.states
-            .attr('data-state', this.fsm.state);
+        var state = this.fsm.state;
+        if(state)
+        {
+            // assign state
+            this.elements.states
+                .attr('data-state', state);
 
-        // assign active class to the current state
-        this.elements.states
-            .find(this.selectors.state)
-            .removeClass('active')
-            .filter('#'  + this.fsm.state)
-            .addClass('active');
+            // assign active class to the current state
+            this.elements.states
+                .find(this.selectors.state)
+                .removeClass('active')
+                .filter('#'  + state)
+                .addClass('active');
+        }
     },
 
     updateButtons ()
