@@ -31,7 +31,7 @@ function StateMachine (options)
  */
 StateMachine.prototype =
 {
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // properties
 
         /**
@@ -70,7 +70,7 @@ StateMachine.prototype =
         state       : '',
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // private methods
 
         /**
@@ -155,9 +155,31 @@ StateMachine.prototype =
             this.handlers.trigger('system.change', this.state);
             return this;
         },
-    
 
-    // ------------------------------------------------------------------------------------------------
+        /**
+         * Reset the FSM to the initial, or supplied, state
+         *
+         * @returns {StateMachine}
+         */
+        reset:function(initial = '')
+        {
+            let state = initial || this.config.initial;
+            this.handlers.trigger('system.reset');
+            if(this.transition)
+            {
+                this.transition.cancel();
+                delete this.transition;
+            }
+            if(this.state !== state)
+            {
+                this.state = state;
+                this.handlers.trigger('system.change', this.state);
+            }
+            return this;
+        },
+
+
+    // -----------------------------------------------------------------------------------------------------------------
     // api
 
         /**
@@ -211,6 +233,7 @@ StateMachine.prototype =
                 }
                 this.config.debug && console.warn('No transition exists from "%s" to "%s"', this.state, state);
             }
+            this.config.debug && console.warn('No such state "%s"', state);
             return false;
         },
 
@@ -243,12 +266,7 @@ StateMachine.prototype =
          */
         has: function(state)
         {
-            if( ! this.transitions.hasState(state) )
-            {
-                this.config.debug && console.warn('No such state "%s"', state);
-                return false;
-            }
-            return true;
+            return this.transitions.hasState(state);
         },
 
         /**
@@ -263,7 +281,7 @@ StateMachine.prototype =
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // flags
 
         /**
@@ -309,7 +327,7 @@ StateMachine.prototype =
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // transitions
 
         /**
@@ -377,30 +395,8 @@ StateMachine.prototype =
             return this;
         },
 
-        /**
-         * Reset the FSM to the initial, or supplied, state
-         *
-         * @returns {StateMachine}
-         */
-        reset:function(initial = '')
-        {
-            let state = initial || this.config.initial;
-            this.handlers.trigger('system.reset');
-            if(this.transition)
-            {
-                this.transition.cancel();
-                delete this.transition;
-            }
-            if(this.state !== state)
-            {
-                this.state = state;
-                this.handlers.trigger('system.change', this.state);
-            }
-            return this;
-        },
 
-
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // actions
 
         /**
@@ -440,7 +436,7 @@ StateMachine.prototype =
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // handlers
 
         /**
@@ -488,6 +484,10 @@ StateMachine.prototype =
             this.handlers.parse(id).map( meta => this.handlers.remove(meta.path, fn) );
             return this;
         },
+
+    
+    // -----------------------------------------------------------------------------------------------------------------
+    // utilities
 
         /**
          *
@@ -546,7 +546,7 @@ StateMachine.prototype.constructor = StateMachine;
 export default StateMachine;
 
 
-// ------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 // static methods
 
     /**
@@ -581,7 +581,7 @@ export default StateMachine;
     };
 
 
-// ------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 // helper functions
 
     /**
