@@ -74,7 +74,7 @@ action:remove
                     console.log('changed state: ' + event.value);
                 },
 
-                'state.add': function add (event, fsm)
+                'state:add': function add (event, fsm)
                 {
                     // add state
                     var state = event.target;
@@ -87,7 +87,7 @@ action:remove
                     console.log('added state: ' + state);
                 },
 
-                'state.remove': function remove (event, fsm)
+                'state:remove': function remove (event, fsm)
                 {
                     // remove state
                     var state = event.target;

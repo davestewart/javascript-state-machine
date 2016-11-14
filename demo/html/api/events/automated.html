@@ -59,10 +59,12 @@
         // ------------------------------------------------------------------------------------------------
         // variables
 
-            var fsm = new StateMachine({ transitions: [
-                'next : a > b > c',
-                'back : a < b < c'
-            ] });
+            var fsm = new StateMachine({
+                transitions: [
+                    'next : a > b > c',
+                    'back : a < b < c'
+                ]
+            });
             var $table  = $('#results').empty();
             var data    = [];
             var count   = 0;
@@ -90,7 +92,7 @@
                 // test
                 try
                 {
-                    results = fsm.parse(input.id);
+                    results = fsm.parse(input.id, false, 2);
                     text    = results.map( result => result.error || result.path).join(' ');
                     ok      = input.expected == text;
                 }
@@ -132,8 +134,10 @@
             add('cancel', 'transition.cancel');
 
             addSection('namespaced');
-            add('system.start', 'system.start');
-            add('transition.pause', 'transition.pause');
+            add('system:start', 'system.start');
+            add('transition:pause', 'transition.pause');
+            add('state:add', 'system.state.add');
+            add('action:remove', 'system.action.remove');
 
             addSection('states');
             add('a', 'state.a.enter');
@@ -158,17 +162,15 @@
             addSection('mixes');
             add('(a @next change)', 'state.a.enter action.next.start system.change');
 
-            addSection('adding + removing entities');
-            add('state.add', 'system.state.add');
-            add('action.remove', 'system.action.remove');
-
             addSection('errors');
             add('blah');
-            add('system.blah');
+            add('@blah');
+            add('system:blah');
             add('a.leave');
             add('a:hello');
-            add('state.action');
+            add('state-action');
             add('state.next:end');
+            add('(wont.work nor.will.this)');
         /*
         */
 

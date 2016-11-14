@@ -159,17 +159,30 @@
             <li>Note the order and timing of events in the panel on the right</li>
         </ul>
 
-        <p>The <strong>shorthand handler ids</strong> above all compile to <strong>absolute handler paths</strong>, such as <code>system.change</code> or <code>action.next:end</code>. Hover over each id/checkbox to see more information about the example.</p>
-        <p>There are 5 grammars that can be used:</p>
+        <p>The <strong>shorthand handler ids</strong> above all compile to <strong>absolute handler paths</strong>, such as:</p>
         <ul>
-            <li><code>foo</code> tokens, including namespaces, event-type shortcuts, actions and states</li>
-            <li><code>.foo</code> property, including event types, actions and states</li>
-            <li><code>:foo</code> event, action or state events, such as "start" and "enter"</li>
-            <li><code>@foo</code> action, filter to actions only</li>
-            <li><code>(foo bar baz)</code> multiple targets; either actions or states</li>
+            <li><code>change</code> -&gt; <code>system.change</code></li>
+            <li><code>@next:end</code> -&gt; <code>action.next.end</code></li>
         </ul>
+        <p>Hover over each id/checkbox to see a description of the handler and the internal paths it generates.</p>
 
-        <p>Note that all handlers operate independently of one another:</p>
+        <p>The following grammar is available:</p>
+
+        <table class="table table-bordered table-striped indent">
+            <thead>
+                <tr><th>Format</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>alias</code></td><td>Any single word that resolves to a namespaced-type alias, action or state name</td></tr>
+                <tr><td><code>namespace:type</code></td><td>A namespaced-type, for system, transition, action or state</td></tr>
+                <tr><td><code>:type</code></td><td>An event type, for action or state events</td></tr>
+                <tr><td><code>@action</code></td><td>An action name</td></tr>
+                <tr><td><code>#state</code></td><td>A state name (provided in case you need to disambiguate from a namespaced alias)</td></tr>
+                <tr><td><code>(foo bar baz)</code></td><td>Grouping for multiple grammars, which are expanded to multiple paths</td></tr>
+            </tbody>
+        </table>
+
+        <p>Note that all assigned handlers operate independently of one another:</p>
         <ul>
             <li>You can listen to global (all states, and all actions) as well as named events</li>
             <li>You can mix and match all event handler types to both control and react to your flow</li>
@@ -209,7 +222,7 @@
                     $('button[name="cancel"]').attr('disabled', event.type === 'end');
                 },
 
-                '(state.add state.remove)': function (event, fsm) {
+                '(state:add state:remove)': function (event, fsm) {
                     $('button[name="add"]').attr('disabled', event.type === 'add');
                     $('button[name="remove"]').attr('disabled', event.type === 'remove');
                 }
@@ -219,7 +232,7 @@
 
         var fsm = setup(new StateMachine(config)).fsm
                     .trigger('start')
-                    .trigger('state.remove')
+                    .trigger('state:remove')
                     .trigger(':end');
 
     </script>
@@ -259,7 +272,7 @@
                     },
                     namespaced:
                     {
-                        'system.change'	    :'The FSM has been started and the system has entered the initial state',
+                        'system:change'	    :'The FSM has been started and the system has entered the initial state',
                     }
                 },
                 transition:
@@ -272,7 +285,7 @@
                     },
                     namespaced:
                     {
-                        'transition.pause'  :'The current transition was paused',
+                        'transition:pause'  :'The current transition was paused',
                     }
                 },
                 action:
@@ -290,8 +303,8 @@
                     },
                     namespaced:
                     {
-                        'action.add'		:'An action was added',
-                        'action.remove'		:'An action was removed',
+                        'action:add'		:'An action was added',
+                        'action:remove'		:'An action was removed',
                     },
                     combinations:
                     {
@@ -314,8 +327,8 @@
                     },
                     namespaced:
                     {
-                        'state.add'		    :'A state was added',
-                        'state.remove'		:'A state was removed',
+                        'state:add'		    :'A state was added',
+                        'state:remove'		:'A state was removed',
                     },
                     combinations:
                     {

@@ -9,29 +9,6 @@
     <script src="/assets/js/StateHelper.js"></script>
     <script src="/assets/js/setup.js"></script>
     <link  href="/assets/css/styles.css" rel="stylesheet">
-    <style type="text/css">
-        pre{
-            margin:0;
-            color:#333;
-            font-size: 12px;
-        }
-    </style>
-
-    <style>
-        .indent {
-            margin-left:30px;
-        }
-
-        .table > tbody > tr > td,
-        .table > thead > tr > th {
-            padding: 4px 6px;
-        }
-
-        table code {
-            font-size:0.8em;
-        }
-    </style>
-
 </head>
 <body>
 
@@ -49,7 +26,7 @@
                         <button type="button"
                                 data-toggle="dropdown"
                                 class="btn btn-default dropdown-toggle"
-                                >Examples... <span class="caret"></span></button>
+                                >Examples <span class="caret"></span></button>
                         <ul id="examples" class="dropdown-menu dropdown-menu-right">
                             <li><a href="#">a</a></li>
                             <li><a href="#">a:leave</a></li>
@@ -62,15 +39,20 @@
                             <li role="separator" class="divider"></li>
                             <li><a href="#">change</a></li>
                             <li><a href="#">pause</a></li>
-                            <li><a href="#">transition.pause</a></li>
-                            <li><a href="#">action.add</a></li>
-                            <li><a href="#">state.remove</a></li>
+                            <li><a href="#">transition:pause</a></li>
+                            <li><a href="#">action:add</a></li>
+                            <li><a href="#">state:remove</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="#">(a b)</a></li>
                             <li><a href="#">(a b c)@next</a></li>
                             <li><a href="#">(a b c)@(next back)</a></li>
                             <li><a href="#">(pause resume)</a></li>
                             <li><a href="#">(change pause a @next)</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">(x y)</a></li>
+                            <li><a href="#">won't work</a></li>
+                            <li><a href="#">action:blah</a></li>
+                            <li><a href="#">(won't.work nor.will.this)</a></li>
                         </ul>
                     </div>
 
@@ -78,9 +60,18 @@
             </div>
 
             <div id="errors" class="form-group">
-                <label class="radio-inline" style="padding-left: 10px">Invalid states / actions:</label>
+
+                <label class="radio-inline" style="padding-left: 0px">Invalid:</label>
                 <label class="radio-inline">
-                    <input type="radio" name="errors" value="0" checked> Ignore
+                    <input type="radio" name="invalid" value="0" checked> Disallow
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="invalid" value="1"> Allow
+                </label>
+
+                <label class="radio-inline">Errors:</label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" value="0" checked> Quiet
                 </label>
                 <label class="radio-inline">
                     <input type="radio" name="errors" value="1"> Warn
@@ -88,11 +79,10 @@
                 <label class="radio-inline">
                     <input type="radio" name="errors" value="2"> Error
                 </label>
+
             </div>
 
-            <div class="indent">
-                <pre class="well well-sm" id="results">Awaiting input...</pre>
-            </div>
+            <pre class="well well-sm" id="results">Awaiting input...</pre>
 
         </section>
 
@@ -108,44 +98,26 @@
 
             <p>The following grammar is available:</p>
 
-            <div class="indent">
+            <table class="table table-bordered table-striped indent">
+                <thead>
+                    <tr><th>Format</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>alias</code></td><td>Any single word that resolves to a namespaced type, state or action</td></tr>
+                    <tr><td><code>namespace:type</code></td><td>Absolute syntax for namespaced types</td></tr>
+                    <tr><td><code>:type</code></td><td>An event type, for action or state events</td></tr>
+                    <tr><td><code>@action</code></td><td>An action name</td></tr>
+                    <tr><td><code>#state</code></td><td>Alternative state name pattern</td></tr>
+                    <tr><td><code>(foo bar baz)</code></td><td>Grouping for multiple grammars, which are expanded to multiple paths</td></tr>
+                </tbody>
+            </table>
 
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Format</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>&lt;any&gt;</code></td>
-                            <td>Any single word that resolves to a namespaced-type alias, action or state name</td>
-                        </tr>
-                        <tr>
-                            <td><code>&lt;namespace&gt;.&lt;type&gt;</code></td>
-                            <td>A namespaced-type, for system, transition, action or state</td>
-                        </tr>
-                        <tr>
-                            <td><code>:&lt;type&gt;</code></td>
-                            <td>An event type, for action or state events</td>
-                        </tr>
-                        <tr>
-                            <td><code>@&lt;action&gt;</code></td>
-                            <td>An action name</td>
-                        </tr>
-                        <tr>
-                            <td><code>#&lt;state&gt;</code></td>
-                            <td>A state name (provided in case you need to disambiguate from a namespaced alias)</td>
-                        </tr>
-                        <tr>
-                            <td><code>(&lt;foo&gt; &lt;bar&gt; &lt;baz&gt;)</code></td>
-                            <td>Grouping for multiple grammars, which are expanded to multiple paths</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p>The "Invalid states / actions" option mimics the <code>errors</code> value you can set in config to determine which way to handle missing states or actions.</p>
+            <p>The additional options allow yo to choose what to do with invalid states/actions or bad syntax, and are set in the config:</p>
+            <ul>
+                <li><code>invalid</code> - whether to add handlers for non-existing states or actions (states or actions which might be added later)</li>
+                <li><code>errors</code> - whether to quietly ignore, warn or throw errors for invalid handler id syntax</li>
+            </ul>
+            <p>Open the console, click warn or error, and enter some invalid states to see the result.</p>
 
         </section>
 
@@ -156,9 +128,12 @@
         // ------------------------------------------------------------------------------------------------
         // setup
 
-            var handlerId = '';
-
-            var error = 0;
+            var options =
+            {
+                id      : '',
+                invalid : false,
+                errors  : 0
+            };
 
             var fsm = new StateMachine({
 
@@ -175,20 +150,28 @@
                 try
                 {
                     // get results
-                    var results  = fsm.parse(handlerId, error)
+                    var results  = fsm.parse(options.id, options.invalid, options.error);
+                    results = results
                         .map(function(result) {
                             delete result.id;
                             return result;
                         });
 
                     // show code
-                    $results.html(JSON.stringify(results, null, '    '));
+                    var html = JSON.stringify(results, null, '    ');
+                    html = html
+                        .replace(/\\"/g, "'")
+                        .replace(/"/g, "")
+                        .replace(/'/g, '"')
+                        .replace(/,\n/g, "\n");
+                    $results.html(html);
 
                     // save
-                    localStorage.handlerId = handlerId;
+                    localStorage.handlerId = options.id;
                 }
                 catch(error)
                 {
+                    console.error(error.message);
                     $results.html(error.message);
                 }
             }
@@ -202,7 +185,7 @@
             var $id = $('#id')
                 .val(localStorage.handlerId || '')
                 .on('input', function (event) {
-                    handlerId = event.target.value;
+                    options.id = event.target.value;
                     update();
                 })
                 .trigger('input')
@@ -212,15 +195,22 @@
                 .on('click', function(event)
                 {
                     event.preventDefault();
-                    handlerId = $(event.target).text();
-                    $id.val(handlerId);
+                    options.id = $(event.target).text();
+                    $id.val(options.id);
                     update()
+                });
+
+            $('input[name="invalid"]')
+                .on('click', function(event)
+                {
+                    options.invalid = event.target.value == '1';
+                    update();
                 });
 
             $('input[name="errors"]')
                 .on('click', function(event)
                 {
-                    error = parseInt(event.target.value);
+                    options.error = parseInt(event.target.value);
                     update();
                 });
 
