@@ -229,7 +229,7 @@ import { ParseError } from '../objects/errors';
 
         oneStateAction (state, action)
         {
-            return addPath('state.' +state+ '.' + action, 'state', state);
+            return addPath('state.' +state+ '.' + action, 'state/action', state + '@' + action);
         }
 
     };

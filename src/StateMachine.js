@@ -529,6 +529,21 @@ StateMachine.prototype =
                             error = 'Unrecognised action "' +result.target+ '" in handler "' +result.id+ '"';
                         }
                     }
+                    else if(result.namespace === 'state/action')
+                    {
+                        // variables
+                        let [state, action] = result.target.split('@');
+
+                        // test for state and action
+                        if(!this.transitions.hasState(state))
+                        {
+                            error = 'Unrecognised state "' +state+ '" in handler "' +result.id+ '"';
+                        }
+                        if(!this.transitions.hasAction(action))
+                        {
+                            error = 'Unrecognised action "' +action+ '" in handler "' +result.id+ '"';
+                        }
+                    }
 
                     // if we have an error, the result was not an existing state or action
                     if(error)
