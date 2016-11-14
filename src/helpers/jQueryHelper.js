@@ -25,7 +25,9 @@ function jQueryHelper (fsm, states, controls, state, control)
     // bind event handlers
     this.fsm
         .on('change', this.onChange.bind(this))
-        .on('(pause resume cancel)',  this.onPause.bind(this));
+        .on('(pause resume cancel)',  this.onPause.bind(this))
+        .on('(state:add state:remove)',  this.onModifyStates.bind(this))
+        .on('(action:add action:remove)',  this.onModifyActions.bind(this));
 
     // update
     this.update();
@@ -86,6 +88,16 @@ jQueryHelper.prototype =
             .toggleClass('paused', this.fsm.isPaused());
 
         // update buttons
+        this.updateButtons();
+    },
+
+    onModifyStates (event)
+    {
+        this.updateStates();
+    },
+
+    onModifyActions (event)
+    {
         this.updateButtons();
     }
 
