@@ -2,6 +2,10 @@
  * layout and formatting
  */
 
+    html {
+        overflow-y: scroll;
+    }
+
     body {
         min-width: 670px;
         max-width: 1000px;
@@ -36,19 +40,33 @@
     }
 
     pre {
-        margin:20px;
-        font-size:0.8em;
-        color:inherit;
+        margin:20px 30px;
+        font-size: 12px;
+        color:#333;
     }
 
     ul ul{
         margin: 10px 0 20px;
     }
 
+    .indent {
+        margin-left: 30px;
+    }
 
-/* ------------------------------------------------------------------------------------------------
- * special
- */
+    .table > tbody > tr > td,
+    .table > thead > tr > th {
+        padding: 4px 6px;
+    }
+
+    table code {
+        font-size: 0.8em;
+    }
+
+
+
+      /* ------------------------------------------------------------------------------------------------
+       * special
+       */
 
     a#home{
         position: absolute;
