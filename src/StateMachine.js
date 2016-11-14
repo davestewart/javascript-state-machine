@@ -194,10 +194,6 @@ StateMachine.prototype =
             if(this.canDo(action) && !this.isPaused())
             {
                 this.transition = Transition.create(this, action, rest);
-                if(action === this.config.defaults.initialize)
-                {
-                    this.handlers.trigger('system.start');
-                }
                 this.transition.exec();
                 return true;
             }
@@ -231,9 +227,9 @@ StateMachine.prototype =
                 {
                     return this.do(action);
                 }
-                this.config.debug && console.warn('No transition exists from "%s" to "%s"', this.state, state);
+                this.config.errors > 0 && console.warn('No transition exists from "%s" to "%s"', this.state, state);
             }
-            this.config.debug && console.warn('No such state "%s"', state);
+            this.config.errors > 0 && console.warn('No such state "%s"', state);
             return false;
         },
 
@@ -475,13 +471,15 @@ StateMachine.prototype =
          */
         on: function (id, fn)
         {
-            this.parse(id, this.config.errors).forEach( meta => this.handlers.add(meta.path, fn) );
+            this.parse(id, this.config.invalid, this.config.errors)
+                .forEach( meta => this.handlers.add(meta.path, fn) );
             return this;
         },
 
         off: function (id, fn)
         {
-            this.handlers.parse(id).map( meta => this.handlers.remove(meta.path, fn) );
+            this.parse(id, this.config.invalid, this.config.errors)
+                .forEach( meta => this.handlers.remove(meta.path, fn) );
             return this;
         },
 
@@ -490,53 +488,63 @@ StateMachine.prototype =
     // utilities
 
         /**
+         * Parses a handler id string into HandlerMeta objects
          *
-         * @param id
-         * @param errors
+         * @param   {string}    id
+         * @param   {boolean}   invalid
+         * @param   {number}    errors
          * @returns {HandlerMeta[]}
          */
-        parse: function (id, errors = 0)
+        parse: function (id, invalid = false, errors = 0)
         {
-            // get results
-            let results = this.handlers.parse(id);
-
-            // warn for invalid actions / states
-            if(errors > 0)
+            return this.handlers.parse(id).filter(result =>
             {
-                results.forEach( (meta) =>
+                // picks up unrecognised handlers, namespaces, etc
+                if(result instanceof Error)
+                {
+                    if(errors == 2)
+                    {
+                        throw result;
+                    }
+                    errors == 1 && console.warn(result.message);
+                    return false;
+                }
+
+                // picks up unrecognised states and actions
+                if(result.target !== '*')
                 {
                     let error = '';
-                    if(meta.target !== '*')
-                    {
-                        if(meta.namespace === 'state')
-                        {
-                            if(!this.transitions.hasState(meta.target))
-                            {
-                                error = 'StateMachine: no such state "' +meta.target+ '" parsing handler "' +meta.id+ '"';
-                            }
-                        }
-                        else if(meta.namespace === 'action')
-                        {
-                            if(!this.transitions.hasAction(meta.target))
-                            {
-                                error = 'StateMachine: no such action "' +meta.target+ '" parsing handler "' +meta.id+ '"';
-                            }
-                        }
 
-                        if(error)
+                    if(result.namespace === 'state')
+                    {
+                        if(!this.transitions.hasState(result.target))
                         {
-                            if(errors == 2)
-                            {
-                                throw new Error(error);
-                            }
-                            console.warn(error);
+                            error = 'Unrecognised state "' +result.target+ '" in handler "' +result.id+ '"';
                         }
                     }
-                });
-            }
+                    else if(result.namespace === 'action')
+                    {
+                        if(!this.transitions.hasAction(result.target))
+                        {
+                            error = 'Unrecognised action "' +result.target+ '" in handler "' +result.id+ '"';
+                        }
+                    }
 
-            // return
-            return results;
+                    // if we have an error, the result was not an existing state or action
+                    if(error)
+                    {
+                        if(errors == 2)
+                        {
+                            throw new Error(error);
+                        }
+                        errors == 1 && console.warn(error);
+                        return !!invalid;
+                    }
+                }
+
+                // must be valid
+                return true
+            });
         },
 
         trigger: function (id, ...rest)

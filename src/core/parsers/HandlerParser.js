@@ -1,6 +1,7 @@
 import HandlerMeta from './HandlerMeta';
 import Lexer from '../lexer/Lexer'
 import { trim } from '../utils/utils';
+import { ParseError } from '../objects/errors';
 
 
 // ------------------------------------------------------------------------------------------------
@@ -45,11 +46,10 @@ import { trim } from '../utils/utils';
         return true;
     }
 
-    function addError (path, error)
+    function addError (message, path)
     {
-        var meta = new HandlerMeta(_id, path);
-        meta.error = error;
-        results.push(meta);
+        var error = new ParseError(message, path, _id);
+        results.push(error);
         return false;
     }
 
@@ -95,7 +95,7 @@ import { trim } from '../utils/utils';
         alias               : /^(\w+)$/,
 
         // system.start state.add
-        namespaced          : /^(system|transition|state|action)\.(\w+)$/,
+        namespaced          : /^(system|transition|state|action):(\w+)$/,
 
         // @next @quit
         oneAction           : /^@(\w+)$/,
@@ -149,7 +149,7 @@ import { trim } from '../utils/utils';
             }
             catch(error)
             {
-                return addError(path, 'Invalid event handler id');
+                return addError('Unrecognised pattern "' +path+ '"', path);
             }
 
             if(tokens && tokens.length)
@@ -163,7 +163,7 @@ import { trim } from '../utils/utils';
                 {
                     return fn.apply(this, token.values);
                 }
-                return addError(id, path, 'Unknown token type "' +token.type+ '"');
+                return addError('Unknown token type "' +token.type+ '"', path);
             }
         },
 
@@ -194,7 +194,7 @@ import { trim } from '../utils/utils';
                 return addPath('system.' + path, 'system');
             }
 
-            addError(path, 'Unrecognised namespaced event "' +path+'"')
+            addError('Unrecognised type "' +type+'" for namespace "' +namespace+ '"', _id)
         },
 
         oneState (state)

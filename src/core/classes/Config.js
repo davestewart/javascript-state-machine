@@ -1,6 +1,6 @@
 export default function Config (options)
 {
-    'initial final start debug errors scope transitions'
+    'scope start initial final invalid errors'
         .match(/\w+/g)
         .map( name =>
         {
@@ -16,9 +16,6 @@ export default function Config (options)
     // defaults
     this.defaults   = Object.assign({
 
-        // allow user to specify a custom initialize event name
-        initialize  :'initialize',
-
         // allow user to specify alternate triggers for event and action ids
         action      :'start',
         state       :'enter'
@@ -28,34 +25,51 @@ export default function Config (options)
 
 Config.prototype =
 {
-    /** @var string */
-    initial     : '',
-
-    /** @var string */
-    final       : '',
-
-    /** @var boolean */
-    start       : true,
-
-    /** @var boolean */
-    debug       : false,
+    /**
+     * An optional scope to run handler functions in
+     *
+     * @var object
+     */
+    scope       : null,
 
     /**
-     * A number indicating how to handle errors
+     * A boolean to automatically start the state machine in the initial state
      *
-     *  - 0 : ignore
+     * @var boolean
+     */
+    start       : true,
+
+    /**
+     * A string to indicate which state to start on; defaults to ''
+     *
+     * @var string
+     */
+    initial     : '',
+
+    /**
+     * A string indicating the state to trigger a complete event; defaults to ''
+     *
+     * @var string
+     */
+    final       : '',
+
+    /**
+     * A boolean to allow non-existent states and actions to be added to the handlers object; defaults to false (disallow)
+     *
+     * @var boolean
+     */
+    invalid     : false,
+
+    /**
+     * A number indicating how to handle invalid or erroneous actions; defaults to 1 (warn)
+     *
+     *  - 0 : quiet
      *  - 1 : console.warn()
      *  - 2 : throw an error
      *
      * @var number
      */
-    errors      : 0,
-
-    /** @var object */
-    scope       : null,
-
-    /** @var *[] */
-    transitions : null,
+    errors      : 1,
 
     /**
      * The order to run transition callbacks in
@@ -66,6 +80,11 @@ Config.prototype =
 
     /**
      * Sets defaults for various declarations
+     *
+     * Available options are:
+     *
+     * - action: (start|end)
+     * - state: (enter|leave)
      *
      * @type {Object}
      */
