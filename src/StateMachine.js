@@ -222,36 +222,38 @@ StateMachine.prototype =
                     this.transition = Transition.force(this, state);
                     return this.end();
                 }
-                var action = this.transitions.getActionTo(this.state, state);
+                var action = this.transitions.getActionFor(this.state, state);
                 if(action)
                 {
                     return this.do(action);
                 }
                 this.config.errors > 0 && console.warn('No transition exists from "%s" to "%s"', this.state, state);
+                return false;
             }
             this.config.errors > 0 && console.warn('No such state "%s"', state);
             return false;
         },
 
         /**
-         * Query a transition to see if a named action is available
+         * Query transition map to see if a named action is available
          *
          * @param   {string}        action
          * @returns {boolean}
          */
         canDo: function (action)
         {
-            return this.transitions.has(this.state, action);
+            return this.transitions.getActionsFrom(this.state).indexOf(action) !== -1;
         },
 
         /**
+         * Query transition map to see if a state is available to go to
          *
          * @param to
          * @return {boolean}
          */
         canGo: function (to)
         {
-            return this.transitions.getActionTo(this.state, to) !== null;
+            return this.transitions.getActionFor(this.state, to) !== null;
         },
 
         /**

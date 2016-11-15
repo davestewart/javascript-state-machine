@@ -1,5 +1,6 @@
 import ValueMap from './ValueMap';
-import parseTransition from '../parsers/TransitionParser';
+import parseTransition from '../parsers/TransitionParser'
+import { trim } from '../utils/utils'
 
 function TransitionMap ()
 {
@@ -42,6 +43,18 @@ TransitionMap.prototype =
          */
         add: function (action, from, to)
         {
+            // procss variables
+            action  = trim(action);
+            from    = trim(from);
+            to      = typeof to === 'string' ? trim(to) : to;
+
+            // check for wildcards
+            if(to === '*')
+            {
+                throw new Error('Transitioning to a wildcard doesn\'t make sense');
+            }
+
+            // add transition
             this.map.set(from + '.' + action, to);
             return update(this);
         },
@@ -82,19 +95,37 @@ TransitionMap.prototype =
         /**
          * Get all available actions (or action => states map) for a given state
          *
-         * @param   {string}    state       Name of a state to get actions for
+         * @param   {string}    from        Name of a state to get actions for
          * @param   {boolean}   [asMap]     Optional boolean to return a Object of action:state properties. Defaults to false
          * @returns {string[]|Object}       An array of string actions, or a hash of action:states
          */
-        getActionsFrom: function (state, asMap = false)
+        getActionsFrom: function (from, asMap = false)
         {
-            if(this.has(state))
+            if(this.has(from))
             {
-                let actions = this.map.get(state);
-                return actions
+                // get all available actions
+                let actions     = this.map.get(from);
+                let wildcard    = this.map.get('*');
+                let output      = Object.assign({}, actions);
+
+                // append wildcard actions
+                if(wildcard)
+                {
+                    for(var action in wildcard)
+                    {
+                        let value = wildcard[action];
+                        if(value !== from && !actions[action])
+                        {
+                            output[action] = value;
+                        }
+                    }
+                }
+
+                // return map or keys
+                return output
                     ? asMap
-                        ? actions
-                        : Object.keys(actions)
+                        ? output
+                        : Object.keys(output)
                     : [];
             }
             return [];
@@ -107,7 +138,7 @@ TransitionMap.prototype =
          * @param   {string}    to
          * @return  {string|null}
          */
-        getActionTo: function (from, to)
+        getActionFor: function (from, to)
         {
             let actions = this.map.get(from);
             for(let action in actions)
@@ -125,17 +156,30 @@ TransitionMap.prototype =
          *
          * Loops over all actions and returns a unique array of "to" states
          *
-         * @param   {string|null}    [state]    Optional name of a state to get states for. Defaults to the current state
+         * @param   {string|null}    [from]     Optional name of a from state to get states for. Defaults to the current state
          * @returns {string[]}                  An array of string states
          */
-        getToStates: function (state)
+        getStatesFrom: function (from)
         {
-            if(this.hasState(state))
+            if(this.hasState(from))
             {
-                let actions = this.getActionsFrom(state, true);
+                let actions = this.getActionsFrom(from, true);
                 return Object.keys(actions).map( name => actions[name] );
             }
             return null;
+        },
+
+        /**
+         * Get the target "to" state from a "from" state via an "action"
+         *
+         * @param   {string}    from
+         * @param   {string}    action
+         * @returns {string}
+         */
+        getStateFor: function (from, action)
+        {
+            let states = this.getActionsFrom(from, true) || {};
+            return states[action];
         },
 
         /**
@@ -164,9 +208,9 @@ TransitionMap.prototype =
          * @param   {string}    path
          * @return  {*}
          */
-        get:function(path)
+        get:function(...path)
         {
-            path = Array.prototype.slice.apply(arguments).join('.');
+            path = [...path].join('.');
             return this.map.get(path);
         },
 
@@ -199,12 +243,12 @@ TransitionMap.prototype =
         /**
          * Utility function to directly check if the composed ValueMap has the requested path
          *
-         * @param   {string}    path    Pass a path using dot notation, i.e. 'a.next.b' or pass individual arguments, i.e. from, action, to
+         * @param   {string}    path    Pass a path using dot notation, i.e. 'a.next' or pass individual arguments, i.e. from, action, to
          * @returns {boolean}
          */
-        has: function (path)
+        has: function (...path)
         {
-            path = Array.prototype.slice.apply(arguments).join('.');
+            path = [...path].join('.');
             return !! path
                 ? this.map.has(path)
                 : false;
@@ -223,12 +267,12 @@ TransitionMap.prototype.constructor = TransitionMap;
 function update(target)
 {
     // variables
-    var actions    = {};
-    var states     = {};
-    var data     = target.map.data;
+    var actions     = {};
+    var states      = {};
+    var data        = target.map.data;
     var to;
 
-    // remove "to" states
+    // collate from states
     for(let from in data)
     {
         states[from] = true;
@@ -244,7 +288,7 @@ function update(target)
     }
 
     // update
-    target.states  = Object.keys(states);
+    target.states  = Object.keys(states).filter(state => state !== '*');
     target.actions = Object.keys(actions);
 
     // return
