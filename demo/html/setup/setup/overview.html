@@ -66,12 +66,13 @@ StateHelper.jQuery(fsm);
 </pre>
         <p>This code sets up the StateMachine's transitions (actions and states) and in is where you add additional event listeners, configuration, etc.</p>
         <p>The call to StateHelper is optional, but it can used to quickly wire up a UI (see below).</p>
-        <p class="text-danger">Note the following things about all demo files:</p>
+
+        <p class="text-danger" style="margin-top:40px;">Note the following regarding all demo files:</p>
         <ul>
             <li>The code is similar across demos</li>
-            <li>All the code on the page in each demo</li>
+            <li>All the code for each demo is on the page</li>
+            <li>The StateMachine for each demo is accessible via the console, e.g. <code>fsm.do('next')</code></li>
             <li>Check console for additional output</li>
-            <li>You can directly manipulate each demo's StateMachine from the console, e.g. <code>fsm.do('next')</code></li>
         </ul>
     </section>
 
@@ -88,19 +89,27 @@ handlers: {
 // manually
 fsm.on('change', function(event, fsm) { ... });
 </pre>
-        <p>There are 3 basic events you need to monitor to update any connected UI (which reflects available actions and states) and they are:</p>
-        <ul>
-            <li>A system <code>change</code>ing state</li>
-            <li>A system <code>pause</code>ing, and</li>
-            <li>A system <code>resume</code>ing</li>
-        </ul>
+    </section>
 
+    <section id="events">
+
+        <h3>Handlers for a connected UI</h3>
+        <p>There are various states you'll want to to monitor to reflect available actions, states and transition for any connected UI, and they are:</p>
+        <ul>
+            <li><code>system.change</code></li>
+            <li><code>transition.pause</code>, <code>transition.resume</code> and <code>transition.cancel</code></li>
+        </ul>
+        <p>If you think your system will have additional state and/or actions added or removed, you'll also need to listen to:</p>
+        <ul>
+            <li><code>state.add</code> and <code>state.remove</code></li>
+            <li><code>action.add</code> and <code>action.remove</code></li>
+        </ul>
         <p>As with vanilla JavaScript, any passed events will contain information regarding the state change, and you should update your UI accordingly.</p>
     </section>
 
     <section id="helpers">
         <h3>Helpers</h3>
-        <p>Although it's quite straightforward to set up event handlers yourself, the JavaScript code is fundamentally the same between applications, so a class, <code>StateHelper</code>, is provided to give you one-liner setup of the very basics, including:</p>
+        <p>Although it's quite straightforward to set up event handlers yourself, the JavaScript code is essentially the same between applications, so a class, <code>StateHelper</code>, is provided to give you one-liner setup of the very basics, including:</p>
         <ul>
             <li>Current state</li>
             <li>Available actions</li>
@@ -108,6 +117,7 @@ fsm.on('change', function(event, fsm) { ... });
         </ul>
         <p>StateHelper has a few environment-specific methods that cater for jQuery, Vue, etc., that auto-wire UIs, depending on your setup.</p>
         <p>It is strongly advised if you are going to use StateHelper, to look at and understand the underlying code. It's not at all complicated, but it is recommended to get a handle on pub/sub setup.</p>
+        <p>See the next section for more info.</p>
     </section>
 
 </body>

@@ -49,6 +49,7 @@
         <p>By assigning a function to a transition <code>to</code> state, you can determine the target state at run time.</p>
         <p>The example above will alternately choose the top or bottom route based on a toggling variable.</p>
         <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point, for example character animation states, game bonuses, or the result of some other action, whilst staying inside the structure of the StateMachine.</p>
+        <p>Note that this example uses a mix of object configuration (to add the function) and shorthand notation (to make it easy).</p>
     </section>
 
     <script>
@@ -71,6 +72,8 @@
             ]
 
         };
+
+        show(config);
 
         var fsm = setup(new StateMachine(config)).fsm;
 
