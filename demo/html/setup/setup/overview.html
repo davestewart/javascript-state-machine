@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Setup overview</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Setup overview</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <script>
+
+        // create state machine
+        var fsm = new StateMachine({
+            transitions: [
+                'next : a > b > c',
+                'back : a < b < c'
+            ]
+        });
+
+        // helper function to listen to events and update ui
+        var helper = StateHelper.jQuery(fsm);
+
+    </script>
+
+    <section id="info">
+        <h3>Typical demo setup</h3>
+        <p>All of the examples are set up in the same way:</p>
+
+        <ol>
+            <li>HTML elements to represent state, and buttons to call actions</li>
+            <li>Global CSS styles to make the page look pretty, with local styles where required</li>
+            <li>A page script to configure the states and handlers and create the StateMachine</li>
+            <li>A call to a StateHelper (see below) which takes care of the base wiring from the StateMachine to your UI</li>
+        </ol>
+        <p>The code for the example above is:</p>
+<pre>
+var fsm = new StateMachine({
+    transitions: [
+        'next : a > b > c',
+        'back : a < b < c'
+    ]
+});
+
+StateHelper.jQuery(fsm);
+</pre>
+        <p>This code sets up the StateMachine's transitions (actions and states) and in is where you add additional event listeners, configuration, etc.</p>
+        <p>The call to StateHelper is optional, but it can used to quickly wire up a UI (see below).</p>
+
+        <p class="text-danger" style="margin-top:40px;">Note the following regarding all demo files:</p>
+        <ul>
+            <li>The code is similar across demos</li>
+            <li>All the code for each demo is on the page</li>
+            <li>The StateMachine for each demo is accessible via the console, e.g. <code>fsm.do('next')</code></li>
+            <li>Check console for additional output</li>
+        </ul>
+    </section>
+
+    <section id="events">
+        <h3>Basic handler/event setup</h3>
+        <p>StateMachine communicates changes in its state to the outside world via events.</p>
+        <p>In order to respond to a system changing state, you need to assign event handlers, either through the config, or manually:</p>
+<pre>
+// config
+handlers: {
+    'change': function(event, fsm) { ... }
+}
+
+// manually
+fsm.on('change', function(event, fsm) { ... });
+</pre>
+    </section>
+
+    <section id="events">
+
+        <h3>Handlers for a connected UI</h3>
+        <p>There are various states you'll want to to monitor to reflect available actions, states and transition for any connected UI, and they are:</p>
+        <ul>
+            <li><code>system.change</code></li>
+            <li><code>transition.pause</code>, <code>transition.resume</code> and <code>transition.cancel</code></li>
+        </ul>
+        <p>If you think your system will have additional state and/or actions added or removed, you'll also need to listen to:</p>
+        <ul>
+            <li><code>state.add</code> and <code>state.remove</code></li>
+            <li><code>action.add</code> and <code>action.remove</code></li>
+        </ul>
+        <p>As with vanilla JavaScript, any passed events will contain information regarding the state change, and you should update your UI accordingly.</p>
+    </section>
+
+    <section id="helpers">
+        <h3>Helpers</h3>
+        <p>Although it's quite straightforward to set up event handlers yourself, the JavaScript code is essentially the same between applications, so a class, <code>StateHelper</code>, is provided to give you one-liner setup of the very basics, including:</p>
+        <ul>
+            <li>Current state</li>
+            <li>Available actions</li>
+            <li>Whether the transition is paused or not</li>
+        </ul>
+        <p>StateHelper has a few environment-specific methods that cater for jQuery, Vue, etc., that auto-wire UIs, depending on your setup.</p>
+        <p>It is strongly advised if you are going to use StateHelper, to look at and understand the underlying code. It's not at all complicated, but it is recommended to get a handle on pub/sub setup.</p>
+        <p>See the next section for more info.</p>
+    </section>
+
+</body>
+</html>

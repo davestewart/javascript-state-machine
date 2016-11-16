@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Shorthand transition notation</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Shorthand transition notation</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+            <article id="d">State D</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="exit">Exit</button>
+            <button class="btn btn-sm" name="restart">Restart</button>
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>This example demonstrates advanced assignment of actions and states via shorthand notation.</p>
+        <p>In this example, the notation is written like so:</p>
+        <pre></pre>
+        <p>Note:</p>
+        <ul>
+            <li>Sequential states for "next" and "back"</li>
+            <li>Array assignment for "restart" and "exit"</li>
+            <li>An exit to a <a href="../states/terminating.html">terminating state</a> for "x".</li>
+        </ul>
+    </section>
+
+    <script>
+
+        var config = {
+
+            transitions: [
+                'next    : a > b > c > d',
+                'back    : a < b < c < d',
+                'restart : a < b   c   d',
+                'exit    : a   b   c   d > x'
+            ]
+
+        };
+
+        show(config);
+
+        var fsm = setup(new StateMachine(config)).fsm;
+
+    </script>
+</body>
+</html>

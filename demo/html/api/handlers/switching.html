@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Switching transitions</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+        #d {
+            margin-left: 50px;
+            opacity:0.25;
+        }
+
+        #states.skipping #c {
+            opacity:0.25;
+        }
+        #states.skipping #d {
+            opacity:1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Switching transitions</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+            <article id="d">State D</article>
+        </section>
+
+        <section>
+            <label><input id="skip" type="checkbox"> Show D instead of C</label>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>It's possible to force a new state in your system - at any point - by calling <code>go('state', true)</code> .</p>
+        <p>You can even do this in a transition handler to force a new state, perhaps depending on an external factor. Any existing transitions or pause states will ba cancelled and the new state will be entered immediately.</p>
+        <p>This can be useful in asynchronous transitions for example, perhaps for an unexpected condition where you need to show an error state.</p>
+    </section>
+
+    <script>
+
+        var config = {
+
+            transitions: [
+                'next : a > b > c > a < d'
+            ],
+
+            handlers: {
+                // force
+                'c:enter': function (event, fsm) {
+                    if (skip.checked) {
+                        fsm.go('d', true);
+                    }
+                },
+
+                // debug
+                ':start': function (event) {
+                    console.log(event.transition);
+                },
+                'update': function (event) {
+                    console.log(event);
+                }
+            }
+        };
+
+        var fsm = setup(new StateMachine(config)).fsm;
+
+        $('#skip').on('change', function (event) {
+            $('#states').toggleClass('skipping', event.currentTarget.checked);
+        });
+
+    </script>
+</body>
+</html>

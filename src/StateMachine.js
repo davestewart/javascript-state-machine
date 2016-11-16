@@ -1,20 +1,21 @@
-import ValueMap from './utils/ValueMap';
-import Transition from './Transition';
-import { SystemEvent, TransitionEvent } from './Events';
-import { isString, isFunction } from './utils/utils';
+import Config from './core/classes/Config';
+import HandlerMap from './core/maps/HandlerMap';
+import TransitionMap from './core/maps/TransitionMap';
+import Transition from './core/classes/Transition';
+import { diff } from './core/utils/utils';
 
-export default function StateMachine (scope, config)
+
+/**
+ * StateMachine constructor
+ *
+ * @param   {Object|null}    options
+ * @constructor
+ */
+function StateMachine (options)
 {
-    this.scope          = scope;
-    this.state          = '';
-    this.states         = [];
-    this.transitions    = new ValueMap();
-    this.actions        = new ValueMap();
-    this.handlers       = new ValueMap();
-    if(config)
-    {
-        this.initialize(config);
-    }
+    this.transitions    = new TransitionMap();
+    this.handlers       = new HandlerMap(this);
+    this.initialize(options);
 }
 
 /**
@@ -30,113 +31,29 @@ export default function StateMachine (scope, config)
  */
 StateMachine.prototype =
 {
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // properties
 
         /**
-         * Available state names
+         * Configuration object
          *
-         * - [
-         *     intro,
-         *     settings,
-         *     summary,
-         *     final
-         *   ]
-         *
-         * @var {string[]}
+         * @var {Config}
          */
-        states      : null,
+        config      : null,
 
         /**
-         * Available transitions for each action
+         * Map of all transitions
          *
-         * action.from => to
-         *
-         * - next: {
-         *     intro: settings,
-         *     settings: summary
-         *   },
-         * - back: {
-         *     settings: intro
-         *   },
-         * - restart: {
-         *     summary:intro
-         *   },
-         * - finish: {
-         *     summary:final
-         *   },
-         *
-         * Transitions can also be functions
-         *
-         * - next: {
-         *     intro: function() { return '<random state>' } // jump to a random state
-         *   }
-         *
-         * @var {ValueMap}
+         * @var {TransitionMap}
          */
         transitions : null,
 
         /**
-         * Actions that are available to be called from each state
+         * Map of all handlers
          *
-         * state => [ action, action, ... ]
-         *
-         * - intro: [
-         *     'next'
-         *   ],
-         * - settings: [
-         *     'next',
-         *     'back'
-         *   ],
-         * - summary: [
-         *     'restart'
-         *     'finish',
-         *   ]
-         *
-         * Actions can also be expressed as wildcards
-         *
-         * - intro: [
-         *     '*' // any action is allowed from intro
-         *   ]
-         *
-         * @var {ValueMap}
+         * @var {HandlerMap}
          */
-        actions     : null,
-
-        /**
-         * Handler functions that should be called on each action event / state change
-         *
-         * name.type => [ handler, handler, ... ]
-         *
-         * - next: {
-         *   - start: [
-         *       hideModal
-         *     ],
-         *   - end: [
-         *       showModal
-         *     ]
-         *   },
-         * - summary: {
-         *   - enter: [
-         *       resetForm
-         *     ],
-         *   - leave: [
-         *       validateForm,
-         *       postData,
-         *     ]
-         *   },
-         *   ...
-         *
-         * @var {ValueMap}
-         */
-        handlers   : null,
-
-        /**
-         * The current state
-         *
-         * @var {string}
-         */
-        state       : '',
+        handlers    : null,
 
         /**
          * Any active Transition object that is driving the state change
@@ -146,126 +63,123 @@ StateMachine.prototype =
         transition  : null,
 
         /**
-         * The scope in which to call all handlers
+         * The current state
          *
-         * @var {*}
+         * @var {string}
          */
-        scope      : null,
-
-        /**
-         * The original config object
-         *
-         * @var {Object}
-         */
-        config      : null,
+        state       : '',
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // private methods
 
         /**
          * Initialize the FSM with a config object
          *
          * @private
-         * @param config
+         * @param options
          */
-        initialize:function (config)
+        initialize:function (options)
         {
-            // assign config
-            this.config     = config;
+            // state
+            this.state          = '';
 
-            // pre-collate all states
-            addStates(this, 'from', config.events);
-            addStates(this, 'to', config.events);
+            // build config
+            let config  = new Config(options);
+            this.config = config;
 
-            // initial state
-            if( ! config.initial )
+            // pre-process all transitions
+            let transitions = [];
+            if(Array.isArray(options.transitions))
             {
-                config.initial = this.states[0];
+                options.transitions.map( tx =>
+                {
+                    transitions = transitions.concat(this.transitions.parse(tx));
+                });
             }
 
             // add transitions
-            config.events.map( event =>
+            transitions.map( transition =>
             {
-                // shorthand
-                if(isString(event))
-                {
-                    let matches = event.match(/(\w+)\s*[\|:=]\s*(\w+)\s*([<>-])\s*(\w.*)/);
-                    let [,name, from, op, to] = matches;
-                    if(op === '-')
-                    {
-                        this.add(name, from, to);
-                        this.add(name, to, from);
-                        return;
-                    }
-                    if(op === '<')
-                    {
-                        [from, to] = [to, from];
-                    }
-                    this.add(name, from, to);
-                }
-
-                // keys
-                else
-                {
-                    this.add(event.name, event.from, event.to);
-                }
+                this.transitions.add(transition.action, transition.from, transition.to);
             });
 
-            // add handlers
-            for(let name in config.handlers)
+            // get initial state (must be done after state collation)
+            if( ! config.initial )
             {
-                if(config.handlers.hasOwnProperty(name))
+                config.initial = this.transitions.getStates()[0];
+            }
+
+            // add handlers
+            if(options.handlers)
+            {
+                for(let name in options.handlers)
                 {
-                    this.on(name, config.handlers[name]);
+                    if(options.handlers.hasOwnProperty(name))
+                    {
+                        this.on(name, options.handlers[name]);
+                    }
                 }
             }
 
-            // state
-            if( ! config.defer )
+            // add methods
+            if(options.methods)
             {
-                this.state = config.initial;
+                if(!this.config.scope)
+                {
+                    this.config.scope = this;
+                }
+                for(var name in options.methods)
+                {
+                    if(options.methods.hasOwnProperty(name) && !this.hasOwnProperty(name))
+                    {
+                        this[name] = options.methods[name];
+                    }
+                }
             }
 
-            /**
-             * Sets the default order to run transition callbacks in
-             *
-             * @type {string[]} type.target
-             */
-            config.order = config.order || [
-                'action.*.start',
-                'action.@action.start',
-                'state.@from.@action',
-                'state.@from.leave',
-                'state.*.leave',
-                'state.*.enter',
-                'state.@to.enter',
-                'action.@action.end',
-                'action.*.end'
-            ];
+            // start
+            if(this.config.start)
+            {
+                this.start();
+            }
+
+            // return
+            return this;
+        },
+
+        start: function ()
+        {
+            this.state = this.config.initial;
+            this.handlers.trigger('system.start');
+            this.handlers.trigger('system.change', this.state);
+            return this;
         },
 
         /**
-         * Dispatch an event
+         * Reset the FSM to the initial, or supplied, state
          *
-         * @param   {string}    namespace
-         * @param   {string}    type
-         * @param   {string}    key
-         * @param   {*}         value
          * @returns {StateMachine}
          */
-        update: function (namespace, type, key = '', value = null)
+        reset:function(initial = '')
         {
-            let signature = namespace + '.' + type;
-            let event = namespace === 'system'
-                ? new SystemEvent(type, key, value)
-                : new TransitionEvent(type);
-            this.dispatch(signature, event);
+            let state = initial || this.config.initial;
+            this.handlers.trigger('system.reset');
+            if(this.transition)
+            {
+                this.transition.cancel();
+                delete this.transition;
+            }
+            if(this.state !== state)
+            {
+                this.state = state;
+                this.handlers.trigger('system.change', this.state);
+            }
             return this;
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // api
 
         /**
@@ -277,14 +191,9 @@ StateMachine.prototype =
          */
         do: function (action, ...rest)
         {
-            if(this.can(action) && !this.isPaused())
+            if(this.canDo(action) && !this.isPaused())
             {
                 this.transition = Transition.create(this, action, rest);
-                if(action === 'start')
-                {
-                    this.update('system', 'start');
-                }
-                this.update('system', 'update', 'transition', this.transition);
                 this.transition.exec();
                 return true;
             }
@@ -294,68 +203,57 @@ StateMachine.prototype =
         /**
          * Attempt to go to a state
          *
-         * Finds if an appropriate transition exists, then calls the related action if it does
+         * Queries TransitionMap instance to see if a transition exists, then calls the related action if it does
          *
          * @param   {string}    state
+         * @param   {boolean}   [force]
          * @returns {boolean}
          */
-        go: function (state)
+        go: function (state, force = false)
         {
             if(this.has(state))
             {
-                var action = this.getActionForState(state);
+                if(force)
+                {
+                    if(this.transition)
+                    {
+                        this.transition.clear();
+                    }
+                    this.transition = Transition.force(this, state);
+                    return this.end();
+                }
+                var action = this.transitions.getActionFor(this.state, state);
                 if(action)
                 {
                     return this.do(action);
                 }
-                this.config.debug && console.info('No transition exists from "%s" to "%s"', this.state, state);
+                this.config.errors > 0 && console.warn('No transition exists from "%s" to "%s"', this.state, state);
+                return false;
             }
-            else
-            {
-                this.config.debug && console.warn('No such state "%s"', state);
-            }
+            this.config.errors > 0 && console.warn('No such state "%s"', state);
             return false;
         },
 
         /**
-         * Query a transition to see if a named action is available
+         * Query transition map to see if a named action is available
          *
-         * @param   {string}    action
+         * @param   {string}        action
          * @returns {boolean}
          */
-        can: function (action)
+        canDo: function (action)
         {
-            if( ! this.actions.has(action) )
-            {
-                this.config.debug && console.warn('No such action "%s"', action);
-            }
-            return !! this.transitions.has(this.state, action);
+            return this.transitions.getActionsFrom(this.state).indexOf(action) !== -1;
         },
 
         /**
-         * Query a transition to see if a named action is unavailable
+         * Query transition map to see if a state is available to go to
          *
-         * @param   {string}    action
-         * @returns {boolean}
+         * @param to
+         * @return {boolean}
          */
-        cannot: function (action)
+        canGo: function (to)
         {
-            return ! this.can(action);
-        },
-
-        /**
-         * Test if the current state is the same as the supplied one
-         *
-         * @param   {string}    state       A state name to compare against the current state
-         * @returns {boolean}
-         */
-        is: function (state)
-        {
-            if(this.states.indexOf(state) === -1)
-            {
-                this.config.debug && console.warn('No such state "%s"', state);
-            }
-            return state === this.state;
+            return this.transitions.getActionFor(this.state, to) !== null;
         },
 
         /**
@@ -366,66 +264,22 @@ StateMachine.prototype =
          */
         has: function(state)
         {
-            return this.states.indexOf(state) !== -1;
+            return this.transitions.hasState(state);
         },
 
         /**
-         * Get the available "to" states for the current or supplied state
+         * Test if the current state is the same as the supplied one
          *
-         * @param   {string}    [state]     Optional name of a state to get states for. Defaults to the current state
-         * @returns {string[]}              An array of string states
+         * @param   {string}    state       A state name to compare against the current state
+         * @returns {boolean}
          */
-        getStatesFor: function (state = null)
+        is: function (state)
         {
-            state       = state || this.state;
-            let actions = this.getActionsFor(state, true);
-            return Object.keys(actions).map( name => actions[name] );
-        },
-
-        /**
-         * Get the available actions (or actions and states) for the current or supplied state
-         *
-         * @param   {string}    [state]     Optional name of a state to get actions for. Defaults to the current state
-         * @param   {boolean}   [asMap]     Optional boolean to return a Object of action:state properties. Defaults to false
-         * @returns {string[]|Object}       An array of string actions, or a hash of action:states
-         */
-        getActionsFor: function (state = '', asMap = false)
-        {
-            state       = state || this.state;
-            let actions = this.transitions.get(state || this.state);
-            if(asMap)
-            {
-                let states  = {};
-                actions.map( action =>
-                {
-                    states[action] = this.actions.get(action + '.' + state);
-                });
-                return states;
-            }
-            else
-            {
-                return actions;
-            }
-        },
-
-        getActionForState: function (state)
-        {
-            if(this.has(state))
-            {
-                let actions = this.getActionsFor(state, true);
-                for(let action in actions)
-                {
-                    if(actions[action] === state)
-                    {
-                        return action;
-                    }
-                }
-            }
-            return null;
+            return state === this.state;
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // flags
 
         /**
@@ -471,7 +325,7 @@ StateMachine.prototype =
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // transitions
 
         /**
@@ -484,8 +338,6 @@ StateMachine.prototype =
             if(this.transition && !this.isPaused())
             {
                 this.transition.pause();
-                this.update('transition', 'pause');
-                this.update('system', 'update', 'pause', true);
             }
             return this;
         },
@@ -499,8 +351,6 @@ StateMachine.prototype =
         {
             if(this.transition && this.isPaused())
             {
-                this.update('transition', 'resume');
-                this.update('system', 'update', 'pause', false);
                 this.transition.resume();
             }
             return this;
@@ -515,15 +365,9 @@ StateMachine.prototype =
         {
             if(this.transition)
             {
-                if(this.isPaused())
-                {
-                    this.update('system', 'update', 'pause', false);
-                }
                 this.state = this.transition.from;
-                this.transition.clear();
+                this.transition.cancel();
                 delete this.transition;
-                this.update('transition', 'cancel');
-                this.update('system', 'update', 'transition', null);
             }
             return this;
         },
@@ -537,55 +381,20 @@ StateMachine.prototype =
         {
             if(this.transition)
             {
-                if(this.isPaused())
-                {
-                    this.update('system', 'update', 'pause', false);
-                }
                 this.state = this.transition.to;
                 this.transition.clear();
                 delete this.transition;
-                this.update('system', 'change', 'state', this.state);
-                this.update('system', 'update', 'state', this.state);
+                this.handlers.trigger('system.change', this.state);
                 if(this.isComplete())
                 {
-                    this.update('system', 'complete');
+                    this.handlers.trigger('system.complete');
                 }
-                this.update('system', 'update', 'transition', null);
-            }
-            return this;
-        },
-
-        /**
-         * Reset the FSM to the initial, or supplied, state
-         *
-         * @returns {StateMachine}
-         */
-        reset:function(initial = '')
-        {
-            let state = initial || this.config.initial;
-            this.update('system', 'reset');
-            if(this.transition)
-            {
-                if(this.isPaused())
-                {
-                    this.update('system', 'update', 'pause', false);
-                }
-                this.transition.clear();
-                delete this.transition;
-                this.update('transition', 'cancel');
-                this.update('system', 'update', 'transition', null);
-            }
-            if(this.state !== state)
-            {
-                this.state = state;
-                this.update('system', 'change', 'state', this.state);
-                this.update('system', 'update', 'state', this.state);
             }
             return this;
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // actions
 
         /**
@@ -598,252 +407,236 @@ StateMachine.prototype =
          */
         add: function (action, from, to)
         {
-            this.actions.set(action + '.' + from, to);
-            this.transitions.add(from, action);
+            // 1 argument: shorthand transition, i.e 'next : a > b'
+            if(arguments.length === 1)
+            {
+                var transitions = this.transitions.parse(action);
+                transitions.map( tx => this.add(tx.action, tx.from, tx.to));
+                return this;
+            }
+
+            // 3 arguments: longhand transition
+            updateTransitions(this, 'add', () => this.transitions.add(action, from, to) );
             return this;
         },
 
         /**
-         * Remove a transition
+         * Remove a state
          *
-         * @param   {string}    action
-         * @param   {string}    from
-         * @param   {string}    to
+         * @param   {string}    state
          * @return  {StateMachine}
          */
-        remove: function (action, from, to)
+        remove: function (state)
         {
-            this.states.remove(action, from);
+            this.handlers.remove('state.' + state);
+            updateTransitions(this, 'remove', () => this.transitions.remove(state) );
             return this;
         },
 
 
-    // ------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     // handlers
 
         /**
          * Add an event handler
          *
-         * Event handler signature:
+         * Event handler signatures are built from the following grammar:
          *
-         * - namespace.type:target1 target2 target3 ...
+         * - token      foo
+         * - property   .foo
+         * - event      :foo
+         * - action     @foo
+         * - targets    (foo bar baz)
          *
-         * Valid event namespaces / types:
+         * For example:
          *
-         * - system.(change|update|complete|reset)
-         * - action.(start|end)
-         * - state.(add|remove|leave|enter)
-         * - transition.(pause|resume|cancel)
+         * - change
+         * - transition.pause
+         * - next:end
+         * - (a b)@next
+         * - a@next
          *
-         * As event types are unique, they can be used without the namespace:
+         * The main event types are unique, so can be used without the namespace:
          *
          * - change
          * - pause
-         * - start
-         * - end
-         * - leave:red
-         * - enter:blue green
-         * - start:next
-         * - end:back
+         * - complete
+         * - ...
          *
-         * You can also just pass action or names to target individual state.leave / action.end events:
+         * If your states and events are unique, they can also be used without qualification.
          *
-         * - next
-         * - intro
+         * See docs and demo for more information
          *
-         * Finally, you can target a state with an action:
-         *
-         * - state@action
-         * - intro@next
-         * - form@submit
-         * - form@leave (built-in state/action)
-         *
-         * @param id
-         * @param fn
-         * @return {StateMachine}
+         * @param   {string}        id
+         * @param   {Function}      fn
+         * @return  {StateMachine}
          */
         on: function (id, fn)
         {
-            let [namespace, type, targets] = parseHandler(this, id);
-
-            ///console.log(namespace, type, targets)
-
-            targets.map( target =>
-            {
-                // warn for invalid actions / states
-                if(target !== '*')
-                {
-                    if(namespace === 'state')
-                    {
-                        if(this.states.indexOf(target) === -1)
-                        {
-                            this.config.debug && console.warn('Warning assigning state.%s handler: no such state "%s"', type, target);
-                        }
-                    }
-                    else if(namespace === 'action')
-                    {
-                        if(!this.actions.has(target))
-                        {
-                            this.config.debug && console.warn('Warning assigning action.%s handler: no such action "%s"', type, target);
-                        }
-                    }
-                }
-
-                // check handler is a function
-                if(!isFunction(fn))
-                {
-                    throw new Error('Error assigning ' +namespace+ '.' +type+ ' handler; callback is not a Function', fn);
-                }
-
-                // assign
-                let path = getPath(namespace, type, target);
-                this.handlers.insert(path, fn);
-            });
-
+            this.parse(id, this.config.invalid, this.config.errors)
+                .forEach( meta => this.handlers.add(meta.path, fn) );
             return this;
         },
 
         off: function (id, fn)
         {
-            let [namespace, type, targets] = parseHandler(this, id);
-            targets.map( target =>
+            this.parse(id, this.config.invalid, this.config.errors)
+                .forEach( meta => this.handlers.remove(meta.path, fn) );
+            return this;
+        },
+
+    
+    // -----------------------------------------------------------------------------------------------------------------
+    // utilities
+
+        /**
+         * Parses a handler id string into HandlerMeta objects
+         *
+         * @param   {string}    id
+         * @param   {boolean}   invalid
+         * @param   {number}    errors
+         * @returns {HandlerMeta[]}
+         */
+        parse: function (id, invalid = false, errors = 0)
+        {
+            return this.handlers.parse(id).filter(result =>
             {
-                let path = getPath(namespace, type, target);
-                this.handlers.remove(path, fn)
+                // picks up unrecognised handlers, namespaces, etc
+                if(result instanceof Error)
+                {
+                    if(errors == 2)
+                    {
+                        throw result;
+                    }
+                    errors == 1 && console.warn(result.message);
+                    return false;
+                }
+
+                // picks up unrecognised states and actions
+                if(result.target !== '*')
+                {
+                    let error = '';
+
+                    if(result.namespace === 'state')
+                    {
+                        if(!this.transitions.hasState(result.target))
+                        {
+                            error = 'Unrecognised state "' +result.target+ '" in handler "' +result.id+ '"';
+                        }
+                    }
+                    else if(result.namespace === 'action')
+                    {
+                        if(!this.transitions.hasAction(result.target))
+                        {
+                            error = 'Unrecognised action "' +result.target+ '" in handler "' +result.id+ '"';
+                        }
+                    }
+                    else if(result.namespace === 'state/action')
+                    {
+                        // variables
+                        let [state, action] = result.target.split('@');
+
+                        // test for state and action
+                        if(!this.transitions.hasState(state))
+                        {
+                            error = 'Unrecognised state "' +state+ '" in handler "' +result.id+ '"';
+                        }
+                        if(!this.transitions.hasAction(action))
+                        {
+                            error = 'Unrecognised action "' +action+ '" in handler "' +result.id+ '"';
+                        }
+                    }
+
+                    // if we have an error, the result was not an existing state or action
+                    if(error)
+                    {
+                        if(errors == 2)
+                        {
+                            throw new Error(error);
+                        }
+                        errors == 1 && console.warn(error);
+                        return !!invalid;
+                    }
+                }
+
+                // must be valid
+                return true
             });
         },
 
-        dispatch: function(path, event)
+        trigger: function (id, ...rest)
         {
-            this.config.debug && console.info('StateMachine dispatch "%s"', path);
-            let handlers = this.handlers.get(path);
-            if(handlers)
-            {
-                // do we need to pass additional arguments?
-                handlers.map(fn => fn(event) );
-            }
+            this.handlers.parse(id).map( meta => this.handlers.trigger.apply(this.handlers, [meta.path, ...rest]) );
+            return this;
         }
 
 };
 
-/**
- * Parses config and adds unique state names to states array
- *
- * @param {StateMachine}    fsm
- * @param {string}          key
- * @param {Object[]}        transitions
- */
-function addStates(fsm, key, transitions)
-{
-    transitions.map( event => addState(fsm, event[key]) );
-}
+StateMachine.prototype.constructor = StateMachine;
 
-function addState (fsm, state)
-{
-    if (isString(state) && fsm.states.indexOf(state) === -1)
+export default StateMachine;
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+// static methods
+
+    /**
+     * Factory method
+     *
+     * @param   options
+     * @returns {StateMachine}
+     */
+    StateMachine.create = function(options)
     {
-        fsm.states.push(state);
-    }
-}
+        return new StateMachine(options);
+    };
 
-function parseHandler(fsm, id)
-{
-    // variables
-    var matches, namespace, type, action, target, invalid;
-
-    // match state@action
-    if(id.indexOf('@') !== -1)
+    /**
+     * Gets the default order events should be called in
+     * @returns {string[]}
+     */
+    StateMachine.getDefaultOrder = function ()
     {
-        matches = id.match(/^(?:state\.)?\s*(\w+[ -_\w]*)@(\w+)$/);
-        if(matches)
-        {
-            namespace = 'state';
-            [,target, action] = matches;
-            type = action;
-        }
-    }
-    // matches other
-    else
+        return [
+            'action.*.start',
+            'action.{action}.start',
+            'state.*.{action}',
+            'state.{from}.{action}',
+            'state.{from}.leave',
+            'state.*.leave',
+            'state.*.enter',
+            'state.{to}.enter',
+            'action.{action}.end',
+            'action.*.end'
+        ];
+    };
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+// helper functions
+
+    /**
+     * Utility method to update transitions and dispatch events
+     *
+     * Saves duplicating the following code in both add() and remove() methods
+     *
+     * @param   {StateMachine}  fsm
+     * @param   {string}        method
+     * @param   {Function}      callback
+     */
+    function updateTransitions(fsm, method, callback)
     {
-        matches = id.match(/^(?:(\w+)\.)?(\w+[-_\w]*)(?::(.*))?(.*)$/);
-        if(matches)
-        {
-            [,namespace, type, target, invalid] = matches;
-        }
+        var statesBefore    = fsm.transitions.getStates();
+        var actionsBefore   = fsm.transitions.getActions();
+        callback();
+        var statesAfter     = fsm.transitions.getStates();
+        var actionsAfter    = fsm.transitions.getActions();
+
+        // calculate differences
+        var states          = diff(statesBefore, statesAfter);
+        var actions         = diff(actionsBefore, actionsAfter);
+
+        // dispatch events
+        states.map ( state  => fsm.handlers.trigger('system.state.'  + method, state) );
+        actions.map( action => fsm.handlers.trigger('system.action.' + method, action) );
     }
-
-    // flag invalid
-    if(!matches || invalid)
-    {
-        throw new Error('Invalid event handler signature "' +id+ '"');
-    }
-
-    // check namespace
-    if(namespace && ! /^(system|transition|action|state)$/.test(namespace))
-    {
-        throw new Error('Invalid event namespace "' +namespace+ '"');
-    }
-
-    // determine namespace if not found
-    if(!namespace)
-    {
-        // check if shorthand global was passed
-        namespace = eventNamespaces[type];
-
-        // if event is still null, attempt to determine type from existing states or actions
-        if(!namespace)
-        {
-            if(fsm.states.indexOf(type) !== -1)
-            {
-                target      = type;
-                namespace   = 'state';
-                type        = 'enter';
-            }
-            else if(fsm.actions.has(type))
-            {
-                target      = type;
-                namespace   = 'action';
-                type        = 'start';
-            }
-            else
-            {
-                fsm.config.debug && console.warn('Warning parsing event handler: unable to map "%s" to a valid event or existing entity', id);
-            }
-        }
-    }
-
-    // determine targets
-    let targets = target
-        ? target.match(/[-*\w_]+/g)
-        : ['*'];
-
-    // return
-    return [namespace, type, targets]
-}
-
-function getPath(namespace, type, target)
-{
-    return namespace === 'action' || namespace === 'state'
-        ? [namespace, target, type].join('.')
-        : namespace + '.' + type;
-}
-
-let eventNamespaces =
-{
-    change  :'system',
-    update  :'system',
-    complete:'system',
-    reset   :'system',
-
-    add     :'state',
-    remove  :'state',
-    leave   :'state',
-    enter   :'state',
-
-    start   :'action',
-    end     :'action',
-
-    pause   :'transition',
-    resume  :'transition',
-    cancel  :'transition'
-};

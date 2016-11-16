@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Linked flow</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Linked flow</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="standing">Standing</article>
+            <article id="walking">Walking</article>
+            <article id="running">Running</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="stand">Stand</button>
+            <button class="btn btn-sm" name="walk">Walk</button>
+            <button class="btn btn-sm" name="run">Run</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>Building on top of the <a href="sequential.html">sequential</a> flow, this example pairs separate actions with states, simulating a linked list.</p>
+        <p>A variation on this flow might add a previous state <code>fight</code> but make the initial state <code>stand</code>, thus you could not go directly to fighting without first walking and standing.</p>
+        <p>Also, note the shorthand notation for the "walk" action, which is perfectly valid:</p>
+        <pre>walk : standing > walking < running</pre>
+    </section>
+
+    <script>
+
+        var config = {
+
+            initial : 'standing',
+
+            transitions: [
+                'stand : standing < walking',
+                'walk  : standing > walking < running',
+                'run   :            walking > running'
+            ]
+
+        };
+
+        var fsm = setup(new StateMachine(config)).fsm;
+
+    </script>
+</body>
+</html>

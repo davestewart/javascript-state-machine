@@ -1,9 +1,14 @@
 /* ------------------------------------------------------------------------------------------------
- * layout
+ * layout and formatting
  */
 
+    html {
+        overflow-y: scroll;
+    }
+
     body {
-        width: 800px;
+        min-width: 670px;
+        max-width: 1000px;
         margin: 50px auto;
     }
 
@@ -11,10 +16,18 @@
         position: relative;
     }
 
-    h1{
+    h1 {
         border-bottom:1px solid #EEE;
         padding: 0 0 20px 30px;
         margin:0 0 30px 0;
+    }
+
+    h3 {
+        border-bottom:1px solid #EEE;
+        padding: 0 0 10px 30px;
+        margin:20px 0 10px -30px;
+        color:#18bc9c;
+        font-size:20px;
     }
 
     section {
@@ -22,14 +35,75 @@
         clear:both;
     }
 
+    p + fieldset {
+        margin-top:30px;
+    }
+
     pre {
-        margin:20px;
+        margin:20px 30px;
+        font-size: 12px;
+        color:#333;
+    }
+
+    ul ul{
+        margin: 10px 0 20px;
+    }
+
+    .indent {
+        margin-left: 30px;
+    }
+
+    .table > tbody > tr > td,
+    .table > thead > tr > th {
+        padding: 4px 6px;
+    }
+
+    table code {
+        font-size: 0.8em;
+    }
+
+
+
+      /* ------------------------------------------------------------------------------------------------
+       * special
+       */
+
+    a#home{
+        position: absolute;
+        top:20px;
+        left:20px;
+        background:#ecf0f1;
+        padding:3px 6px;
+        border-radius: 3px;
+        font-size: 0.8em;
+    }
+
+    a#home:hover{
+        text-decoration: none;
+        background: #dde4e6;
+        color: #15a589;
     }
 
 
 /* ------------------------------------------------------------------------------------------------
- * forms
+ * states state
  */
+
+    main.steps article {
+        display: none;
+    }
+
+    main.steps article.active {
+        display: block;
+    }
+
+    #states {
+        transition: 0.5s all;
+    }
+
+    #states.paused {
+        opacity: 0.25;
+    }
 
     .btn[disabled]{
         opacity: 0.5;
@@ -42,15 +116,13 @@
 
 
 /* ------------------------------------------------------------------------------------------------
- * styles
+ * states formatting
  */
 
-    #states {
-        transition: 0.5s all;
-    }
-
-    #states.paused {
-        opacity: 0.25;
+    main.steps article {
+        width: 500px;
+        border:1px solid #EEE;
+        padding:20px;
     }
 
     main.states article {
@@ -62,23 +134,12 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        margin: 0 5px 0 0;
+        margin: 0 5px 5px 0;
         transition: 0.5s all;
     }
 
     main.states article.active {
         border: 1px solid black;
-    }
-
-    main.steps article {
-        width: 500px;
-        border:1px solid #EEE;
-        padding:20px;
-        display: none;
-    }
-
-    main.steps article.active {
-        display: block;
     }
 
     main.steps h2 {
@@ -90,3 +151,4 @@
     main.steps p {
 
     }
+

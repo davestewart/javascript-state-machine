@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>State-driven components</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+
+    <!-- libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+
+    <!-- styles -->
+    <style type="text/css">
+
+        main.states article {
+            width:100%;
+            height:200px;
+            font-size: 2em;
+        }
+
+        .breadcrumbs {
+            border-bottom:1px solid #CCC;
+            padding: 10px 0;
+            margin-bottom:-15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>State-driven components</h1>
+
+    <main class="states">
+
+        <section>
+            <breadcrumbs ref="breadcrumbs" :state="state" v-on:go="go"></breadcrumbs>
+        </section>
+
+        <section id="states" :data-state="state.name" :class="{paused:state.paused}">
+            <article v-show="state.is.a">State A</article>
+            <article v-show="state.is.b">State B</article>
+            <article v-show="state.is.c">State C</article>
+            <article v-show="state.is.d">State D</article>
+            <article v-show="state.is.e">State E</article>
+        </section>
+
+        <section id="controls">
+            <fieldset :disabled="state.paused">
+                <button v-on:click="navigate" :disabled="!state.actions.back" class="btn btn-sm" name="back">Back</button>
+                <button v-on:click="navigate" :disabled="!state.actions.next" class="btn btn-sm" name="next">Next</button>
+            </fieldset>
+        </section>
+
+        <section id="info">
+            <p>Building on the basic <a href="vue-reactive.html">reactive example</a>, this example uses StateHelper to drive a simple breadcrumb component.</p>
+            <p>In this example, the shared <code>state</code> property is passed to the breadcrumb component, which:</p>
+            <ul>
+                <li>renders <strong>only</strong> the navigated steps</li>
+                <li>reacts to state changes and re-render</li>
+                <li>convert state names to labels</li>
+                <li>accepts clicks and dispatches events to force a transition to previous steps using <code>fsm.go(state, true)</code></li>
+            </ul>
+        </section>
+
+    </main>
+
+    <section title="component">
+
+        <template id="breadcrumbs-template">
+            <p class="breadcrumbs">Location:
+                <span v-for="(step, index) in steps">
+                    <span v-if="index === steps.length - 1">{{ step.label }}</span>
+                    <a v-else v-on:click.prevent="$emit('go', step.name)" href="#">{{ step.label }}</a>
+                    <span v-if="index < steps.length - 1"> / </span>
+                </span>
+            </p>
+        </template>
+
+        <script title="component">
+
+            Vue.component('breadcrumbs',
+            {
+                template:'#breadcrumbs-template',
+
+                props:['state'],
+
+                computed:
+                {
+                    steps:function()
+                    {
+                        return this.state.all.states
+                            .slice(0, this.state.index + 1)
+                            .map(function(state) {
+                                return {name: state, label:'State ' + state.toUpperCase()};
+                            });
+                    }
+                }
+            });
+
+        </script>
+
+    </section>
+
+    <script title="app">
+        var app = new Vue(
+        {
+            el:'main',
+
+            data: {
+                state   : null
+            },
+
+            created:function()
+            {
+                // create state machine
+                this.fsm = StateMachine.create({
+                    transitions: [
+                        'next :  a > b > c > d > e',
+                        'back :  a < b < c < d < e'
+                    ]
+                });
+
+                // create and assign state helper object / data to application state
+                this.state = StateHelper.object(this.fsm).data;
+            },
+
+            methods:
+            {
+                // respond to clicks
+                navigate: function(event)
+                {
+                    this.fsm.do(event.target.name);
+                },
+
+                // respond to breadcrumb events
+                go:function(state)
+                {
+                    this.fsm.go(state, true);
+                },
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>

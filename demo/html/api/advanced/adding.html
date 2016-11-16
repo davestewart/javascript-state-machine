@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Adding & removing transitions</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+
+    <style type="text/css">
+        #more-controls button{
+            width: 35px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Adding & removing transitions</h1>
+
+    <main class="states">
+
+        <section id="states"></section>
+
+        <div>
+            <section id="more-controls" style="display: inline-block">
+                <button class="btn btn-sm" id="btnRemove">-</button>
+                <button class="btn btn-sm" id="btnAdd">+</button>
+            </section>
+
+            <section id="controls" style="display: inline-block">
+                <button class="btn btn-sm" name="back">Back</button>
+                <button class="btn btn-sm" name="next">Next</button>
+            </section>
+        </div>
+
+    </main>
+
+    <section id="info">
+        <p>This example demonstrates adding and removing transitions on-the-fly, and handling subsequent events to update the UI.</p>
+        <p>The syntax for adding transitions is as follows:</p>
+        <pre>
+fsm.add('next', 'a', 'b'); // longhand
+fsm.add('next : a > b');   // shorthand
+</pre>
+        <p>Currently, only states can be removed:</p>
+        <pre>
+fsm.remove('a');           // state only
+</pre>
+        <p>Upon removal of a state, any orphaned actions or states are also removed.</p>
+        <p>Upon addition or removal of states or actions, a <code>StateEvent</code> or <code>ActionEvent</code> is dispatched, the <code>value</code> property of which can be used to determine the state or action in question.</p>
+        <p>Use the following event handler ids to listen to these events:</p>
+<pre>
+state:add
+state:remove
+action:add
+action:remove
+</pre>
+        <p>As you can see above, using these event handlers, it's possible to easily update any system on the fly.</p>
+    </section>
+
+    <script title="setup state machine">
+
+        // config
+        var config = {
+
+            initial: 'a',
+
+            handlers:
+            {
+                change: function change (event, fsm)
+                {
+                    console.log('changed state: ' + event.value);
+                },
+
+                'state:add': function add (event, fsm)
+                {
+                    // add state
+                    var state = event.target;
+                    $states.append('<article id="' +state+ '">State ' +state.toUpperCase()+ '</article>');
+
+                    // update ui
+                    helper.update();
+
+                    // debug
+                    console.log('added state: ' + state);
+                },
+
+                'state:remove': function remove (event, fsm)
+                {
+                    // remove state
+                    var state = event.target;
+                    $states.find('#' + state).remove();
+
+                    // debug
+                    console.log('removed state: ' + state);
+
+                    // force state update if we've deleted the current state
+                    if( ! fsm.has(fsm.state) )
+                    {
+                        fsm.go(fsm.transitions.getStates().pop(), true);
+                    }
+
+                    // update ui
+                    helper.update();
+
+                }
+            }
+
+        };
+
+        // create state machine
+        var fsm     = new StateMachine(config);
+        var helper  = setup(fsm);
+
+    </script>
+
+    <script title="add and remove states">
+
+        // add and remove state functions
+        function addState()
+        {
+            // get the index of the next state
+            var index = $states.children().length;
+
+            // add transition if we have room
+            if(index < states.length)
+            {
+                // add the transition
+                if(index == 0)
+                {
+                    index = 1;
+                }
+                var from  = states[index - 1];
+                var to    = states[index];
+                if(from && to)
+                {
+                    fsm.add('next', from, to);
+                    fsm.add('back', to, from);
+                }
+            }
+
+        }
+
+        function removeState()
+        {
+            var state = fsm.transitions.getStates().pop();
+            if(state && state !== 'a')
+            {
+                fsm.remove(state);
+            }
+        }
+
+        // variables to modify states
+        var $states = helper.elements.states;
+        var states  = 'abcdef'.split('');
+
+        // attach handlers
+        $('#btnAdd').on('click', addState);
+        $('#btnRemove').on('click', removeState);
+
+        // kick off by adding a new state
+        addState();
+        removeState(); // minor hack to show only State A as transitions need at least 2 states!
+
+    </script>
+</body>
+</html>

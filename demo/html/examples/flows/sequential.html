@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Sequential flow</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Sequential flow</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+            <article id="d">State D</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>This example navigates 4 states using only 2 actions, <code>next</code> and <code>back</code>.</p>
+        <p>Transitions are dependent on current state, thus multiple transitions can be described using the same action, as long as the <code>from</code> and <code>to</code> states are different:</p>
+        <pre>
+'next : a &gt; b'
+'next : b &gt; c'
+'next : c &gt; d'
+</pre>
+        <p>etc...</p>
+    </section>
+
+    <script>
+
+        var config = {
+
+            transitions: [
+                'next : a > b > c > d',
+                'back : a < b < c < d'
+            ]
+        };
+
+        var fsm = setup(new StateMachine(config)).fsm;
+
+    </script>
+</body>
+</html>

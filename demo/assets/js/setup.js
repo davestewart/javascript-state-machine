@@ -1,48 +1,50 @@
-if (window.StateMachine) {
+if (window.StateMachine && StateMachine.default) {
     window.StateMachine = StateMachine.default;
 }
 
-var fsm, $states, $controls, $buttons;
-
-function update(){
-
-    // assign state and paused
-    $states
-        .attr('data-state', fsm.state)
-        .toggleClass('paused', fsm.isPaused());
-
-    // assign active class to the current state
-    $states
-        .find('article')
-        .removeClass('active')
-        .filter('#'  + fsm.state)
-        .addClass('active');
-
-    // update buttons
-    $buttons
-        .each(function(i, e){
-            e.disabled = ! fsm.can(e.name) || fsm.isPaused();
-        });
+if (window.StateHelper && StateHelper.default) {
+    window.StateHelper = StateHelper.default;
 }
 
-function setup(fsm) {
-
-    // assign to window
-    window.fsm = fsm;
-
-    // elements
-    $states = $('#states');
-    $buttons = $('#controls button');
-
-    // bind button clicks to fsm actions
-    $buttons.on('click', function(event){
-        fsm.do(event.target.name);
-    });
-
-    // update UI when fsm state changes
-    fsm.on('update', update);
-
-    // update
-    update();
-    console.log(fsm)
+/**
+ * Iniialisation function
+ */
+function init ()
+{
+    // create simple page navigation
+    var depth = location.pathname.substr(1).split('/').length
+    var href = depth === 3
+        ? '../../index.html'
+        :'../index.html';
+    var text = depth === 3
+        ? 'Home'
+        : 'Menu';
+    $('body').append('<a id="home" href="' +href+ '">' +text+ '</a>');
 }
+
+/**
+ * Utility function to show transitions config
+ *
+ * @param   {Object}    config
+ */
+function show (config)
+{
+    var text = 'transitions: [\n    ' + config.transitions
+        .map(function(tx){ return JSON.stringify(tx); })
+        .join(',\n    ') + '\n]';
+    $('pre:first-of-type').text(text);
+}
+
+/**
+ * Helper function to set up jQueryHelepr
+ *
+ * @param   {StateMachine}  fsm
+ * @returns {jQueryHelper}
+ */
+function setup (fsm)
+{
+    console.log(fsm);
+    return window.helper = StateHelper.jQuery(fsm);
+}
+
+$(init);

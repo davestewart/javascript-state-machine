@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Programmatic transitions</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style type="text/css">
+        #states > div{
+            display:inline-block;
+        }
+        #states div{
+            margin-bottom:5px;
+        }
+        #states div article{
+            height: 70px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Programmatic transitions</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <div>
+                <div>
+                    <article id="b1">State B1</article>
+                </div>
+                <div>
+                    <article id="b2">State B2</article>
+                </div>
+            </div>
+            <article id="c">State C</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>By assigning a function to a transition <code>to</code> state, you can determine the target state at run time.</p>
+        <p>The example above will alternately choose the top or bottom route based on a toggling variable.</p>
+        <p>In a more complicated setup such as a game or quiz, you could use something like this to branch at a particular point, for example character animation states, game bonuses, or the result of some other action, whilst staying inside the structure of the StateMachine.</p>
+        <p>Note that this example uses a mix of object configuration (to add the function) and shorthand notation (to make it easy).</p>
+    </section>
+
+    <script>
+
+        // state variable to be toggled
+        var state = false;
+
+        // programatic state callback
+        function choose(states) {
+            return (state = !state) ? 'b1' : 'b2';
+        }
+
+        // setup states
+        var config = {
+
+            transitions: [
+                {action: 'next', from: 'a', to:choose},
+                'next : b1 > c > a',
+                'next : b2 > c > a'
+            ]
+
+        };
+
+        show(config);
+
+        var fsm = setup(new StateMachine(config)).fsm;
+
+    </script>
+</body>
+</html>

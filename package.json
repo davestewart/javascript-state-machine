@@ -7,7 +7,9 @@
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js",
     "build": "webpack --mode=build",
-    "demo": "npm run dev | cpx ./lib/state-machine.js ./demo/assets/js --watch | lite-server"
+    "demo": "cpx './lib/State{Machine,Helper}.js' ./demo/assets/js --watch | lite-server"
+  },
+  "dependencies": {
   },
   "devDependencies": {
     "babel": "6.3.13",
@@ -24,6 +26,7 @@
     "eslint-loader": "1.1.0",
     "lite-server": "^2.2.2",
     "mocha": "2.3.4",
+    "mocha-logger": "^1.0.4",
     "webpack": "1.12.9",
     "yargs": "3.32.0"
   },

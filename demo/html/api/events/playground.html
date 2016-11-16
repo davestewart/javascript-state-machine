@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Event handler playground</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+    <style>
+
+        body {
+            width: 970px;
+        }
+
+        #log {
+            position:absolute;
+            top:0;
+            right:0;
+            width:290px;
+            height:465px;
+            border:1px solid #CCC;
+            padding:15px;
+            overflow: hidden;
+            line-height: 1.2em;
+            font-size:0.8em;
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            white-space: nowrap;
+            background: #FFF;
+        }
+
+        #log p { margin:0; }
+
+        .system { color: black; }
+        .transition { color: #2f83ff; }
+        .action { color: red; }
+        .state { color: #35cc62; }
+
+        #log hr {
+            margin:10px 0;
+        }
+
+        #log span{
+            display: inline-block;
+        }
+
+        #log span.index {
+            width:25px;
+            margin-right: 10px;
+            text-align: right;
+        }
+
+        #log span.message {
+            margin-left:10px;
+        }
+
+        #control-set * {
+            display: inline-block;
+        }
+
+        span.divider{
+            display: inline-block;
+            width:15px;
+        }
+
+        #handlers {
+            position: relative;
+        }
+
+        #handlers > * {
+            display: inline-block;
+            vertical-align: top;
+            padding-right:30px;
+        }
+
+        fieldset p{
+            font-size: 0.8em;
+            border-bottom: 1px dotted #CCC;
+            margin-top:20px;
+        }
+
+        legend + p{
+            margin-top: 0;
+        }
+
+        fieldset > label{
+            display: block;
+        }
+
+        legend {
+            font-size:1.2em;
+            margin-bottom:0.5em;
+        }
+
+        #control-set > section {
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Event handler playground</h1>
+
+    <main class="states">
+
+        <section id="log">
+
+        </section>
+
+        <div id="content">
+            <section id="states">
+                <article id="a">State A</article>
+                <article id="b">State B</article>
+                <article id="c">State C</article>
+                <article id="d" style="display:none">State D<br>(async)</article>
+            </section>
+
+            <section id="control-set">
+                <button class="btn btn-sm extra" name="start">Start</button>
+                <button class="btn btn-sm extra" name="reset">Reset</button>
+                <span class="divider"></span>
+                <div id="controls">
+                    <button class="btn btn-sm" name="back">Back</button>
+                    <button class="btn btn-sm" name="next">Next</button>
+                </div>
+                <button class="btn btn-sm extra" name="cancel">Cancel</button>
+                <span class="divider"></span>
+                <button class="btn btn-sm extra" name="add">Add</button>
+                <button class="btn btn-sm extra" name="remove">Remove</button>
+            </section>
+
+            <section id="handlers">
+                <fieldset>
+                    <legend class="system">System</legend>
+                </fieldset>
+                <fieldset>
+                    <legend class="transition">Transition</legend>
+                </fieldset>
+                <fieldset>
+                    <legend class="action">Action</legend>
+                </fieldset>
+                <fieldset>
+                    <legend class="state">State</legend>
+                </fieldset>
+            </section>
+
+        </div>
+
+    </main>
+
+    <section id="info">
+
+        <p>This example demonstrates the various events you can listen to and take action on:</p>
+        <ul>
+            <li>Toggle handlers using the checkboxes</li>
+            <li>Use the buttons to navigate the flow</li>
+            <li>Note the order and timing of events in the panel on the right</li>
+        </ul>
+
+        <p>The <strong>shorthand handler ids</strong> above all compile to <strong>absolute handler paths</strong>, such as:</p>
+        <ul>
+            <li><code>change</code> -&gt; <code>system.change</code></li>
+            <li><code>@next:end</code> -&gt; <code>action.next.end</code></li>
+        </ul>
+        <p>Hover over each id/checkbox to see a description of the handler and the internal paths it generates.</p>
+
+        <p>The following grammar is available:</p>
+
+        <table class="table table-bordered table-striped indent">
+            <thead>
+                <tr><th>Format</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>alias</code></td><td>Any single word that resolves to a namespaced-type alias, action or state name</td></tr>
+                <tr><td><code>namespace:type</code></td><td>A namespaced-type, for system, transition, action or state</td></tr>
+                <tr><td><code>:type</code></td><td>An event type, for action or state events</td></tr>
+                <tr><td><code>@action</code></td><td>An action name</td></tr>
+                <tr><td><code>#state</code></td><td>A state name (provided in case you need to disambiguate from a namespaced alias)</td></tr>
+                <tr><td><code>(foo bar baz)</code></td><td>Grouping for multiple grammars, which are expanded to multiple paths</td></tr>
+            </tbody>
+        </table>
+
+        <p>Note that all assigned handlers operate independently of one another:</p>
+        <ul>
+            <li>You can listen to global (all states, and all actions) as well as named events</li>
+            <li>You can mix and match all event handler types to both control and react to your flow</li>
+        </ul>
+
+    </section>
+
+    <script title="fsm">
+
+        var config = {
+
+            start: false,
+
+            invalid : true,
+
+            initial: 'a',
+
+            final: 'c',
+
+            transitions: [
+                'next : a > b > c > a',
+                'back : a < b < c < a'
+            ],
+
+            handlers: {
+                d: function (event, fsm) {
+                    fsm.pause();
+                    setTimeout(fsm.resume.bind(fsm), 2000);
+                },
+
+                '(start reset)': function (event, fsm) {
+                    $('button[name="start"]').attr('disabled', fsm.isStarted());
+                    $('button[name="reset"]').attr('disabled', ! fsm.isStarted());
+                },
+
+                '(:start :end)': function (event, fsm) {
+                    $('button[name="cancel"]').attr('disabled', event.type === 'end');
+                },
+
+                '(state:add state:remove)': function (event, fsm) {
+                    $('button[name="add"]').attr('disabled', event.type === 'add');
+                    $('button[name="remove"]').attr('disabled', event.type === 'remove');
+                }
+            }
+
+        };
+
+        var fsm = setup(new StateMachine(config)).fsm
+                    .trigger('start')
+                    .trigger('state:remove')
+                    .trigger(':end');
+
+    </script>
+
+        <script title="setup">
+
+        (function(){
+
+            function add(namespace, id, desc)
+            {
+                var paths = fsm.parse(id).map(function(meta){ return meta.path; });
+                var title = desc.replace(/"/g, "'") + '\n\nPaths:\n- ' + paths.join('\n- ');
+                var html = '<label title="' +title+ '"><input type="checkbox" name="state" value="' +id+ '"> ' +id+ '</label>';
+                $('legend.' + namespace)
+                    .parent()
+                    .append(html);
+            }
+
+            function label(namespace, text)
+            {
+                var html = '<p>' +text+ '</p>';
+                $('legend.' + namespace)
+                        .parent()
+                        .append(html);
+            }
+
+            var handlers =
+            {
+                system:
+                {
+                    aliases:
+                    {
+                        'start'		        :'The FSM has been started and the system has entered the initial state',
+                        'change'		    :'The state of the system has changed',
+                        'complete'		    :'The system has entered the final state',
+                        'reset'		        :'The system was reset to its default state',
+                    },
+                    namespaced:
+                    {
+                        'system:change'	    :'The FSM has been started and the system has entered the initial state',
+                    }
+                },
+                transition:
+                {
+                    aliases:
+                    {
+                        'pause'             :'The current transition was paused',
+                        'resume'            :'The current transition was resumed',
+                        'cancel'            :'The current transition was cancelled',
+                    },
+                    namespaced:
+                    {
+                        'transition:pause'  :'The current transition was paused',
+                    }
+                },
+                action:
+                {
+                    targets:
+                    {
+                        '@next'		        :'Action "next" started (defaulting to the configured event type)',
+                        '@back'		        :'Action "back" started (defaulting to the configured event type)',
+                        '@(next back)'		:'Actions "next" and "back" started (defaulting to the configured event type)',
+                    },
+                    types:
+                    {
+                        ':start'		    :'Any action started',
+                        ':end'		        :'Any action ended',
+                    },
+                    namespaced:
+                    {
+                        'action:add'		:'An action was added',
+                        'action:remove'		:'An action was removed',
+                    },
+                    combinations:
+                    {
+                        '@next:start'		:'Action "next" started',
+                        '@next:end'         :'Action "next" ended',
+                        '@(next back):end'	:'Actions "next" and "back" ended',
+                    }
+                },
+                state:
+                {
+                    targets:
+                    {
+                        'a'		            :'State "a" entered (defaulting to the configured event type)',
+                        '(b c)'		        :'States "b" and "c" entered (defaulting to the configured event type)',
+                    },
+                    types:
+                    {
+                        ':leave'		    :'Any state left',
+                        ':enter'		    :'Any state entered',
+                    },
+                    namespaced:
+                    {
+                        'state:add'		    :'A state was added',
+                        'state:remove'		:'A state was removed',
+                    },
+                    combinations:
+                    {
+                        'a:leave'		    :'State "a" left ',
+                        '(b c):leave'		:'States "b" and "c" left',
+                        'a@next'	    	:'Action "next" called on state "a"',
+                        '(a b)@next'		:'Action "next" called on states "a" and "b"',
+                    }
+                }
+            };
+
+            for(var namespace in handlers)
+            {
+                for(var group in handlers[namespace])
+                {
+                    label(namespace, group);
+                    for(var id in handlers[namespace][group])
+                    {
+                        add(namespace, id, handlers[namespace][group][id]);
+                    }
+                }
+            }
+
+        }());
+
+    </script>
+
+    <script title="handlers">
+
+        /**
+         * Demo event handlers
+         */
+        var handlers = {
+
+            checkboxes: {
+
+                system: function onSystem (event) {
+                    var message = event.value || '';
+                    log(event.namespace, event.type, message);
+                },
+
+                transition: function onTransition (event) {
+                    log(event.namespace, event.type);
+                },
+
+                action: function onAction (event) {
+                    log(event.namespace, event.type, event.target);
+                },
+
+                state: function onState (event) {
+                    log(event.namespace, event.type, event.target);
+                },
+
+                async: function async (event, fsm) {
+                    log(event.namespace, event.type, event.target);
+                    fsm.pause();
+                    setTimeout(fsm.resume.bind(fsm), 3000);
+                }
+
+            },
+
+            buttons: {
+
+                start: function onReset () {
+                    fsm.start();
+                },
+
+                reset: function onReset () {
+                    fsm.reset();
+                },
+
+                cancel: function onCancel () {
+                    fsm.cancel();
+                },
+
+                add: function onAdd () {
+                    if(!fsm.has('d'))
+                    {
+                        $('#d').show();
+                        fsm.add('next : c > d > a');
+                        fsm.add('back : c < d < a');
+                    }
+                },
+
+                remove: function onRemove () {
+                    if(fsm.has('d'))
+                    {
+                        $('#d').hide();
+                        fsm.remove('d');
+                        fsm.add('next : c > a');
+                        fsm.add('back : c < a');
+                        if(fsm.state === 'd')
+                        {
+                            fsm.go('c', true);
+                            helper.update();
+                        }
+                    }
+                },
+
+                async: function onRemove () {
+                    fsm.on('d');
+                    fsm.add('next : c > a');
+                }
+
+            }
+
+        };
+
+    </script>
+
+    <script title="ui">
+
+        function onHandlerClick (event) {
+
+            // variables
+            var signature   = event.target.value;
+            var type        = event.target.checked ? 'on' : 'off';
+            var method      = $(event.target).data('method');
+
+            // determine handler
+            var handler     = method
+                    ? handlers.checkboxes[method]
+                    : handlers.checkboxes[event.target.name];
+
+            // add or remove
+            fsm[type](signature, handler);
+        }
+
+        // Add or remove handler on checkbox toggle
+        $('input[type="checkbox"]')
+            .on('change', onHandlerClick)
+            .filter(':checked')
+            .trigger('change');
+
+        // Execute additional commands
+        $('button.extra').on('click', function (event) {
+            handlers.buttons[event.target.name]();
+        });
+
+    </script>
+
+    <script title="logging">
+
+        (function(window){
+
+            // variables
+            var index = 1;
+            var group = false;
+            var $log = $('#log');
+
+            // log function
+            window.log = function (namespace, type, message) {
+
+                // divider
+                if(group)
+                {
+                    $log.prepend('<hr>');
+                }
+
+                // log entry
+                message = message || '';
+                var className = namespace+ ' ' +namespace+ '-' +type;
+                var html =
+                [
+                    '<span class="index">' +(index++)+ '</span>',
+                    '<span class="event">' +namespace+ '.' +type+ '</span>',
+                    '<span class="message"> ' +message+ '</span>'
+                ];
+                $log.prepend('<p class="' +className+ '">' +html.join('')+'</p>');
+                group = false;
+            }
+
+            // Append a divider to the log on control click
+            $('#control-set button').on('mouseup', function () {
+                if($log[0].firstChild.tagName === 'P'){
+                    group = true;
+                }
+            });
+
+        }(window));
+
+    </script>
+</body>
+</html>

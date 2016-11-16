@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Interactive id tester</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <script src="/assets/vendor/bootstrap.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Interactive id tester</h1>
+
+    <main class="states">
+
+        <section id="app">
+
+            <div class="form-group">
+                <div class="input-group">
+                    <input id="id" type="text" placeholder="Type a valid event handler id here..." class="form-control input-md">
+
+                    <div class="input-group-btn">
+                        <button type="button"
+                                data-toggle="dropdown"
+                                class="btn btn-default dropdown-toggle"
+                                >Examples <span class="caret"></span></button>
+                        <ul id="examples" class="dropdown-menu dropdown-menu-right">
+                            <li><a href="#">a</a></li>
+                            <li><a href="#">a:leave</a></li>
+                            <li><a href="#">:leave</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">@next</a></li>
+                            <li><a href="#">@next:end</a></li>
+                            <li><a href="#" title="Special case: target an action on a state">a@next</a></li>
+                            <li><a href="#">:end</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">change</a></li>
+                            <li><a href="#">pause</a></li>
+                            <li><a href="#">transition:pause</a></li>
+                            <li><a href="#">action:add</a></li>
+                            <li><a href="#">state:remove</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">(a b)</a></li>
+                            <li><a href="#">(a b c)@next</a></li>
+                            <li><a href="#">(a b c)@(next back)</a></li>
+                            <li><a href="#">(pause resume)</a></li>
+                            <li><a href="#">(change pause a @next)</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">(x y)</a></li>
+                            <li><a href="#">won't work</a></li>
+                            <li><a href="#">action:blah</a></li>
+                            <li><a href="#">(won't.work nor.will.this)</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="errors" class="form-group">
+
+                <label class="radio-inline" style="padding-left: 0px">Invalid:</label>
+                <label class="radio-inline">
+                    <input type="radio" name="invalid" value="0" checked> Disallow
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="invalid" value="1"> Allow
+                </label>
+
+                <label class="radio-inline">Errors:</label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" value="0" checked> Quiet
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" value="1"> Warn
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="errors" value="2"> Error
+                </label>
+
+            </div>
+
+            <pre class="well well-sm" id="results">Awaiting input...</pre>
+
+        </section>
+
+        <section id="info">
+
+            <p>This page allows you to test out some event handler ids of your own. Type above or use the examples to test out some matches!</p>
+
+            <p>A StateMachine instance is instantiated with the following properties available:</p>
+            <ul>
+                <li>States: <code>a</code>, <code>b</code>, <code>c</code>, <code>d</code>, <code>e</code>, <code>exit</code></li>
+                <li>Actions: <code>back</code>, <code>next</code>, <code>quit</code></li>
+            </ul>
+
+            <p>The following grammar is available:</p>
+
+            <table class="table table-bordered table-striped indent">
+                <thead>
+                    <tr><th>Format</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>alias</code></td><td>Any single word that resolves to a namespaced type, state or action</td></tr>
+                    <tr><td><code>namespace:type</code></td><td>Absolute syntax for namespaced types</td></tr>
+                    <tr><td><code>:type</code></td><td>An event type, for action or state events</td></tr>
+                    <tr><td><code>@action</code></td><td>An action name</td></tr>
+                    <tr><td><code>#state</code></td><td>Alternative state name pattern</td></tr>
+                    <tr><td><code>(foo bar baz)</code></td><td>Grouping for multiple grammars, which are expanded to multiple paths</td></tr>
+                </tbody>
+            </table>
+
+            <p>The additional options allow yo to choose what to do with invalid states/actions or bad syntax, and are set in the config:</p>
+            <ul>
+                <li><code>invalid</code> - whether to add handlers for non-existing states or actions (states or actions which might be added later)</li>
+                <li><code>errors</code> - whether to quietly ignore, warn or throw errors for invalid handler id syntax</li>
+            </ul>
+            <p>Open the console, click warn or error, and enter some invalid states to see the result.</p>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        // ------------------------------------------------------------------------------------------------
+        // setup
+
+            var options =
+            {
+                id      : '',
+                invalid : false,
+                errors  : 0
+            };
+
+            var fsm = new StateMachine({
+
+                transitions: [
+                    'next : a > b > c > d > e',
+                    'back : a < b < c < d < e',
+                    'quit : a b c d e > exit'
+                ]
+
+            });
+
+            function update()
+            {
+                try
+                {
+                    // get results
+                    var results  = fsm.parse(options.id, options.invalid, options.error);
+                    results = results
+                        .map(function(result) {
+                            delete result.id;
+                            return result;
+                        });
+
+                    // show code
+                    var html = JSON.stringify(results, null, '    ');
+                    html = html
+                        .replace(/\\"/g, "'")
+                        .replace(/"/g, "")
+                        .replace(/'/g, '"')
+                        .replace(/,\n/g, "\n");
+                    $results.html(html);
+
+                    // save
+                    localStorage.handlerId = options.id;
+                }
+                catch(error)
+                {
+                    console.error(error.message);
+                    $results.html(error.message);
+                }
+            }
+
+
+        // ------------------------------------------------------------------------------------------------
+        // elements
+
+            var $results = $('#results');
+
+            var $id = $('#id')
+                .val(localStorage.handlerId || '')
+                .on('input', function (event) {
+                    options.id = event.target.value;
+                    update();
+                })
+                .trigger('input')
+                .focus();
+
+            $('#examples a')
+                .on('click', function(event)
+                {
+                    event.preventDefault();
+                    options.id = $(event.target).text();
+                    $id.val(options.id);
+                    update()
+                });
+
+            $('input[name="invalid"]')
+                .on('click', function(event)
+                {
+                    options.invalid = event.target.value == '1';
+                    update();
+                });
+
+            $('input[name="errors"]')
+                .on('click', function(event)
+                {
+                    options.error = parseInt(event.target.value);
+                    update();
+                });
+
+
+    </script>
+
+
+</body>
+</html>

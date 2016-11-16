@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Config methods</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Config methods</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <section id="info">
+        <p>This example demonstrates adding methods to the StateMachine via the <code>methods</code> block.</p>
+        <p>This allows you to mix-in additional methods to the StateMachine instance, which may be called directly from your handlers using <code>this.methodName()</code>.</p>
+        <p>Check the console to see the output of the utility method <code>log()</code> added to this instance.</p>
+    </section>
+
+    <script>
+
+        var config = {
+
+            transitions: [
+                'next : a > b > c',
+                'back : a < b < c'
+            ],
+
+            handlers: {
+                '@(next back)': function (event) {
+                    this.log(event);
+                }
+            },
+
+            methods: {
+                log: function (event) {
+                    console.info('Logging event "' +event.target+ '" :', event);
+                }
+            }
+
+        };
+
+        var fsm = setup(new StateMachine(config)).fsm;
+
+    </script>
+</body>
+</html>

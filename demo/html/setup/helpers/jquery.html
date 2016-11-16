@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>jQuery Helper</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <h1>jQuery Helper</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article id="a">State A</article>
+            <article id="b">State B</article>
+            <article id="c">State C</article>
+        </section>
+
+        <section id="controls">
+            <button class="btn btn-sm" name="back">Back</button>
+            <button class="btn btn-sm" name="next">Next</button>
+        </section>
+
+    </main>
+
+    <script>
+
+        // create state machine
+        var fsm = new StateMachine({
+            transitions: [
+                'next : a > b > c',
+                'back : a < b < c'
+            ]
+        });
+
+        // helper function to listen to events and update ui
+        var helper = StateHelper.jQuery(fsm);
+
+    </script>
+
+    <section id="info">
+        <p>The <code>StateHelper.jQuery()</code> method returns a <code>jQueryHelper</code> instance which wires up elements to respond correctly to state updates. It is used throughout this demo as the standard way to visually interact with StateMachine.</p>
+        <p>The syntax to set up the helper is:</p>
+
+        <pre>var helper = StateHelper.jQuery(fsm, states, controls, state, control);</pre>
+        <p>In the code above, <code>states</code> and <code>controls</code> are the container selectors to find child states and controls. They default to <code>#states</code> and <code>#controls</code>, so if you stick to those ids in your markup, and mark up your states with <code>id</code>s and your controls with <code>name</code>s, you will only need to call <code>StateHelper.jQuery(fsm)</code>to get StateMachine running.</p>
+        <p>In order to have <code>StateMachine</code> determine child elements, you can either accept the default child selectors <code>[id]</code> and <code>[name]</code> or provide your own. These should be selectors that will pick up child elements via a jQuery <code>find()</code>.</p>
+        <p>The helper instance wires elements on construction, but has an additional <code>update()</code> method should you need to manually update the UI, perhaps after a render.</p>
+        <p>View the source of this page to see more, and the actual JavaScript code of the StateHelper to see how things are wired together.</p>
+    </section>
+
+</body>
+</html>

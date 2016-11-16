@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Vue reactive state</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+
+    <!-- libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+
+    <!-- styles -->
+    <style type="text/css">
+
+        main.states article {
+            border:none !important;
+        }
+
+        main.states article.active {
+            background-color:#333;
+            color:#FFF;
+        }
+
+        main.states article.available {
+            color:red;
+        }
+
+        .paused {
+            opacity:0.5;
+        }
+
+        #data {
+            max-width:760px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Vue reactive state</h1>
+
+    <main class="states">
+
+        <section id="states" :data-state="state.name" :class="{paused:state.paused}">
+            <article :class="{active:state.is.a, available:state.states.a}">State A</article>
+            <article :class="{active:state.is.b, available:state.states.b}">State B</article>
+            <article :class="{active:state.is.c, available:state.states.c}">State C</article>
+            <article :class="{active:state.is.d, available:state.states.d}">State D<br>(asynchronous)</article>
+            <article :class="{active:state.is.e, available:state.states.e}">State E</article>
+        </section>
+
+        <section id="controls">
+            <fieldset :disabled="state.paused">
+                <button v-on:click="navigate" :disabled="!state.actions.back" class="btn btn-sm" name="back">Back</button>
+                <button v-on:click="navigate" :disabled="!state.actions.next" class="btn btn-sm" name="next">Next</button>
+            </fieldset>
+        </section>
+
+
+        <section id="info">
+            <p>Vue's <a href="https://vuejs.org/v2/guide/reactivity.html">reactivity system</a> works fundamentally differently to JavaScript's event system so uses a helper class to bridge the gap.</p>
+            <p>This example uses StateMachine and StateHelper to show how your Vue JS apps can benefit from state management:</p>
+            <ul>
+                <li><code>StateMachine</code> sets up your navigation constraints</li>
+                <li><code>StateHelper</code> makes changes available as properties which Vue can hook into</li>
+            </ul>
+
+            <p>If you look at the JavaScript, you'll see the following line:</p>
+            <pre>this.state = StateMachine.helper(this.fsm).data</pre>
+            <p>This creates the helper and immediately shares its <code>data</code> property to application's <code>state</code> property:</p>
+            <pre id="data">{{ $data.state }}</pre>
+            <p>If you look at the rest of the code, there is very little JavaScript needed, with all of the below driven by changes in <code>app.state</code>:</p>
+            <ul>
+                <li>The active view class, based on the <code>is.&lt;state&gt;</code> property</li>
+                <li>The available view classes, based on the <code>states</code> property (not really needed, but included for completeness)</li>
+                <li>The buttons enabled/disabled state, based on the <code>actions</code> property</li>
+                <li>The disabled state of the app, based on the <code>paused</code> property</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <script title="app">
+        var app = new Vue(
+        {
+            el:'main',
+
+            data: {
+                state   : null
+            },
+
+            created:function()
+            {
+                // create state machine
+                this.fsm = StateMachine.create({
+                    transitions: [
+                        'next :  a > b > c > d > e',
+                        'back :  a < b < c < d < e'
+                    ],
+
+                    handlers: {
+                        'c@next': this.pause
+                    }
+                });
+
+                // create and assign state helper object / data to application state
+                this.state = StateHelper.object(this.fsm).data;
+            },
+
+            methods:
+            {
+                navigate: function(event)
+                {
+                    this.fsm.do(event.target.name);
+                },
+
+                pause: function()
+                {
+                    this.fsm.pause();
+                    setTimeout(this.resume, 2000);
+                },
+
+                resume: function()
+                {
+                    this.fsm.resume();
+                }
+
+            },
+
+            filters: { json:function(data){ return JSON.stringify(data); } }
+
+        });
+
+    </script>
+
+</body>
+</html>

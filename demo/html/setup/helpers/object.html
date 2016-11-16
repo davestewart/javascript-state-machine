@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Object helper</title>
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <link  href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+    <link  href="/assets/css/styles.css" rel="stylesheet">
+
+    <!-- libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+</head>
+<body>
+
+    <h1>Object helper</h1>
+
+    <main class="states">
+
+        <section id="states">
+            <article :class="{active:state.is.a}">State A</article>
+            <article :class="{active:state.is.b}">State B</article>
+            <article :class="{active:state.is.c}">State C</article>
+        </section>
+
+        <section id="controls">
+            <fieldset :disabled="state.paused">
+                <button v-on:click="navigate" :disabled="!state.actions.back" class="btn btn-sm" name="back">Back</button>
+                <button v-on:click="navigate" :disabled="!state.actions.next" class="btn btn-sm" name="next">Next</button>
+            </fieldset>
+        </section>
+
+
+        <section id="info">
+            <p>The <code>StateHelper.object()</code> method returns a <code>ObjectHelper</code> instance which has a constantly-updated <code>data</code> property that can be watched in frameworks like <a href="https://vuejs.org/v2/guide/reactivity.html">Vue</a> or <a
+                    href="https://docs.angularjs.org/guide/scope">Angular</a>.</p>
+            <p>The syntax to obtain the data object is as follows:</p>
+
+            <pre>var helper = StateHelper.object(fsm);
+var data = helper.data;</pre>
+            <p>Once you have your data object, you can pass it to whatever part of your app you need to have it watched for changes and update your UI.</p>
+            <p>See the <a href="../../examples/vue/vue-reactive.html">Vue</a> example for a much more detailed example, with:</p>
+            <ul>
+                <li>live output of the data object</li>
+                <li>more advanced examples of wiring properties to HTML</li>
+                <li>hooks into asynchronous transitions</li>
+                <li>pausing and resuming</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <script title="app">
+        var app = new Vue(
+        {
+            el:'main',
+
+            data: {
+                state   : null
+            },
+
+            created:function()
+            {
+                // create state machine
+                this.fsm = StateMachine.create({
+                    transitions: [
+                        'next :  a > b > c',
+                        'back :  a < b < c'
+                    ]
+                });
+
+                // create and assign state helper object / data to application state
+                this.state = StateHelper.object(this.fsm).data;
+            },
+
+            methods:
+            {
+                navigate: function(event)
+                {
+                    this.fsm.do(event.target.name);
+                }
+            }
+
+        });
+
+    </script>
+</body>
+</html>
