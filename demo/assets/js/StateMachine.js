@@ -60,23 +60,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	
-	var _HandlerMap = __webpack_require__(5);
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	
+	var _Config = __webpack_require__(5);
+	
+	var _Config2 = _interopRequireDefault(_Config);
+	
+	var _HandlerMap = __webpack_require__(6);
 	
 	var _HandlerMap2 = _interopRequireDefault(_HandlerMap);
 	
-	var _TransitionMap = __webpack_require__(12);
+	var _TransitionMap = __webpack_require__(15);
 	
 	var _TransitionMap2 = _interopRequireDefault(_TransitionMap);
 	
-	var _Transition = __webpack_require__(15);
+	var _Transition = __webpack_require__(18);
 	
 	var _Transition2 = _interopRequireDefault(_Transition);
 	
 	var _utils = __webpack_require__(2);
-	
-	var _Config = __webpack_require__(16);
-	
-	var _Config2 = _interopRequireDefault(_Config);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -88,7 +90,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function StateMachine(options) {
 	    this.transitions = new _TransitionMap2.default();
-	    this.handlers = new _HandlerMap2.default();
+	    this.handlers = new _HandlerMap2.default(this);
 	    this.initialize(options);
 	}
 	
@@ -104,7 +106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * - back | next | restart | finish
 	 */
 	StateMachine.prototype = {
-	    // ------------------------------------------------------------------------------------------------
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // properties
 	
 	    /**
@@ -142,7 +144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    state: '',
 	
-	    // ------------------------------------------------------------------------------------------------
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // private methods
 	
 	    /**
@@ -181,9 +183,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // add handlers
 	        if (options.handlers) {
-	            for (var name in options.handlers) {
-	                if (options.handlers.hasOwnProperty(name)) {
-	                    this.on(name, options.handlers[name]);
+	            for (var _name in options.handlers) {
+	                if (options.handlers.hasOwnProperty(_name)) {
+	                    this.on(_name, options.handlers[_name]);
+	                }
+	            }
+	        }
+	
+	        // add methods
+	        if (options.methods) {
+	            if (!this.config.scope) {
+	                this.config.scope = this;
+	            }
+	            for (var name in options.methods) {
+	                if (options.methods.hasOwnProperty(name) && !this.hasOwnProperty(name)) {
+	                    this[name] = options.methods[name];
 	                }
 	            }
 	        }
@@ -199,12 +213,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    start: function start() {
 	        this.state = this.config.initial;
-	        this.handlers.update('system', 'start');
-	        this.handlers.update('system', 'change', 'state', this.state);
+	        this.handlers.trigger('system.start');
+	        this.handlers.trigger('system.change', this.state);
 	        return this;
 	    },
 	
-	    // ------------------------------------------------------------------------------------------------
+	    /**
+	     * Reset the FSM to the initial, or supplied, state
+	     *
+	     * @returns {StateMachine}
+	     */
+	    reset: function reset() {
+	        var initial = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+	
+	        var state = initial || this.config.initial;
+	        this.handlers.trigger('system.reset');
+	        if (this.transition) {
+	            this.transition.cancel();
+	            delete this.transition;
+	        }
+	        if (this.state !== state) {
+	            this.state = state;
+	            this.handlers.trigger('system.change', this.state);
+	        }
+	        return this;
+	    },
+	
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // api
 	
 	    /**
@@ -221,9 +256,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	
 	            this.transition = _Transition2.default.create(this, action, rest);
-	            if (action === this.config.defaults.initialize) {
-	                this.handlers.update('system', 'initialize');
-	            }
 	            this.transition.exec();
 	            return true;
 	        }
@@ -244,36 +276,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        if (this.has(state)) {
 	            if (force) {
-	                unpause(this);
+	                if (this.transition) {
+	                    this.transition.clear();
+	                }
 	                this.transition = _Transition2.default.force(this, state);
 	                return this.end();
 	            }
-	            var action = this.transitions.getActionTo(this.state, state);
+	            var action = this.transitions.getActionFor(this.state, state);
 	            if (action) {
 	                return this.do(action);
 	            }
-	            this.config.debug && console.warn('No transition exists from "%s" to "%s"', this.state, state);
+	            this.config.errors > 0 && console.warn('No transition exists from "%s" to "%s"', this.state, state);
+	            return false;
 	        }
+	        this.config.errors > 0 && console.warn('No such state "%s"', state);
 	        return false;
 	    },
 	
 	    /**
-	     * Query a transition to see if a named action is available
+	     * Query transition map to see if a named action is available
 	     *
 	     * @param   {string}        action
 	     * @returns {boolean}
 	     */
 	    canDo: function canDo(action) {
-	        return this.transitions.has(this.state, action);
+	        return this.transitions.getActionsFrom(this.state).indexOf(action) !== -1;
 	    },
 	
 	    /**
+	     * Query transition map to see if a state is available to go to
 	     *
 	     * @param to
 	     * @return {boolean}
 	     */
 	    canGo: function canGo(to) {
-	        return this.transitions.getActionTo(this.state, to) !== null;
+	        return this.transitions.getActionFor(this.state, to) !== null;
 	    },
 	
 	    /**
@@ -283,11 +320,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @return  {boolean}
 	     */
 	    has: function has(state) {
-	        if (!this.transitions.hasState(state)) {
-	            this.config.debug && console.warn('No such state "%s"', state);
-	            return false;
-	        }
-	        return true;
+	        return this.transitions.hasState(state);
 	    },
 	
 	    /**
@@ -300,7 +333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return state === this.state;
 	    },
 	
-	    // ------------------------------------------------------------------------------------------------
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // flags
 	
 	    /**
@@ -339,7 +372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return this.state === this.config.final;
 	    },
 	
-	    // ------------------------------------------------------------------------------------------------
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // transitions
 	
 	    /**
@@ -350,7 +383,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    pause: function pause() {
 	        if (this.transition && !this.isPaused()) {
 	            this.transition.pause();
-	            this.handlers.update('transition', 'pause');
 	        }
 	        return this;
 	    },
@@ -362,7 +394,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    resume: function resume() {
 	        if (this.transition && this.isPaused()) {
-	            unpause(this);
 	            this.transition.resume();
 	        }
 	        return this;
@@ -375,11 +406,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    cancel: function cancel() {
 	        if (this.transition) {
-	            unpause(this);
 	            this.state = this.transition.from;
-	            this.transition.clear();
+	            this.transition.cancel();
 	            delete this.transition;
-	            this.handlers.update('transition', 'cancel');
 	        }
 	        return this;
 	    },
@@ -391,42 +420,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    end: function end() {
 	        if (this.transition) {
-	            unpause(this);
 	            this.state = this.transition.to;
 	            this.transition.clear();
 	            delete this.transition;
-	            this.handlers.update('system', 'change', 'state', this.state);
+	            this.handlers.trigger('system.change', this.state);
 	            if (this.isComplete()) {
-	                this.handlers.update('system', 'complete');
+	                this.handlers.trigger('system.complete');
 	            }
 	        }
 	        return this;
 	    },
 	
-	    /**
-	     * Reset the FSM to the initial, or supplied, state
-	     *
-	     * @returns {StateMachine}
-	     */
-	    reset: function reset() {
-	        var initial = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-	
-	        var state = initial || this.config.initial;
-	        this.handlers.update('system', 'reset');
-	        if (this.transition) {
-	            unpause(this);
-	            this.transition.clear();
-	            delete this.transition;
-	            this.handlers.update('transition', 'cancel');
-	        }
-	        if (this.state !== state) {
-	            this.state = state;
-	            this.handlers.update('system', 'change', 'state', this.state);
-	        }
-	        return this;
-	    },
-	
-	    // ------------------------------------------------------------------------------------------------
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // actions
 	
 	    /**
@@ -442,7 +447,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // 1 argument: shorthand transition, i.e 'next : a > b'
 	        if (arguments.length === 1) {
-	            var transitions = parseTransition(action);
+	            var transitions = this.transitions.parse(action);
 	            transitions.map(function (tx) {
 	                return _this2.add(tx.action, tx.from, tx.to);
 	            });
@@ -450,9 +455,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        // 3 arguments: longhand transition
-	        this.transitions.add(action, from, to);
-	        var states = this.transitions.getStates();
-	        this.handlers.update('system', 'add', 'states', states);
+	        updateTransitions(this, 'add', function () {
+	            return _this2.transitions.add(action, from, to);
+	        });
 	        return this;
 	    },
 	
@@ -463,33 +468,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @return  {StateMachine}
 	     */
 	    remove: function remove(state) {
+	        var _this3 = this;
+	
 	        this.handlers.remove('state.' + state);
-	        this.transitions.remove(state);
-	        var states = this.transitions.getStates();
-	        this.handlers.update('system', 'remove', 'states', states);
+	        updateTransitions(this, 'remove', function () {
+	            return _this3.transitions.remove(state);
+	        });
 	        return this;
 	    },
 	
-	    // ------------------------------------------------------------------------------------------------
+	    // -----------------------------------------------------------------------------------------------------------------
 	    // handlers
 	
 	    /**
 	     * Add an event handler
 	     *
-	     * Event handler signatures are build from the following grammar:
+	     * Event handler signatures are built from the following grammar:
 	     *
 	     * - token      foo
 	     * - property   .foo
 	     * - event      :foo
 	     * - action     @foo
-	     * - targets    (foo|bar|baz)
+	     * - targets    (foo bar baz)
 	     *
 	     * For example:
 	     *
 	     * - change
 	     * - transition.pause
 	     * - next:end
-	     * - (a|b)@next
+	     * - (a b)@next
 	     * - a@next
 	     *
 	     * The main event types are unique, so can be used without the namespace:
@@ -508,73 +515,117 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @return  {StateMachine}
 	     */
 	    on: function on(id, fn) {
-	        var _this3 = this;
+	        var _this4 = this;
 	
-	        // pre-parse handler
-	        id = (0, _utils.trim)(id);
-	
-	        // pre-process multiple event handlers
-	        if (id.indexOf('|') > -1) {
-	            var ids = id.split('|').map(function (id) {
-	                return (0, _utils.trim)(id);
-	            }).filter(function (id) {
-	                return id !== '';
-	            });
-	            if (ids.length) {
-	                ids.map(function (id) {
-	                    return _this3.on(id, fn);
-	                });
-	            }
-	            return this;
-	        }
-	
-	        /** @var {HandlerMeta} */
-	        var result = this.handlers.parse(id, this);
-	
-	        if (this.config.debug) {
-	            console.log('StateMachine on: ' + id, [result.namespace, result.type], result.paths);
-	        }
-	
-	        // process handlers
-	        result.paths.map(function (path, index) {
-	            var target = result.targets[index];
-	
-	            // warn for invalid actions / states
-	            if (target !== '*') {
-	                if (result.namespace === 'state') {
-	                    if (!_this3.transitions.hasState(target)) {
-	                        _this3.config.debug && console.warn('StateMachine: Warning assigning state.%s handler; no such state "%s"', result.type, target);
-	                    }
-	                } else if (result.namespace === 'action') {
-	                    if (!_this3.transitions.hasAction(target)) {
-	                        _this3.config.debug && console.warn('StateMachine: Warning assigning action.%s handler; no such action "%s"', result.type, target);
-	                    }
-	                }
-	            }
-	
-	            // assign
-	            _this3.handlers.add(path, fn);
+	        this.parse(id, this.config.invalid, this.config.errors).forEach(function (meta) {
+	            return _this4.handlers.add(meta.path, fn);
 	        });
-	
 	        return this;
 	    },
 	
 	    off: function off(id, fn) {
-	        var _this4 = this;
+	        var _this5 = this;
 	
-	        var result = this.handlers.parse(id, this);
-	        result.paths.map(function (path) {
-	            _this4.handlers.remove(path, fn);
+	        this.parse(id, this.config.invalid, this.config.errors).forEach(function (meta) {
+	            return _this5.handlers.remove(meta.path, fn);
+	        });
+	        return this;
+	    },
+	
+	    // -----------------------------------------------------------------------------------------------------------------
+	    // utilities
+	
+	    /**
+	     * Parses a handler id string into HandlerMeta objects
+	     *
+	     * @param   {string}    id
+	     * @param   {boolean}   invalid
+	     * @param   {number}    errors
+	     * @returns {HandlerMeta[]}
+	     */
+	    parse: function parse(id) {
+	        var _this6 = this;
+	
+	        var invalid = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+	        var errors = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+	
+	        return this.handlers.parse(id).filter(function (result) {
+	            // picks up unrecognised handlers, namespaces, etc
+	            if (result instanceof Error) {
+	                if (errors == 2) {
+	                    throw result;
+	                }
+	                errors == 1 && console.warn(result.message);
+	                return false;
+	            }
+	
+	            // picks up unrecognised states and actions
+	            if (result.target !== '*') {
+	                var error = '';
+	
+	                if (result.namespace === 'state') {
+	                    if (!_this6.transitions.hasState(result.target)) {
+	                        error = 'Unrecognised state "' + result.target + '" in handler "' + result.id + '"';
+	                    }
+	                } else if (result.namespace === 'action') {
+	                    if (!_this6.transitions.hasAction(result.target)) {
+	                        error = 'Unrecognised action "' + result.target + '" in handler "' + result.id + '"';
+	                    }
+	                } else if (result.namespace === 'state/action') {
+	                    // variables
+	                    var _result$target$split = result.target.split('@');
+	
+	                    var _result$target$split2 = _slicedToArray(_result$target$split, 2);
+	
+	                    var state = _result$target$split2[0];
+	                    var action = _result$target$split2[1];
+	
+	                    // test for state and action
+	
+	                    if (!_this6.transitions.hasState(state)) {
+	                        error = 'Unrecognised state "' + state + '" in handler "' + result.id + '"';
+	                    }
+	                    if (!_this6.transitions.hasAction(action)) {
+	                        error = 'Unrecognised action "' + action + '" in handler "' + result.id + '"';
+	                    }
+	                }
+	
+	                // if we have an error, the result was not an existing state or action
+	                if (error) {
+	                    if (errors == 2) {
+	                        throw new Error(error);
+	                    }
+	                    errors == 1 && console.warn(error);
+	                    return !!invalid;
+	                }
+	            }
+	
+	            // must be valid
+	            return true;
 	        });
 	    },
 	
-	    parse: function parse(id) {
-	        return this.handlers.parse(id, this);
+	    trigger: function trigger(id) {
+	        var _this7 = this;
+	
+	        for (var _len2 = arguments.length, rest = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+	            rest[_key2 - 1] = arguments[_key2];
+	        }
+	
+	        this.handlers.parse(id).map(function (meta) {
+	            return _this7.handlers.trigger.apply(_this7.handlers, [meta.path].concat(rest));
+	        });
+	        return this;
 	    }
 	
 	};
 	
 	StateMachine.prototype.constructor = StateMachine;
+	
+	exports.default = StateMachine;
+	
+	// ---------------------------------------------------------------------------------------------------------------------
+	// static methods
 	
 	/**
 	 * Factory method
@@ -582,18 +633,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param   options
 	 * @returns {StateMachine}
 	 */
+	
 	StateMachine.create = function (options) {
 	    return new StateMachine(options);
 	};
 	
-	exports.default = StateMachine;
+	/**
+	 * Gets the default order events should be called in
+	 * @returns {string[]}
+	 */
+	StateMachine.getDefaultOrder = function () {
+	    return ['action.*.start', 'action.{action}.start', 'state.*.{action}', 'state.{from}.{action}', 'state.{from}.leave', 'state.*.leave', 'state.*.enter', 'state.{to}.enter', 'action.{action}.end', 'action.*.end'];
+	};
 	
+	// ---------------------------------------------------------------------------------------------------------------------
+	// helper functions
 	
-	function unpause(fsm) {
-	    if (fsm.isPaused()) {
-	        fsm.transition.paused = false;
-	        fsm.handlers.update('transition', 'resume');
-	    }
+	/**
+	 * Utility method to update transitions and dispatch events
+	 *
+	 * Saves duplicating the following code in both add() and remove() methods
+	 *
+	 * @param   {StateMachine}  fsm
+	 * @param   {string}        method
+	 * @param   {Function}      callback
+	 */
+	function updateTransitions(fsm, method, callback) {
+	    var statesBefore = fsm.transitions.getStates();
+	    var actionsBefore = fsm.transitions.getActions();
+	    callback();
+	    var statesAfter = fsm.transitions.getStates();
+	    var actionsAfter = fsm.transitions.getActions();
+	
+	    // calculate differences
+	    var states = (0, _utils.diff)(statesBefore, statesAfter);
+	    var actions = (0, _utils.diff)(actionsBefore, actionsAfter);
+	
+	    // dispatch events
+	    states.map(function (state) {
+	        return fsm.handlers.trigger('system.state.' + method, state);
+	    });
+	    actions.map(function (action) {
+	        return fsm.handlers.trigger('system.action.' + method, action);
+	    });
 	}
 
 /***/ },
@@ -613,6 +695,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.isDefined = isDefined;
 	exports.isUndefined = isUndefined;
 	exports.trim = trim;
+	exports.diff = diff;
 	exports.toHash = toHash;
 	function isObject(value) {
 	    return Object.prototype.toString.call(value) === '[object Object]';
@@ -642,6 +725,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return String(value || '').replace(/^\s+|\s+$/g, '');
 	}
 	
+	function diff(a, b) {
+	    var da = b.filter(function (v) {
+	        return a.indexOf(v) < 0;
+	    });
+	    var db = a.filter(function (v) {
+	        return b.indexOf(v) < 0;
+	    });
+	    return db.concat(da);
+	}
+	
 	function toHash(values) {
 	    return values.reduce(function (obj, value) {
 	        obj[value] = true;
@@ -653,6 +746,106 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 3 */,
 /* 4 */,
 /* 5 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = Config;
+	function Config(options) {
+	  var _this = this;
+	
+	  'scope start initial final invalid errors'.match(/\w+/g).map(function (name) {
+	    if (options.hasOwnProperty(name)) {
+	      _this[name] = options[name];
+	    }
+	  });
+	
+	  // order
+	  this.order = options.order || StateMachine.getDefaultOrder();
+	
+	  // defaults
+	  this.defaults = Object.assign({
+	
+	    // allow user to specify alternate triggers for event and action ids
+	    action: 'start',
+	    state: 'enter'
+	
+	  }, options.defaults);
+	}
+	
+	Config.prototype = {
+	  /**
+	   * An optional scope to run handler functions in
+	   *
+	   * @var object
+	   */
+	  scope: null,
+	
+	  /**
+	   * A boolean to automatically start the state machine in the initial state
+	   *
+	   * @var boolean
+	   */
+	  start: true,
+	
+	  /**
+	   * A string to indicate which state to start on; defaults to ''
+	   *
+	   * @var string
+	   */
+	  initial: '',
+	
+	  /**
+	   * A string indicating the state to trigger a complete event; defaults to ''
+	   *
+	   * @var string
+	   */
+	  final: '',
+	
+	  /**
+	   * A boolean to allow non-existent states and actions to be added to the handlers object; defaults to false (disallow)
+	   *
+	   * @var boolean
+	   */
+	  invalid: false,
+	
+	  /**
+	   * A number indicating how to handle invalid or erroneous actions; defaults to 1 (warn)
+	   *
+	   *  - 0 : quiet
+	   *  - 1 : console.warn()
+	   *  - 2 : throw an error
+	   *
+	   * @var number
+	   */
+	  errors: 1,
+	
+	  /**
+	   * The order to run transition callbacks in
+	   *
+	   * @type {string[]} type.target
+	   */
+	  order: null,
+	
+	  /**
+	   * Sets defaults for various declarations
+	   *
+	   * Available options are:
+	   *
+	   * - action: (start|end)
+	   * - state: (enter|leave)
+	   *
+	   * @type {Object}
+	   */
+	  defaults: null
+	
+	};
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -661,25 +854,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	
-	var _ValueMap = __webpack_require__(6);
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	
+	var _ValueMap = __webpack_require__(7);
 	
 	var _ValueMap2 = _interopRequireDefault(_ValueMap);
 	
-	var _events = __webpack_require__(7);
+	var _events = __webpack_require__(8);
 	
 	var _utils = __webpack_require__(2);
 	
-	var _HandlerParser = __webpack_require__(8);
+	var _HandlerParser = __webpack_require__(9);
 	
 	var _HandlerParser2 = _interopRequireDefault(_HandlerParser);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function HandlerMap() {
+	function HandlerMap(fsm) {
+	    this.fsm = fsm;
 	    this.map = new _ValueMap2.default();
 	}
 	
 	HandlerMap.prototype = {
+	
+	    fsm: null,
 	
 	    map: null,
 	
@@ -687,11 +885,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * Parse event handler grammar into a HandlerMeta structure
 	     *
 	     * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
-	     * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
-	     * @returns {HandlerMeta}
+	     * @returns {HandlerMeta[]}
 	     */
-	    parse: function parse(id, fsm) {
-	        return (0, _HandlerParser2.default)(id, fsm);
+	    parse: function parse(id) {
+	        return (0, _HandlerParser2.default)(id, this.fsm.config.defaults);
 	    },
 	
 	    /**
@@ -714,11 +911,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     * Directly remove a handler target
 	     *
-	     * @param   {string}    path    A 'namespace.target.type' target to be removed
+	     * @param   {string}    path    A 'namespace.target.type' parent to a handler removed from
+	     * @param   {Function}  fn      The instance of the callback function
 	     * @returns {HandlerMap}
 	     */
-	    remove: function remove(path) {
-	        this.map.remove(path);
+	    remove: function remove(path, fn) {
+	        this.map.remove(path, fn);
 	        return this;
 	    },
 	
@@ -735,29 +933,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     * Dispatch an event
 	     *
-	     * @param   {string}    namespace
-	     * @param   {string}    type
-	     * @param   {string}    key
+	     * @param   {string}    path
 	     * @param   {*}         value
 	     * @returns {StateMachine}
 	     */
-	    update: function update(namespace, type) {
+	    trigger: function trigger(path) {
 	        var _this = this;
 	
-	        var key = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-	        var value = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+	        var value = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 	
 	        // create lookup path
-	        var path = namespace + '.' + type;
+	        var _path$match = path.match(/\w+/g);
+	
+	        var _path$match2 = _slicedToArray(_path$match, 3);
+	
+	        var namespace = _path$match2[0];
+	        var type = _path$match2[1];
+	        var method = _path$match2[2];
 	
 	        // build event
-	        var event = namespace === 'system' ? new _events.SystemEvent(type, key, value) : new _events.TransitionEvent(type);
+	
+	        var event = void 0;
+	        if (/^system\.(state|action)\./.test(path)) {
+	            event = type === 'state' ? new _events.StateEvent(method, value) : new _events.ActionEvent(method, value);
+	        } else {
+	            event = namespace === 'system' ? new _events.SystemEvent(type, value) : new _events.TransitionEvent(type);
+	        }
 	
 	        // dispatch
 	        var handlers = this.map.get(path);
 	        if (handlers) {
 	            handlers.map(function (fn) {
-	                return fn(event, _this);
+	                return fn(event, _this.fsm);
 	            });
 	        }
 	    }
@@ -767,7 +974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HandlerMap;
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -964,7 +1171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.values = _values;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1019,16 +1226,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	// ------------------------------------------------------------------------------------------------
 	// SystemEvent
 	
-	function SystemEvent(type, key, value) {
+	function SystemEvent(type, value) {
 	    this.type = type;
-	    this.key = key;
 	    this.value = value;
 	}
 	
 	SystemEvent.prototype = {
 	    namespace: 'system',
 	    type: '',
-	    key: '',
 	    value: null
 	};
 	
@@ -1045,7 +1250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1055,28 +1260,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.default = parse;
 	
-	var _HandlerMeta = __webpack_require__(9);
+	var _HandlerMeta = __webpack_require__(10);
 	
 	var _HandlerMeta2 = _interopRequireDefault(_HandlerMeta);
-	
-	var _errors = __webpack_require__(10);
 	
 	var _Lexer = __webpack_require__(11);
 	
 	var _Lexer2 = _interopRequireDefault(_Lexer);
+	
+	var _utils = __webpack_require__(2);
+	
+	var _errors = __webpack_require__(14);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	// ------------------------------------------------------------------------------------------------
 	// functions
 	
-	function isNamespace(token) {
-	    return (/^(system|transition|action|state)$/.test(token)
-	    );
-	}
-	
 	function isSystem(token) {
-	    return (/^(add|remove|start|change|update|complete|reset)$/.test(token)
+	    return (/^(start|change|complete|reset)$/.test(token)
 	    );
 	}
 	
@@ -1085,221 +1287,189 @@ return /******/ (function(modules) { // webpackBootstrap
 	    );
 	}
 	
-	function isAction(token, fsm) {
-	    return fsm.transitions.hasAction(token);
+	function expandGroups(input) {
+	    var rx = /\((.+?)\)/;
+	    var matches = input.match(rx);
+	    if (matches) {
+	        var group = matches[0];
+	        var items = matches[1].match(/\S+/g);
+	        if (items) {
+	            items = items.map(function (item) {
+	                return input.replace(group, item);
+	            });
+	            if (rx.test(items[0])) {
+	                return items.reduce(function (output, input) {
+	                    return output.concat(expandGroups(input));
+	                }, []);
+	            }
+	            return items;
+	        }
+	    }
+	    return [input];
 	}
 	
-	function isState(token, fsm) {
-	    return fsm.transitions.hasState(token);
+	function addPath(path, namespace, target) {
+	    results.push(new _HandlerMeta2.default(_id, path, namespace, target));
+	    return true;
 	}
 	
-	function getNamespace(token) {
-	    return isSystem(token) ? 'system' : isTransition(token) ? 'transition' : null;
-	}
-	
-	function getEventNamespace(token) {
-	    return (/^(enter|leave)$/.test(token) ? 'state' : /^(start|end)$/.test(token) ? 'action' : null
-	    );
+	function addError(message, path) {
+	    var error = new _errors.ParseError(message, path, _id);
+	    results.push(error);
+	    return false;
 	}
 	
 	// ------------------------------------------------------------------------------------------------
 	// export
 	
 	/**
-	 * Parses event handler id into HandlerMeta instance
+	 * Parses event handler id into a HandlerMeta results containing handler paths
 	 *
-	 * @param   {string}        id      The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
-	 * @param   {StateMachine}  fsm     A StateMachine instance to test for states and actions
-	 * @return  {HandlerMeta}
+	 * @param   {string}    id          The handler id to parse, i.e. '@next', 'intro:end', 'change', etc
+	 * @param   {Object}    defaults     A StateMachine instance to test for states and actions
+	 * @return  {HandlerMeta[]}
 	 */
-	function parse(id, fsm) {
-	    return parser.parse(id, fsm);
+	function parse(id, defaults) {
+	    // pre-parse handler
+	    id = (0, _utils.trim)(id);
+	
+	    // objects
+	    _id = id;
+	    _defaults = defaults;
+	    results = [];
+	
+	    // parse
+	    parser.parse(id, defaults);
+	
+	    // return
+	    return results;
 	}
 	
 	// ------------------------------------------------------------------------------------------------
 	// objects
 	
-	var lexer = new _Lexer2.default({
-	    targets: /\.?\((.+?)\)/,
-	    property: /\.(\w+)/,
-	    action: /@(\w+)/,
-	    event: /:(\w+)/,
-	    word: /(\w+)/
-	});
+	var results = void 0,
+	    _defaults = void 0,
+	    _id = void 0;
+	
+	var patterns = {
+	    // start pause intro
+	    alias: /^(\w+)$/,
+	
+	    // system.start state.add
+	    namespaced: /^(system|transition|state|action):(\w+)$/,
+	
+	    // @next @quit
+	    oneAction: /^@(\w+)$/,
+	
+	    // @next:start @next:end
+	    oneActionEvent: /^@(\w+):(start|end)$/,
+	
+	    // :start :end
+	    anyActionEvent: /^:(start|end)$/,
+	
+	    // intro form
+	    oneState: /^#(\w+)$/,
+	
+	    // intro:enter intro:leave
+	    oneStateEvent: /^#?(\w+):(leave|enter)$/,
+	
+	    // :enter :leave
+	    anyStateEvent: /^:(enter|leave)$/,
+	
+	    // intro@next
+	    oneStateAction: /^#?(\w+)@(\w+)$/
+	};
+	
+	var lexer = new _Lexer2.default(patterns);
 	
 	var parser = {
-	    result: null,
-	
 	    /**
 	     * Parses event handler id into HandlerMeta instance
 	     *
 	     * Resolving namespace, type and target properties
 	     *
 	     * @param   {string}        id
-	     * @param   {StateMachine}  fsm
-	     * @return  {HandlerMeta}
+	     * @param   {Object}        defaults
 	     */
-	    parse: function parse(id, fsm) {
+	    parse: function parse(id, defaults) {
 	        var _this = this;
 	
-	        // variables
-	        var defaults = fsm.config.defaults;
-	        var tokens = lexer.process(id);
-	        var result = this.result = new _HandlerMeta2.default(id);
+	        // expand groups
+	        var paths = expandGroups(id);
 	
-	        // process
-	        tokens.map(function (token) {
-	            _this.parseToken(token.name, token.value, fsm);
+	        // process paths
+	        paths.map(function (path) {
+	            return _this.parsePath(path);
 	        });
-	
-	        if (!result.type) {
-	            result.setType(defaults[result.namespace]);
-	        }
-	
-	        // return result
-	        return result.update();
 	    },
 	
-	    /**
-	     * Parse token name and value
-	     *
-	     * @param   {string}        name
-	     * @param   {string}        value
-	     * @param   {StateMachine}  fsm
-	     */
-	    parseToken: function parseToken(name, value, fsm) {
-	        // variables
-	        var namespace = void 0,
-	            values = void 0;
 	
-	        // process
-	        switch (name) {
-	            case 'targets':
-	
-	                values = value.match(/\w+/g);
-	                namespace = isState(values[0], fsm) ? 'state' : isAction(values[0], fsm) ? 'action' : null;
-	
-	                if (namespace) {
-	                    return this.result.setNamespace(namespace).setTarget(values);
-	                }
-	
-	                throw new _errors.ParseError('Unknown target(s) type "(' + value + ')"');
-	
-	            case 'action':
-	
-	                if (!isAction(value, fsm)) {
-	                    throw new _errors.ParseError('Unknown action "' + value + '"');
-	                }
-	
-	                if (!this.result.namespace) {
-	                    this.result.setNamespace('action');
-	                }
-	                return this.result.namespace === 'state' ? this.result.setType(value) : this.result.setTarget(value);
-	
-	            case 'event':
-	
-	                if (namespace = getEventNamespace(value)) {
-	                    return this.result.setNamespace(namespace).setType(value);
-	                }
-	                throw new _errors.ParseError('Unknown event "' + value + '"');
-	
-	            // any ".property"; could be system.change, intro.next
-	            case 'property':
-	
-	                return this.parseToken('word', value, fsm);
-	
-	            default:
-	
-	                // top-level namespace, like system, transition, state
-	                if (isNamespace(value)) {
-	                    return this.result.setNamespace(value);
-	                }
-	
-	                // generic value, like change, add, update
-	                if (namespace = getNamespace(value)) {
-	                    return this.result.setNamespace(namespace).setType(value);
-	                }
-	
-	                // existing state, like a, b, c
-	                if (isState(value, fsm)) {
-	                    return this.result.setNamespace('state').setTarget(value);
-	                }
-	
-	                // existing action, like next, back, quit
-	                if (isAction(value, fsm)) {
-	                    return this.parseToken('action', value, fsm);
-	                }
-	
-	                // unknown
-	                throw new _errors.ParseError('Unknown token "' + value + '"');
+	    parsePath: function parsePath(path) {
+	        var tokens = void 0;
+	        try {
+	            tokens = lexer.process(path);
+	        } catch (error) {
+	            return addError('Unrecognised pattern "' + path + '"', path);
 	        }
+	
+	        if (tokens && tokens.length) {
+	            // variables
+	            var token = tokens.shift();
+	            var fn = this[token.type];
+	
+	            // process
+	            if (fn) {
+	                return fn.apply(this, token.values);
+	            }
+	            return addError('Unknown token type "' + token.type + '"', path);
+	        }
+	    },
+	
+	    alias: function alias(value) {
+	        if (isSystem(value)) {
+	            return addPath('system.' + value, 'system');
+	        }
+	        if (isTransition(value)) {
+	            return addPath('transition.' + value, 'transition');
+	        }
+	        return this.oneState(value);
+	    },
+	    namespaced: function namespaced(namespace, type) {
+	        var path = namespace + '.' + type;
+	
+	        if (namespace === 'system' && isSystem(type) || namespace === 'transition' && isTransition(type)) {
+	            return addPath(path, namespace);
+	        }
+	
+	        if (/^(state|action)$/.test(namespace) && /^(add|remove)$/.test(type)) {
+	            return addPath('system.' + path, 'system');
+	        }
+	
+	        addError('Unrecognised type "' + type + '" for namespace "' + namespace + '"', _id);
+	    },
+	    oneState: function oneState(state) {
+	        return addPath('state.' + state + '.' + _defaults.state, 'state', state);
+	    },
+	    oneAction: function oneAction(action) {
+	        return addPath('action.' + action + '.' + _defaults.action, 'action', action);
+	    },
+	    anyActionEvent: function anyActionEvent(event) {
+	        return addPath('action.*.' + event, 'action', '*');
+	    },
+	    oneActionEvent: function oneActionEvent(action, event) {
+	        return addPath('action.' + action + '.' + event, 'action', action);
+	    },
+	    anyStateEvent: function anyStateEvent(event) {
+	        return addPath('state.*.' + event, 'state', '*');
+	    },
+	    oneStateEvent: function oneStateEvent(state, event) {
+	        return addPath('state.' + state + '.' + event, 'state', state);
+	    },
+	    oneStateAction: function oneStateAction(state, action) {
+	        return addPath('state.' + state + '.' + action, 'state/action', state + '@' + action);
 	    }
-	
 	};
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _errors = __webpack_require__(10);
-	
-	function HandlerMeta(id) {
-	    this.id = id;
-	    this.targets = ['*'];
-	}
-	
-	HandlerMeta.prototype = {
-	    id: '',
-	    namespace: '',
-	    type: '',
-	    targets: [],
-	    paths: [],
-	
-	    setNamespace: function setNamespace(value) {
-	        if (this.namespace && value !== this.namespace) {
-	            throw new _errors.ParseError('Cannot set namespace "' + value + '" for existing result ' + this.toString());
-	        }
-	        this.namespace = value;
-	        return this;
-	    },
-	
-	    setType: function setType(value) {
-	        if (this.type && value !== this.type) {
-	            throw new _errors.ParseError('Cannot set type "' + value + '" for existing result ' + this.toString());
-	        }
-	        this.type = value;
-	        return this;
-	    },
-	
-	    setTarget: function setTarget(value) {
-	        this.targets = Array.isArray(value) ? value : [value];
-	        return this;
-	    },
-	
-	    update: function update() {
-	        var _this = this;
-	
-	        this.paths = this.targets.map(function (target) {
-	            var segments = _this.namespace === 'action' || _this.namespace === 'state' ? [_this.namespace, target, _this.type] : [_this.namespace, _this.type];
-	            return segments.join('.');
-	        });
-	        return this;
-	    },
-	
-	    toString: function toString() {
-	        var parts = this.namespace && this.type ? [this.namespace, this.type] : this.namespace ? [this.namespace] : [this.type];
-	        return '[' + parts.join(':') + ']';
-	    }
-	
-	};
-	
-	exports.default = HandlerMeta;
 
 /***/ },
 /* 10 */
@@ -1310,17 +1480,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.ParseError = ParseError;
-	function ParseError(message) {
-	    this.name = 'ParseError';
-	    this.message = message;
+	function HandlerMeta(id, path) {
+	    var namespace = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+	    var target = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+	
+	    this.id = id;
+	    this.path = path;
+	    if (namespace) {
+	        this.namespace = namespace;
+	    }
+	    if (target) {
+	        this.target = target;
+	    }
 	}
 	
-	ParseError.prototype = Error.prototype;
+	HandlerMeta.prototype = {
+	    id: '',
+	    path: '',
+	    namespace: '',
+	    target: ''
+	};
+	
+	exports.default = HandlerMeta;
 
 /***/ },
 /* 11 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -1328,6 +1513,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	exports.default = Lexer;
+	
+	var _Rule = __webpack_require__(12);
+	
+	var _Rule2 = _interopRequireDefault(_Rule);
+	
+	var _Token = __webpack_require__(13);
+	
+	var _Token2 = _interopRequireDefault(_Token);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	/**
+	 * Simple Lexer class
+	 *
+	 * @param   {Object}    rules   A hash of id:RegExp values
+	 * @constructor
+	 */
 	function Lexer(rules) {
 	    var _this = this;
 	
@@ -1352,6 +1554,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /** @var {Number} */
 	    index: 0,
 	
+	    /**
+	     * Process a source string into an array of Tokens based on Rules
+	     *
+	     * @param source
+	     * @returns {Token[]}
+	     */
 	    process: function process(source) {
 	        this.source = source;
 	        this.tokens = [];
@@ -1360,8 +1568,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return this.tokens;
 	    },
 	
+	    /**
+	     * Adds a new rule
+	     *
+	     * @protected
+	     * @param name
+	     * @param rx
+	     */
 	    addRule: function addRule(name, rx) {
-	        this.rules.push(new Rule(name, new RegExp('^' + rx.source)));
+	        this.rules.push(new _Rule2.default(name, rx));
 	    },
 	
 	    next: function next() {
@@ -1373,7 +1588,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var state = _this2.rules.some(function (rule) {
 	                    var matches = source.match(rule.rx);
 	                    if (matches) {
-	                        _this2.tokens.push(new Token(rule.name, matches[1]));
+	                        _this2.tokens.push(new _Token2.default(rule.name, matches));
 	                        _this2.index += matches[0].length;
 	                        return true;
 	                    }
@@ -1382,7 +1597,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                // not matched
 	                if (!state) {
-	                    throw new Error('Unable to match source at position ' + _this2.index + ': "' + source + '"');
+	                    throw new LexerError('Unable to match source at position ' + _this2.index + ': "' + source + '"', _this2.source, _this2.index);
 	                }
 	
 	                // match
@@ -1392,18 +1607,86 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 	
-	function Token(name, value) {
-	    this.name = name;
-	    this.value = value;
+	function LexerError(message, source, index) {
+	    this.message = message;
+	    this.source = source;
+	    this.index = index;
 	}
 	
-	function Rule(name, rx) {
-	    this.name = name;
-	    this.rx = rx;
-	}
+	LexerError.prototype = new Error();
+	LexerError.prototype.constructor = LexerError;
 
 /***/ },
 /* 12 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * A parsing rule, designed to match part of a string
+	 *
+	 * @param   {string}    name
+	 * @param   {RegExp}    rx
+	 */
+	function Rule(name, rx) {
+	  this.name = name;
+	  this.rx = rx;
+	}
+	
+	exports.default = Rule;
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * Token class, representing the type and value of part of a source string
+	 *
+	 * @param       {string}    type
+	 * @param       {string[]}  matches
+	 *
+	 * @property    {string}    type
+	 * @property    {string}    match
+	 * @property    {string[]}  values
+	 */
+	function Token(type, matches) {
+	  this.type = type;
+	  this.match = matches[0];
+	  this.values = matches.slice(1);
+	}
+	
+	exports.default = Token;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.ParseError = ParseError;
+	function ParseError(message, path, id) {
+	    this.message = message;
+	    this.path = path;
+	    this.id = id;
+	}
+	
+	ParseError.prototype = Error.prototype;
+	ParseError.prototype.name = 'ParseError';
+	ParseError.prototype.constructor = ParseError;
+
+/***/ },
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1414,15 +1697,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _ValueMap = __webpack_require__(6);
+	var _ValueMap = __webpack_require__(7);
 	
 	var _ValueMap2 = _interopRequireDefault(_ValueMap);
 	
-	var _TransitionParser = __webpack_require__(13);
+	var _TransitionParser = __webpack_require__(16);
 	
 	var _TransitionParser2 = _interopRequireDefault(_TransitionParser);
 	
+	var _utils = __webpack_require__(2);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
 	function TransitionMap() {
 	    this.map = new _ValueMap2.default();
@@ -1460,6 +1747,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @returns {TransitionMap}
 	     */
 	    add: function add(action, from, to) {
+	        // procss variables
+	        action = (0, _utils.trim)(action);
+	        from = (0, _utils.trim)(from);
+	        to = typeof to === 'string' ? (0, _utils.trim)(to) : to;
+	
+	        // check for wildcards
+	        if (to === '*') {
+	            throw new Error('Transitioning to a wildcard doesn\'t make sense');
+	        }
+	
+	        // add transition
 	        this.map.set(from + '.' + action, to);
 	        return update(this);
 	    },
@@ -1495,16 +1793,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     * Get all available actions (or action => states map) for a given state
 	     *
-	     * @param   {string}    state       Name of a state to get actions for
+	     * @param   {string}    from        Name of a state to get actions for
 	     * @param   {boolean}   [asMap]     Optional boolean to return a Object of action:state properties. Defaults to false
 	     * @returns {string[]|Object}       An array of string actions, or a hash of action:states
 	     */
-	    getActionsFrom: function getActionsFrom(state) {
+	    getActionsFrom: function getActionsFrom(from) {
 	        var asMap = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 	
-	        if (this.has(state)) {
-	            var actions = this.map.get(state);
-	            return actions ? asMap ? actions : Object.keys(actions) : [];
+	        if (this.has(from) || this.has('*')) {
+	            // get all available actions
+	            var actions = this.map.get(from) || {};
+	            var wildcard = this.map.get('*');
+	            var output = Object.assign({}, actions);
+	
+	            // append wildcard actions
+	            if (wildcard) {
+	                for (var action in wildcard) {
+	                    var value = wildcard[action];
+	                    if (value !== from && !actions[action]) {
+	                        output[action] = value;
+	                    }
+	                }
+	            }
+	
+	            // return map or keys
+	            return output ? asMap ? output : Object.keys(output) : [];
 	        }
 	        return [];
 	    },
@@ -1516,7 +1829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param   {string}    to
 	     * @return  {string|null}
 	     */
-	    getActionTo: function getActionTo(from, to) {
+	    getActionFor: function getActionFor(from, to) {
 	        var actions = this.map.get(from);
 	        for (var action in actions) {
 	            if (actions[action] === to) {
@@ -1531,15 +1844,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *
 	     * Loops over all actions and returns a unique array of "to" states
 	     *
-	     * @param   {string|null}    [state]    Optional name of a state to get states for. Defaults to the current state
+	     * @param   {string|null}    [from]     Optional name of a from state to get states for. Defaults to the current state
 	     * @returns {string[]}                  An array of string states
 	     */
-	    getToStates: function getToStates(state) {
+	    getStatesFrom: function getStatesFrom(from) {
 	        var _this = this;
 	
-	        if (this.hasState(state)) {
+	        if (this.hasState(from)) {
 	            var _ret = function () {
-	                var actions = _this.getActionsFrom(state, true);
+	                var actions = _this.getActionsFrom(from, true);
 	                return {
 	                    v: Object.keys(actions).map(function (name) {
 	                        return actions[name];
@@ -1550,6 +1863,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	        }
 	        return null;
+	    },
+	
+	    /**
+	     * Get the target "to" state from a "from" state via an "action"
+	     *
+	     * @param   {string}    from
+	     * @param   {string}    action
+	     * @returns {string}
+	     */
+	    getStateFor: function getStateFor(from, action) {
+	        var states = this.getActionsFrom(from, true) || {};
+	        return states[action];
 	    },
 	
 	    /**
@@ -1576,8 +1901,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param   {string}    path
 	     * @return  {*}
 	     */
-	    get: function get(path) {
-	        path = Array.prototype.slice.apply(arguments).join('.');
+	    get: function get() {
+	        for (var _len = arguments.length, path = Array(_len), _key = 0; _key < _len; _key++) {
+	            path[_key] = arguments[_key];
+	        }
+	
+	        path = [].concat(_toConsumableArray(path)).join('.');
 	        return this.map.get(path);
 	    },
 	
@@ -1605,13 +1934,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	
 	    /**
-	     * Utility function to directly check if the composed ValueMap has the requested path
+	     * Test if the given transition exists within the system
 	     *
-	     * @param   {string}    path    Pass a path using dot notation, i.e. 'a.next.b' or pass individual arguments, i.e. from, action, to
+	     * @param   {string}    action
+	     * @param   {string}    from
+	     * @param   {string}    to
 	     * @returns {boolean}
 	     */
-	    has: function has(path) {
-	        path = Array.prototype.slice.apply(arguments).join('.');
+	    hasTransition: function hasTransition(action, from, to) {
+	        return this.map.get(from + '.' + action) === to;
+	    },
+	
+	    /**
+	     * Utility function to directly check if the composed ValueMap has the requested path
+	     *
+	     * Note this does NOT take into account the value of the target object; use hasTransition() for that
+	     *
+	     * @param   {string}    path    Pass a path using dot notation, i.e. 'a.next' or pass individual arguments, i.e. from, action, to
+	     * @returns {boolean}
+	     */
+	    has: function has() {
+	        for (var _len2 = arguments.length, path = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+	            path[_key2] = arguments[_key2];
+	        }
+	
+	        path = [].concat(_toConsumableArray(path)).join('.');
 	        return !!path ? this.map.has(path) : false;
 	    }
 	
@@ -1632,7 +1979,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var data = target.map.data;
 	    var to;
 	
-	    // remove "to" states
+	    // collate from states
 	    for (var from in data) {
 	        states[from] = true;
 	        for (var action in data[from]) {
@@ -1645,7 +1992,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    // update
-	    target.states = Object.keys(states);
+	    target.states = Object.keys(states).filter(function (state) {
+	        return state !== '*';
+	    });
 	    target.actions = Object.keys(actions);
 	
 	    // return
@@ -1655,7 +2004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = TransitionMap;
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1672,9 +2021,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _utils = __webpack_require__(2);
 	
-	var _errors = __webpack_require__(10);
+	var _errors = __webpack_require__(14);
 	
-	var _TransitionMeta = __webpack_require__(14);
+	var _TransitionMeta = __webpack_require__(17);
 	
 	var _TransitionMeta2 = _interopRequireDefault(_TransitionMeta);
 	
@@ -1706,7 +2055,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            tx = tx.replace(/([|=:<>])/g, ' $1 ').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
 	
 	            // ensure string is valid
-	            if (!/^\w+ [:|=] \w[\w ]*[<>] \w[\w ]*/.test(tx)) {
+	            if (!/^\w+ [:|=] [*\w][\w ]*[<>] [*\w][\w ]*/.test(tx)) {
 	                throw new _errors.ParseError(getError(tx, 'cannot determine action and states'));
 	            }
 	
@@ -1744,6 +2093,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (Array.isArray(a) && Array.isArray(b)) {
 	                        throw new _errors.ParseError(getError(tx, 'transitioning between 2 arrays doesn\'t make sense'));
 	                    }
+	                    if (b === '*') {
+	                        throw new _errors.ParseError(getError(tx, 'transitioning to a wildcard doesn\'t make sense'));
+	                    }
 	                    if (Array.isArray(a)) {
 	                        a.map(function (a) {
 	                            return add(transitions, action, a, b);
@@ -1775,7 +2127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 14 */
+/* 17 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1792,7 +2144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = TransitionMeta;
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1803,7 +2155,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _events = __webpack_require__(7);
+	var _events = __webpack_require__(8);
 	
 	var _utils = __webpack_require__(2);
 	
@@ -1877,7 +2229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    handlers: null,
 	
 	    clear: function clear() {
-	        this.paused = false;
+	        unpause(this);
 	        this.handlers = [];
 	    },
 	
@@ -1905,15 +2257,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	
 	    pause: function pause() {
-	        this.paused = true;
+	        _pause(this);
 	        return this;
 	    },
 	
 	    resume: function resume() {
-	        this.paused = false;
+	        unpause(this);
 	        return this.exec();
+	    },
+	
+	    cancel: function cancel() {
+	        this.paused = false;;
+	        this.fsm.handlers.trigger('transition.cancel', false);
 	    }
+	
 	};
+	
+	function _pause(transition) {
+	    if (!transition.paused) {
+	        transition.paused = true;
+	        transition.fsm.handlers.trigger('transition.pause', true);
+	    }
+	}
+	
+	function unpause(transition) {
+	    if (transition.paused) {
+	        transition.paused = false;
+	        transition.fsm.handlers.trigger('transition.resume', false);
+	    }
+	}
 	
 	exports.default = {
 	    /**
@@ -1934,7 +2306,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // transition properties
 	        var scope = fsm.config.scope;
 	        var from = fsm.state;
-	        var to = fsm.transitions.get(from, action);
+	        var to = fsm.transitions.getStateFor(from, action);
 	        var vars = { action: action, to: to, from: from };
 	
 	        // handle "to" being a function
@@ -1996,80 +2368,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var transition = new Transition(fsm, '', fsm.state, state);
 	        transition.paused = fsm.transition ? fsm.transition.paused : false;
 	        return transition;
-	    }
-	
-	};
-
-/***/ },
-/* 16 */
-/***/ function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.default = Config;
-	function Config(options) {
-	    var _this = this;
-	
-	    'initial final start debug scope transitions'.match(/\w+/g).map(function (name) {
-	        if (options.hasOwnProperty(name)) {
-	            _this[name] = options[name];
-	        }
-	    });
-	
-	    // order
-	    this.order = options.order || this.getDefaultOrder();
-	
-	    // defaults
-	    this.defaults = Object.assign({
-	
-	        // allow user to specify a custom initialize event name
-	        initialize: 'initialize',
-	
-	        // allow user to specify alternate triggers for event and action ids
-	        action: 'start',
-	        state: 'enter'
-	
-	    }, options.defaults);
-	}
-	
-	Config.prototype = {
-	    /** @var string */
-	    initial: '',
-	
-	    /** @var string */
-	    final: '',
-	
-	    /** @var boolean */
-	    start: true,
-	
-	    /** @var boolean */
-	    debug: false,
-	
-	    /** @var object */
-	    scope: null,
-	
-	    /** @var *[] */
-	    transitions: null,
-	
-	    /**
-	     * The order to run transition callbacks in
-	     *
-	     * @type {string[]} type.target
-	     */
-	    order: null,
-	
-	    /**
-	     * Sets defaults for various declarations
-	     *
-	     * @type {Object}
-	     */
-	    defaults: null,
-	
-	    getDefaultOrder: function getDefaultOrder() {
-	        return ['action.*.start', 'action.{action}.start', 'state.*.{action}', 'state.{from}.{action}', 'state.{from}.leave', 'state.*.leave', 'state.*.enter', 'state.{to}.enter', 'action.{action}.end', 'action.*.end'];
 	    }
 	
 	};
