@@ -7,7 +7,7 @@ function ObjectHelper (fsm)
     this.fsm
         .on('change', this.onChange.bind(this))
         .on('(pause resume cancel)', this.onPause.bind(this))
-        .on('(state.add state.remove action.add action.remove)', this.onModify.bind(this));
+        .on('(state:add state:remove action:add action:remove)', this.onModify.bind(this));
     this.reset();
     this.update();
 }
@@ -58,7 +58,7 @@ ObjectHelper.prototype =
         var fsm                 = this.fsm;
         this.data.name          = fsm.state;
         this.data.index         = this.fsm.transitions.states.indexOf(this.data.name);
-        this.data.states        = toHash(fsm.transitions.getToStates(fsm.state) || []);
+        this.data.states        = toHash(fsm.transitions.getStatesFrom(fsm.state) || []);
         this.data.actions       = toHash(fsm.transitions.getActionsFrom(fsm.state) || []);
         this.data.is            = {};
         this.data.is[fsm.state] = true;

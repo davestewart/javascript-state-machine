@@ -3,13 +3,437 @@
 <head>
     <title>State Machine Demo</title>
     <meta charset="UTF-8">
+    <script src="/assets/vendor/jquery.min.js"></script>
+    <script src="/assets/js/StateMachine.js"></script>
+    <script src="/assets/js/StateHelper.js"></script>
+    <script src="/assets/js/setup.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+
     <link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="stylesheet" href="/assets/css/index.css">
+
+    <style type="text/css">
+        #map {
+            border: 1px solid #CCC;
+            width: 960px;
+            height: 500px;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #map > * {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #map .background {
+            background-image: url("assets/img/map.svg");
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+        }
+
+        #map a.city {
+            transition: 0.5s all;
+            height: 20px;
+            position: absolute;
+            line-height: 1em;
+            margin: 0;
+            text-shadow: 0 3px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        #map a.city[disabled] {
+            color: #AAA;
+            text-shadow: none;
+        }
+
+        #map a.city span {
+            position: absolute;
+            display: block;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        #plane {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin-top: -20px;
+            margin-left: -20px;
+            pointer-events: none;
+        }
+
+        #plane .gfx {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+            background-image: url("assets/img/plane.svg");
+        }
+    </style>
 </head>
 <body>
 
     <h1>State Machine Demo</h1>
+
+    <main class="states">
+
+        <section>
+            <p>State Machine is a library for managing a finite set of states, and moving between them via actions and transitions.</p>
+            <p>From its intuitive configuration through its powerful event-based architecture and rich API, State Machine makes it easy to describe and manage interaction with complex state-dependent systems like components, multi-step forms, purchase funnels, visualisations or games.</p>
+        </section>
+
+        <section id="states">
+            <div id="map">
+                <div class="background"></div>
+                <canvas height="498" width="958" id="canvas"></canvas>
+                <div id="locations"></div>
+                <span id="plane"><span class="gfx"></span></span>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+
+        // ------------------------------------------------------------------------------------------------
+        // plane
+
+            function Plane(map)
+            {
+                this.map = map;
+                this.pos = $('#plane').get(0);
+                this.rot = $('#plane .gfx').get(0);
+                this.setPosition(-100, -100);
+            }
+
+            Plane.prototype =
+            {
+                map: null,
+                pos: null,
+                rot: null,
+
+                x: 0,
+                y: 0,
+                a: 0,
+
+                setPosition: function (x, y)
+                {
+                    TweenLite.set(this.pos, {x:x, y:y});
+                    this.onUpdate();
+                },
+
+                flyTo: function (city, onComplete)
+                {
+                    // coords
+                    var x    = city.x;
+                    var y    = city.y;
+                    var dx   = x - this.x;
+                    var dy   = y - this.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    var a    = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                    // draw
+                    this.map.start();
+
+                    // rotate
+                    TweenLite.killTweensOf(this.rot);
+                    TweenLite.to(this.rot, 0.5, {rotation:a + '_short'});
+
+                    // fly
+                    TweenLite.killTweensOf(this.pos);
+                    TweenLite.to(this.pos, dist / 200, {x:x, y:y, ease:Power1.easeInOut, delay:0.3, onComplete:onComplete, onUpdate:this.onUpdate.bind(this)})
+                },
+
+                onUpdate: function ()
+                {
+                    this.x = this.pos._gsTransform.x;
+                    this.y = this.pos._gsTransform.y;
+                    this.map.draw(this.x, this.y);
+                }
+
+            };
+
+
+        // ------------------------------------------------------------------------------------------------
+        // trails
+
+            function Map ()
+            {
+                // elements
+                this.canvas = document.getElementById('canvas');
+                this.ctx    = this.canvas.getContext('2d');
+
+                // scaling
+                //this.ctx.globalCompositeOperation = 'screen';
+                this.ctx.imageSmoothingEnabled = true;
+                this.ctx.canvas.width       = 960 * 4;
+                this.ctx.canvas.height      = 500 * 4;
+                this.ctx.scale(0.25, 0.25);
+                this.ctx.translate(2, 2);
+
+                // drawing
+                this.ctx.strokeStyle = '#e74c3c';
+                this.ctx.lineWidth   = 1;
+            }
+
+            Map.prototype =
+            {
+                // canvas
+                canvas      : null,
+                ctx         : null,
+
+                // variables
+                lineState   : true,
+                lineLength  : 0,
+
+                start: function ()
+                {
+                    this.ctx.beginPath();
+                },
+
+                end: function ()
+                {
+                    this.ctx.closePath();
+                },
+
+                draw: function (x, y)
+                {
+                    var ctx = this.ctx;
+
+                    // draw
+                    this.lineLength ++;
+                    if(this.lineLength > 1)
+                    {
+                        this.lineLength = 0;
+                        this.lineState = ! this.lineState;
+                    }
+                    this.lineState
+                        ? ctx.lineTo(x * 4, y * 4)
+                        : ctx.moveTo(x * 4, y * 4);
+                    ctx.stroke();
+                },
+
+                fade: function ()
+                {
+                    var ctx = this.ctx;
+                    ctx.fillStyle = 'rgba(255, 255, 255, .05)';
+                    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                },
+
+                // methods
+                clear: function ()
+                {
+                    var ctx = this.ctx;
+                    ctx.save();
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    ctx.restore();
+                }
+
+            };
+
+
+        // ------------------------------------------------------------------------------------------------
+        // cities
+
+            function Cities (data)
+            {
+                // data
+                this.data = data.reduce(function(data, obj) {
+                    obj.to = obj.to.split(' ');
+                    data[obj.id] = obj;
+                    return data;
+                }, {});
+
+                // elements
+                this.$el = $('#locations');
+            }
+
+            Cities.prototype =
+            {
+                data: null,
+
+                $el: null,
+
+                get:function(id)
+                {
+                    var city = this.data[id];
+                    if(!city)
+                    {
+                        throw new Error('No city named "' +id+ '"');
+                    }
+                    return city;
+                },
+
+                add: function (id)
+                {
+                    var city = this.data[id];
+                    if(city)
+                    {
+                        this.draw(city);
+                        return city;
+                    }
+                },
+
+                update:function (ids)
+                {
+                    this.$el.find('a').each(function(i, e)
+                    {
+                        $(e).attr('disabled', ids.indexOf(e.id) == -1);
+                    });
+                },
+
+                draw:function (city)
+                {
+                    // variables
+                    var from    = city.id;
+                    var label   = from.replace('_', ' ');
+                    var x       = city.x;
+                    var y       = city.y;
+
+                    // marker
+                    var html = '<a href="#" class="city" id="' +from+ '" style="left:' +x+ 'px; top:' +y+ 'px"><span>' +label+ '</span></a>';
+                    var $city = $(html).hide().fadeIn();
+                    this.$el.append($city);
+                },
+
+                onClick: function (callback)
+                {
+                    this.$el.on('click', 'a.city', function(event)
+                    {
+                        event.preventDefault();
+                        callback(event.currentTarget.id);
+                    });
+                }
+
+            };
+
+
+        // ------------------------------------------------------------------------------------------------
+        // state
+
+            // data
+            var data =
+            [
+                {x: -100, y: -100, id: 'none',          to: 'London'},
+                {x: 58,   y: 82,   id: 'Anchorage',     to: 'New_York'},
+                {x: 779,  y: 148,  id: 'Beijing',       to: 'Mumbai Tokyo'},
+                {x: 259,  y: 409,  id: 'Buenos_Aires',  to: 'Cape_Town Mexico_City'},
+                {x: 494,  y: 404,  id: 'Cape_Town',     to: 'Nairobi Sao_Paulo'},
+                {x: 607,  y: 204,  id: 'Dubai',         to: 'Mumbai Nairobi Moscow'},
+                {x: 448,  y: 265,  id: 'Lagos',         to: 'London Cape_Town Nairobi'},
+                {x: 437,  y: 113,  id: 'London',        to: 'New_York Moscow Lagos Nairobi'},
+                {x: 123,  y: 222,  id: 'Mexico_City',   to: 'Sao_Paulo Buenos_Aires New_York'},
+                {x: 533,  y: 96,   id: 'Moscow',        to: 'London Dubai Beijing'},
+                {x: 668,  y: 223,  id: 'Mumbai',        to: 'Nairobi Dubai Singapore Beijing'},
+                {x: 552,  y: 293,  id: 'Nairobi',       to: 'Dubai Lagos Cape_Town Perth'},
+                {x: 224,  y: 147,  id: 'New_York',      to: 'Mexico_City San_Francisco Anchorage London'},
+                {x: 773,  y: 400,  id: 'Perth',         to: 'Singapore Sydney Cape_Town'},
+                {x: 72,   y: 149,  id: 'San_Francisco', to: 'New_York'},
+                {x: 295,  y: 366,  id: 'Sao_Paulo',     to: 'Mexico_City Buenos_Aires Lagos'},
+                {x: 769,  y: 286,  id: 'Singapore',     to: 'Perth Beijing Mumbai'},
+                {x: 873,  y: 413,  id: 'Sydney',        to: 'Perth Tokyo'},
+                {x: 855,  y: 167,  id: 'Tokyo',         to: 'Beijing Sydney'}
+            ];
+
+            // variables
+            var fsm, map, cities, plane;
+
+            // state machine
+            fsm = new StateMachine({
+
+                invalid: true,
+
+                start: false,
+
+                transitions: [
+                    'London : none > London'
+                ],
+
+                handlers:
+                {
+                    'state:add': function (event, fsm)
+                    {
+                        console.warn('State added  : ', event.target, event)
+                    },
+
+                    ':start': function (event, fsm)
+                    {
+                        // get city
+                        var city = cities.get(event.transition.to);
+
+                        // pause transition and fly there
+                        fsm.pause();
+                        plane.flyTo(city, this.onTransitionComplete.bind(this));
+                    },
+
+                    'change': function (event, fsm)
+                    {
+                        console.info('state change :', fsm.state);
+                        fsm.addConnected(fsm.state);
+                        cities.update(fsm.transitions.getStatesFrom(fsm.state));
+                    }
+                },
+
+                methods:
+                {
+                    onTransitionComplete: function()
+                    {
+                        map.end();
+                        this.resume();
+                    },
+
+                    addConnected: function (from)
+                    {
+                        var fromCity = cities.get(from);
+                        if(fromCity)
+                        {
+                            fromCity.to.map(function(to)
+                            {
+                                var toCity = cities.get(to);
+                                if(!fsm.has(to))
+                                {
+                                    cities.add(to);
+                                    console.log('Added city   : ', toCity.id);
+                                }
+                                if(!fsm.transitions.hasTransition(to, from, to))
+                                {
+                                    console.log('Adding trans : ', from, ' > ', to);
+                                    this.add(to, from, to);
+                                }
+                            }.bind(this));
+                        }
+                    },
+
+                }
+
+            });
+
+            // objects
+            map     = new Map();
+            plane   = new Plane(map);
+            cities  = new Cities(data);
+
+            // click handler
+            cities.onClick(function(id){ fsm.do(id); });
+
+            // start
+            cities.add('London');
+            fsm.start();
+            fsm.do('London');
+
+
+    </script>
+
     <main id="toc">
 
         <h2>Index</h2>
@@ -18,15 +442,24 @@
             <ul>
                 <li>
                     <a href="html/setup/index.html">Setup</a>
-                    <p>Learn how to add StateMachine to your application</p>
+                    <p>Learn how to add StateMachine to your application, including
+                        <a href="html/setup/setup/overview.html">setup</a> and
+                        <a href="html/setup/helpers/jquery.html">helpers</a>.
+                    </p>
                 </li>
                 <li>
                     <a href="html/api/index.html">API</a>
-                    <p>Learn all of StateMachine's functionality</p>
+                    <p>Learn all of StateMachine's functionality, including
+                        <a href="html/api/transitions/shorthand.html">transitions</a>,
+                        <a href="html/api/events/playground.html">events</a> and
+                        <a href="html/api/handlers/asynchronous.html">handlers</a>.</p>
                 </li>
                 <li>
                     <a href="html/examples/index.html">Examples</a>
-                    <p>Explore real-world state machine usage</p>
+                    <p>Explore real-world state machine usage, including
+                        <a href="html/examples/flows/branching.html">branching</a>,
+                        <a href="html/examples/systems/sign-up.html">multi-step forms</a> or
+                        <a href="html/examples/vue/vue-router.html">working with routers</a>.</p>
                 </li>
             </ul>
 

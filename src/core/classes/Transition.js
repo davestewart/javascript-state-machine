@@ -167,7 +167,7 @@ export default
         // transition properties
         let scope   = fsm.config.scope;
         let from    = fsm.state;
-        let to      = fsm.transitions.get(from, action);
+        let to      = fsm.transitions.getStateFor(from, action);
         let vars    = {action, to, from};
 
         // handle "to" being a function

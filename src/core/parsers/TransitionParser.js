@@ -35,7 +35,7 @@ import TransitionMeta from './TransitionMeta';
                 .replace(/^\s+|\s+$/g,'');
 
             // ensure string is valid
-            if(!/^\w+ [:|=] \w[\w ]*[<>] \w[\w ]*/.test(tx))
+            if(!/^\w+ [:|=] [*\w][\w ]*[<>] [*\w][\w ]*/.test(tx))
             {
                 throw new ParseError(getError(tx, 'cannot determine action and states'));
             }
@@ -75,6 +75,10 @@ import TransitionMeta from './TransitionMeta';
                     if(Array.isArray(a) && Array.isArray(b))
                     {
                         throw new ParseError(getError(tx, 'transitioning between 2 arrays doesn\'t make sense'));
+                    }
+                    if(b === '*')
+                    {
+                        throw new ParseError(getError(tx, 'transitioning to a wildcard doesn\'t make sense'));
                     }
                     if(Array.isArray(a))
                     {
