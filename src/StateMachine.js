@@ -152,7 +152,10 @@ StateMachine.prototype =
         {
             this.state = this.config.initial;
             this.handlers.trigger('system.start');
-            this.handlers.trigger('system.change', this.state);
+            if(this.state)
+            {
+                this.handlers.trigger('system.change', this.state);
+            }
             return this;
         },
 
