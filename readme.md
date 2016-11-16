@@ -28,7 +28,7 @@ transitions: [
 ],
 ```
 
-The above code is the transition configuration block from one of the demos for a multi-part form:
+The above code is the transition configuration block from one of the demos for a multi-part form.
 
 Listening to the correct events is also made easy with an event-specific DSL:
 
@@ -74,7 +74,7 @@ State Machine has been designed from the outset to feel intuitive and fun to use
 
 View the live demo at:
 
-- [http://statemachine.davestewart.io]()
+- [http://statemachine.davestewart.io](http://statemachine.davestewart.io)
 
 To run demo locally, see the build tasks at the bottom of this readme.
  
