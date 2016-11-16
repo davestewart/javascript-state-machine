@@ -7,7 +7,7 @@ function ObjectHelper (fsm)
     this.fsm
         .on('change', this.onChange.bind(this))
         .on('(pause resume cancel)', this.onPause.bind(this))
-        .on('(state.add state.remove action.add action.remove)', this.onModify.bind(this));
+        .on('(state:add state:remove action:add action:remove)', this.onModify.bind(this));
     this.reset();
     this.update();
 }
