@@ -3,12 +3,19 @@
 <head>
     <title>State Machine Demo</title>
     <meta charset="UTF-8">
+
+    <meta property="og:url" content="http://statemachine.davestewart.io/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="JavaScript State Machine" />
+    <meta property="og:description" content="State Machine is a library for managing a finite set of states, and moving between them via actions and transitions" />
+    <meta property="og:image" content="https://cloud.githubusercontent.com/assets/132681/20332705/af478f0e-aba5-11e6-93ff-c930307c790a.png" />
+
     <script src="/assets/vendor/jquery.min.js"></script>
     <script src="/assets/js/StateMachine.js"></script>
     <script src="/assets/js/StateHelper.js"></script>
     <script src="/assets/js/setup.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+    <script src="/assets/vendor/TweenMax.min.js"></script>
 
     <link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
@@ -321,6 +328,31 @@
         // ------------------------------------------------------------------------------------------------
         // state
 
+            /**
+             * StateMachine World Map Demo
+             *
+             * So why this demo?
+             *
+             * It demonstrates a lot of StateMachine features, namely:
+             *
+             * - Complex relationships / transitions
+             * - Adding states and transitions on the fly
+             * - Responding to State events
+             * - Updating / interacting with a UI
+             * - Animation and asynchronous transitions
+             * - Initial empty state
+             *
+             * To add:
+             *
+             * - fsm.cancel() - Plane should return to "from" city
+             * - fsm.do() - Plane should divert to "to" city
+             * - Round-the-world - Handle animation for plane to wrap from one side to the other
+             *
+             * To look at:
+             *
+             * - Delayed start
+             */
+
             // data
             var data =
             [
@@ -330,7 +362,7 @@
                 {x: 259,  y: 409,  id: 'Buenos_Aires',  to: 'Cape_Town Mexico_City'},
                 {x: 494,  y: 404,  id: 'Cape_Town',     to: 'Nairobi Sao_Paulo'},
                 {x: 607,  y: 204,  id: 'Dubai',         to: 'Mumbai Nairobi Moscow'},
-                {x: 448,  y: 265,  id: 'Lagos',         to: 'London Cape_Town Nairobi'},
+                {x: 448,  y: 265,  id: 'Lagos',         to: 'London Dubai Cape_Town Nairobi'},
                 {x: 437,  y: 113,  id: 'London',        to: 'New_York Moscow Lagos Nairobi'},
                 {x: 123,  y: 222,  id: 'Mexico_City',   to: 'Sao_Paulo Buenos_Aires New_York'},
                 {x: 533,  y: 96,   id: 'Moscow',        to: 'London Dubai Beijing'},
@@ -348,24 +380,38 @@
             // variables
             var fsm, map, cities, plane;
 
+            // objects
+            map     = new Map();
+            plane   = new Plane(map);
+            cities  = new Cities(data);
+
+            // click handler
+            cities.onClick(function(id){ fsm.do(id); });
+
             // state machine
             fsm = new StateMachine({
 
                 invalid: true,
 
-                start: false,
+                initial: 'none',
 
                 transitions: [
-                    'London : none > London'
+                    // no transitions to start with!
                 ],
 
                 handlers:
                 {
+                    // when a state is added to the FSM, add a city on the map
                     'state:add': function (event, fsm)
                     {
-                        console.warn('State added  : ', event.target, event)
+                        var to = event.target;
+                        console.warn('State added  : ', to);
+                        cities.add(to);
+                        console.log('Added city   : ', to);
+
                     },
 
+                    // when an action starts, pause the FSM and animate the plane
                     ':start': function (event, fsm)
                     {
                         // get city
@@ -376,59 +422,62 @@
                         plane.flyTo(city, this.onTransitionComplete.bind(this));
                     },
 
+
                     'change': function (event, fsm)
                     {
-                        console.info('state change :', fsm.state);
-                        fsm.addConnected(fsm.state);
-                        cities.update(fsm.transitions.getStatesFrom(fsm.state));
+                        // variables
+                        var id      = fsm.state;
+                        var city    = cities.get(id);
+
+                        // debug
+                        console.info('state change :', id);
+
+                        // add connections if not yet added
+                        if(city && !city.added && city.to.length)
+                        {
+                            fsm.addConnections(city);
+                            city.added = true;
+                        }
+
+                        // update the UI
+                        cities.update(fsm.transitions.getStatesFrom(id));
                     }
                 },
 
                 methods:
                 {
+                    // once animation has completed, resume state machine
                     onTransitionComplete: function()
                     {
                         map.end();
                         this.resume();
                     },
 
-                    addConnected: function (from)
+                    // when a city has been added, add all its connections (expressed as transitions)
+                    addConnections: function (city)
                     {
-                        var fromCity = cities.get(from);
-                        if(fromCity)
+                        // variables
+                        var from = city.id;
+
+                        // loop over connected cities and add transitions
+                        console.group('Adding connected cities...');
+                        city.to.map(function(to)
                         {
-                            fromCity.to.map(function(to)
+                            if(!this.transitions.hasTransition(to, from, to))
                             {
-                                var toCity = cities.get(to);
-                                if(!fsm.has(to))
-                                {
-                                    cities.add(to);
-                                    console.log('Added city   : ', toCity.id);
-                                }
-                                if(!fsm.transitions.hasTransition(to, from, to))
-                                {
-                                    console.log('Adding trans : ', from, ' > ', to);
-                                    this.add(to, from, to);
-                                }
-                            }.bind(this));
-                        }
+                                console.log('Adding trans : ', from, ' > ', to);
+                                this.add(to, from, to);
+                            }
+                        }.bind(this));
+                        console.groupEnd();
                     },
 
                 }
 
             });
 
-            // objects
-            map     = new Map();
-            plane   = new Plane(map);
-            cities  = new Cities(data);
-
-            // click handler
-            cities.onClick(function(id){ fsm.do(id); });
-
             // start
-            cities.add('London');
-            fsm.start();
+            fsm.add('London : none > London');
             fsm.do('London');
 
 
@@ -462,6 +511,8 @@
                         <a href="html/examples/vue/vue-router.html">working with routers</a>.</p>
                 </li>
             </ul>
+
+            <p>Source code available at <a href="https://github.com/davestewart/javascript-state-machine">GitHub</a>.</p>
 
         </section>
 
