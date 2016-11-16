@@ -241,7 +241,22 @@ TransitionMap.prototype =
         },
 
         /**
+         * Test if the given transition exists within the system
+         *
+         * @param   {string}    action
+         * @param   {string}    from
+         * @param   {string}    to
+         * @returns {boolean}
+         */
+        hasTransition: function (action, from, to)
+        {
+            return this.map.get(from + '.' + action) === to;
+        },
+
+        /**
          * Utility function to directly check if the composed ValueMap has the requested path
+         *
+         * Note this does NOT take into account the value of the target object; use hasTransition() for that
          *
          * @param   {string}    path    Pass a path using dot notation, i.e. 'a.next' or pass individual arguments, i.e. from, action, to
          * @returns {boolean}
