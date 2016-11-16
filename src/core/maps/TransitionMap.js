@@ -101,10 +101,10 @@ TransitionMap.prototype =
          */
         getActionsFrom: function (from, asMap = false)
         {
-            if(this.has(from))
+            if(this.has(from) || this.has('*'))
             {
                 // get all available actions
-                let actions     = this.map.get(from);
+                let actions     = this.map.get(from) || {};
                 let wildcard    = this.map.get('*');
                 let output      = Object.assign({}, actions);
 
