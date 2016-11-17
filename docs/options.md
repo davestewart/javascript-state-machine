@@ -1,32 +1,51 @@
 # Options
 
 
-All config options are optional.
-
-### `transitions:`
-
-An array of transition configuration options. Valid configuration options are:
-
-An `object`, for example:
+StateMachine is configured mainly via a hash of options passed to its constructor function:
 
 ```
-{action:'next', from:'intro', to:'form'}
+var fsm = new StateMachine(options);'
 ```
 
-A shorthand `string`, for example:
+The following options are available:
+
+## Behaviour
+
+<h4>
+	<a name="transitions" href="transitions">#</a>
+	<code>transitions:</code>
+</h4>
+
+An array of transition assignments. 
+
+- Type: `array`
+- Default: `null`
+
+The array should contain either `object` or `string` configurations, for example:
 
 ```
-'next : intro > form'
+[
+    // object
+    {action:'next', from:'intro', to:'form'},
+    
+    // string
+    'next : intro > form'
+]
 ```
 
 See the [Transitions](transitions.md) section for more detailed information.
 
-- type: `array`
-- default: `null`
+<h4>
+	<a name="handlers" href="handlers">#</a>
+	<code>handlers:</code>
+</h4>
 
-### `handlers:`
+A hash of event handlers.
 
-A hash of event handler functions:
+- Type: `object`
+- Default: `null`
+
+The hash should contain a hash of `id:callback` pairs, for example:
 
 ```
 {
@@ -35,68 +54,104 @@ A hash of event handler functions:
 }
 ```
 
-Note that all handlers receive `event` and `fsm` arguments, then any optional arguments that were passed from `fsm.do()`.
+Note that all handlers receive `event` and `fsm` (the current StateMachine instance) arguments, then any optional arguments that were sent via `fsm.do()`.
 
 See the [Handlers](handlers.md) section for information on handler shorthand.
 
-- type: `object`
-- default: `null`
+<h4>
+	<a name="scope" href="scope">#</a>
+	<code>scope:</code>
+</h4>
 
-### `scope:`
+A scope to run event handlers in.
 
-A scope to run event handlers in. Defaults to the owning StateMachine instance.
+- Type: `object`
+- Default: `null`
 
-- type: `object`
-- default: `null`
+Defaults to the owning StateMachine instance.
 
-### `start:` 
+<h4>
+	<a name="start" href="start">#</a>
+	<code>start:</code>
+</h4> 
 
-A boolean to start the state machine as soon as it has been instantiated. Set to `false` to delay startup.
+A boolean to start the state machine as soon as it has been instantiated.
 
-- type: `boolean`
-- default: `true` (the system starts automatcially unless instructed otherwise)
+- Type: `boolean`
+- Default: `true`
 
-### `initial:`
+Set to `false` to delay startup, then call `fsm.start()` later.
 
-An initial state to start the state machine in. If an intial state is not passed it, the StateMachine defaults to the first configured state.
+## States
 
-- type: `string`
-- default: The first configured state (if there is one)
+<h4>
+	<a name="initial" href="initial">#</a>
+	<code>initial:</code>
+</h4>
 
-### `final:`
+An initial state to start the state machine in.
 
-An state which can be considered the end state, and when transitioned to, StateMachine dispatches a `system.complete` event
+- Type: `string`
+- Default: The first configured state (if there is one)
 
-- type: `string`
-- default: `""`
+If an initial state is not passed it, the StateMachine defaults to the first configured state.
 
-### `invalid:`
+<h4>
+	<a name="final" href="final">#</a>
+	<code>final:</code>
+</h4>
+
+An state which can be considered the end state.
+
+- Type: `string`
+- Default: `""`
+
+When transitioned to, StateMachine dispatches a `system.complete` event, allowing you to call additional functionality.
+
+## Error handling
+
+<h4>
+	<a name="invalid" href="invalid">#</a>
+	<code>invalid:</code>
+</h4>
 
 An flag to accept handlers for potentially invalid states or actions in either the handler config, or assigning handlers via `.on()`.
+
+- Type: `boolean`
+- Default: `false`
 
 The purpose of this is to warn against setting handlers that will never be called, and works in conjunction with the `errors` option.
 
 Set this to `true` if you intend to add states at run time.
 
-- type: `boolean`
-- default: `false`
+<h4>
+	<a name="errors" href="errors">#</a>
+	<code>errors:</code>
+</h4>
 
-### `errors:`
+An error level which affects how invalid states are reported. 
 
-An error level which affects how invalid states are reported. Can be one of:
+- Type: `number`
+- Default: `1`
+
+Can be one of:
 
 - `0` - quiet; don't report or warn
 - `1` - warn; run a `console.warn()` regarding the state or action
 - `2` - error; throw a catchable error regarding the state or action
 
-### `order:`
 
-The order that callback types should be run in, during a transition. These would generally not need to be overridden, but could be depending on your use case.
+## Defaults
 
-To get these defaults as an array, call `StateMachine.getDefaultOrder()`.
+<h4>
+	<a name="order" href="order">#</a>
+	<code>order:</code>
+</h4>
 
-- type: `array`
-- default: 
+The order that callback types should be run in, during a transition. 
+
+- Type: `array`
+- Default: 
 
 ```
 'action.*.start',
@@ -111,6 +166,23 @@ To get these defaults as an array, call `StateMachine.getDefaultOrder()`.
 'action.*.end'
 ```
 
-### `defaults:`
+These would generally not need to be overridden, but could be depending on your use case.
 
-Some sensible defaults uses by StateMachine, which generally don't need to be overridden, but can be if required.
+To get these defaults as an array, call `StateMachine.getDefaultOrder()`.
+
+<h4>
+	<a name="defaults" href="defaults">#</a>
+	<code>defaults:</code>
+</h4>
+
+Some sensible defaults uses by StateMachine.
+
+- Type: `object`
+- default:
+
+```
+action  :'start',
+state   :'enter'
+```
+
+These generally don't need to be overridden, but can be if required; for example you want to change the defaults event types for shorthand handler assignment.
