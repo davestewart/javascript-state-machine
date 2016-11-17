@@ -4,7 +4,7 @@
 StateMachine is configured mainly via a hash of options passed to its constructor function:
 
 ```
-var fsm = new StateMachine(options);'
+var fsm = new StateMachine(options);
 ```
 
 The following options are available:
@@ -163,4 +163,4 @@ action  :'start',
 state   :'enter'
 ```
 
-These generally don't need to be overridden, but can be if required; for example you want to change the defaults event types for shorthand handler assignment.
+These generally don't need to be overridden, but can be if required; for example you want to change the default event types for shorthand handler assignment.
