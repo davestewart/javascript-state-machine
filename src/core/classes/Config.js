@@ -1,3 +1,5 @@
+import StateMachine from '../../StateMachine';
+
 export default function Config (options)
 {
     'scope start initial final invalid errors'
