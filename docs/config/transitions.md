@@ -64,14 +64,14 @@ You're not limited to a single set of states either; you can add multiple transi
 // move sequentially from one state to the next state
 'next : a > b > c > d'
 
-// move from both states a and c to states x
+// move from both a and c to state x
 'error: a > x < c'
 
-// move from each of a, b and c states, to state x
+// move from each of a, b and c, to state x
 'quit : a b c > x'
 ```
 
-Note that it doesn't make sense to transition *from* multiple states *to* multiple states, the following will throw an error:
+Note that it doesn't make sense to transition *from* multiple states *to* multiple states, so the following will throw an error:
 
 ```
 wtf : a b c > x y z
@@ -79,9 +79,7 @@ wtf : a b c > x y z
 
 Each of the above configurations can be viewed in the API section of the demos.
 
-In a more complicated system you can even change the spacing of the states to make it really clear how the states link from one to another. 
-
-The following describes a basic sign-up form (and can be seen in the Examples section of the demos).
+In a more complicated system you can even change the spacing of the states to make the intention of the system really clear. The following describes a basic sign-up form (and can be seen in the Examples section of the demos):
 
 ```
 transitions: [
@@ -92,7 +90,7 @@ transitions: [
 ],
 ```
 
-As with Object transition configuration, you can also assign these at run time:
+As with Object transition configuration, you can also assign shorthand transitions at run time:
 
 ```
 fsm.add('next : intro > form > finish')
@@ -105,9 +103,18 @@ For each of the examples above, they will be converted and expanded internally t
 StateMachine also supports "wildcard" state assignment, where *any* state will transition to a target `to` state:
 
 ```
-fsm.on('restart : intro < *'); // you can use any operator here
+fsm.on('restart : intro < *'); // you can use any order or operator here
 ```
 
-Note that you cannot transition `to` a wildcard (it doesn't make sense to) and StateMachine will warn you if you attempt to do so.
+Note that you cannot transition *to* a wildcard (it doesn't make sense to) and StateMachine will warn you if you attempt to do so.
 
 See the [Options](options.md) section for more information on reporting warnings and errors.
+
+## Miscellaneous
+
+You can use `=` or `|` in place of `:` if you prefer:
+
+```
+next = a > b
+back | a < b
+```
