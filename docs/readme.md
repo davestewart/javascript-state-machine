@@ -1,18 +1,13 @@
-# JavaScript State Machine
-
-## Documentation
+# Documentation
 
 > These docs are not yet complete!
 
 Links to subsections:
 
-- [Intro](intro.md)
-- [Usage](usage.md)
 
 Main
-- [Overview](overview.md)
-- [Setup](setup.md)
-- [Usage](usage.md)
+- [Intro](intro.md)
+- [Basic usage](usage.md)
 
 Config
 - [Options](config/options.md)
