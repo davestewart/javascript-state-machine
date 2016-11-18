@@ -2,59 +2,93 @@
 
 ## Overview
 
-Using JavaScript State Machine in your code is easy. 
+Using JavaScript State Machine in your application is easy. 
 
-You create a new StateMachine instance, then assign the states and actions required to move from state to state, along with optional callbacks to run as things change.
+You create a new StateMachine instance, passing in an options object defining the transitions, along with optional callbacks to run as the system moves from state to state.
 
-A simple example such as a 3 step sign-up form might be as simpled as:
+## JavaScript
+
+A very simple example such as a sign-up form might be managed as follows:
 
 ```javascript
-var fsm = new StateMachine(target, 
-{
+var fsm = new StateMachine({
+
     transitions: 
     [
         // shorthand "action/state" event notation
-        'next   : intro > settings',
-        'next   : settings > summary',
-        'finish : summary > complete',
-        'error  : summary > sorry'
+        'next   : intro > settings > complete',
+        'back   : intro < settings'
     ],
     
     handlers: 
     {
+        // show correct view when state changes
+        'change': function(event, fsm)
+        {
+            // update states
+            $('article.state')
+                .hide()
+                .filter('#' + event.target)
+                .show();
+                
+            // update buttons
+            $('#controls button')
+                .each(function(i, e){
+                    $(e).toggleAttr('disabled', fsm.can(e.name));  
+                })
+        },
+        
         // validate form
         'settings@next': function (event) 
         {
             // cancel if the form didn't validate
-            if( ! this.validate() ) 
+            if( ! validate() ) 
             {
-                return false; // alternative to fsm.pause()
+                return false; // alternative to fsm.cancel()
             }
-        },
-                    
-        // submit data
-        'summary@next': function (event, fsm) 
-        {
+
             // pause transition to complete async action
             fsm.pause();
-            this
-                .submit()
-                .then(fsm.resume)
+            $.post('/signup/submit.php', $('form').serialize())
+                .then(function() { fsm.resume(); })
                 .fail(function(){
-                    // cancel and go directly to error state
-                    fsm.go('error');
+                    // don't complete the transition
+                    fsm.cancel();
                 });
         },
         
         // we're done!
         'complete': function (event) 
         {
-            // run internal process to complete
-            this.navigate('/new/page.html');
+            alert('congrats!');
         }
     }
 });
 ```
+
+You have additional options to these, such as setting the `this` context of the StateMachine and mixing in additional methods, found in the [Options](config/options.md) page.
+
+## HTML
+
+Any form such as this will need accompanying HTML, with something like the below a good starting point: 
+
+    <section id="states">
+        <article class="state" id="intro"> ... </article>
+        <article class="state" id="settings"> ... </article>
+        <article class="state" id="summary"> ... </article>
+    </section>
+    
+    <section id="controls">
+        <button name="back">Back<button>
+        <button name="next">Next<button>
+    </section>
+    
+    <script>
+        $('button').on('click', function(i, button) {
+            fsm.do(button.name);
+        });
+    </script>
+
 
 Transitions are made up of "actions" and "states", with actions being easily mapped to buttons. 
 

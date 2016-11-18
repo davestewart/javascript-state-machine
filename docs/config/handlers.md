@@ -14,7 +14,7 @@ StateMachine keeps a map of event / callback pairs internally, which it uses to 
 
 Because this map is somewhat complicated, and one of the aims of the project was to make using a finite state machine easy, a DSL (domain specific language) to reference lifecycle events has been developed.
 
-Briefly, any lifecycle hook can be referenced using a few key words with some additional grammar, making it easy to target sometimes long-winded or even complex events.
+Briefly, any lifecycle hook can be referenced using a few key words with some additional grammar, making it easy to specify handlers where it might otherwise might have been difficult, for example `state.intro.next.start`.
 
 As an example, here are some typical use cases (note that patterns are always strings):
 
@@ -29,9 +29,9 @@ As an example, here are some typical use cases (note that patterns are always st
 '(intro form)@next'
 ```
 
-By combining keywords and grammar together in various different ways, you can quickly specify the exact object and/or lifecycle event to hook into.
+By combining keywords and grammar together in various different ways, you can quickly specify the exact object and/or lifecycle target to hook into.
 
-You can play with an interactive handler / event example in the demo:
+You can experiment with an interactive handler demo here:
 
 - [statemachine.davestewart.io/html/api/events/playground.html](http://statemachine.davestewart.io/html/api/events/playground.html)
 
