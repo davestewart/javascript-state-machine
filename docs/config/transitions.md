@@ -27,7 +27,7 @@ var options = {
 var fsm = new StateMachine(options);
 ```
 
-Alternatively, you can add them via the `fsm.add()`:
+Alternatively, you can add them via `fsm.add()`:
 
 ```
 var fsm = new StateMachine();
@@ -74,12 +74,14 @@ You're not limited to a single set of states either; you can add multiple transi
 Note that it doesn't make sense to transition *from* multiple states *to* multiple states, so the following will throw an error:
 
 ```
-wtf : a b c > x y z
+'wtf : a b c > x y z'
 ```
 
-Each of the above configurations can be viewed in the API section of the demos.
+Each of the above configurations can be viewed in the [API](http://statemachine.davestewart.io/html/api/) section of the demos.
 
-In a more complicated system you can even change the spacing of the states to make the intention of the system really clear. The following describes a basic sign-up form (and can be seen in the Examples section of the demos):
+In a more complicated system you can even change the spacing of the states to make the intention of the system really clear. 
+
+The following describes a basic sign-up form (and can be seen in the Examples section of the demos [here](http://statemachine.davestewart.io/html/examples/systems/sign-up.html)):
 
 ```
 transitions: [
@@ -115,6 +117,6 @@ See the [Options](options.md) section for more information on reporting warnings
 You can use `=` or `|` in place of `:` if you prefer:
 
 ```
-next = a > b
-back | a < b
+'next = a > b'
+'back | a < b'
 ```
