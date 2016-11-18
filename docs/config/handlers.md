@@ -2,27 +2,21 @@
 
 ## Overview
 
-Handlers are StateMachine's method to hook into lifecycle events and run custom code. 
+Handlers are StateMachine's mechanism to hook into lifecycle events and run custom code. They work just the same as event handlers in the browser, with `Event` objects being dispatched and passed to the event handler function, where you can take action, run code, etc.
 
-They work just the same as handlers in the browser, with `Event` objects being dispatched and passed to the event handler function, where you can take action, run code, etc.
+There are a variety of event types / Event classes that describe the lifecycle a StateMachine system, all of which are described in the [Events](../api/events.md) section of the documentation.
 
-There are a variety of event types / Event classes that describe the lifecycle of a system modeled by StateMachine, all of which are described in the [Events](../api/events.md) section of the documentation.
-
-You can play with an interactive handler / event example in the demo:
-
-- [statemachine.davestewart.io/html/api/events/playground.html](http://statemachine.davestewart.io/html/api/events/playground.html)
-
-This section describes how to describe to StateMachine which events you want to hook into by way of "handler id" shorthand assignment.
+This section describes how hook into events by way of "shorthand" handler syntax.
 
 ## Handler syntax
 
-StateMachine keeps a map of event / callback pairs internally, which it uses to fire the correct events and call the correct handlers as the system updates.
+StateMachine keeps a map of event / callback pairs internally, which it uses to fire the correct events and call the correct handlers as the system transitions from state to state.
 
-Because this map is somewhat complicated, and one of the aims of the project was to make using a finite state machine easy, a DSL (domain specific language) to hook into StateMachine lifecycle events has been  developed.
+Because this map is somewhat complicated, and one of the aims of the project was to make using a finite state machine easy, a DSL (domain specific language) to reference lifecycle events has been developed.
 
-Briefly, the plethora of available events can be hooked into using a few key words with some additional grammar, making it easy to specify sometimes long-winded or even complex events.
+Briefly, any lifecycle hook can be referenced using a few key words with some additional grammar, making it easy to target sometimes long-winded or even complex events.
 
-As an example, here are a few examples patterns (note that patterns are always strings):
+As an example, here are some typical use cases (note that patterns are always strings):
 
 ```
 'change'
@@ -35,7 +29,11 @@ As an example, here are a few examples patterns (note that patterns are always s
 '(intro form)@next'
 ```
 
-By using keywords and grammar together in various different ways, you can quickly specify the exact object and/or lifecycle event to hook into.
+By combining keywords and grammar together in various different ways, you can quickly specify the exact object and/or lifecycle event to hook into.
+
+You can play with an interactive handler / event example in the demo:
+
+- [statemachine.davestewart.io/html/api/events/playground.html](http://statemachine.davestewart.io/html/api/events/playground.html)
 
 The specific syntax for keywords and grammars is summarised below:
 
@@ -85,7 +83,7 @@ Any event handler callback should be of a specific format:
 function (event, fsm, ...rest) { ... }
 ```
 
-All handlers are passed first a specific event that describes the lifecycle hook, then a reference to the owning StateMachine, then any optional parameters that may have been passed.
+All handlers are passed first the specific `Event` instance describes the lifecycle hook, then a reference to the owning `StateMachine` then any optional parameters that may have been passed for some cases.
 
 Inside the event handler you are free to call whatever code you like, using `this` to refer to the configured scope.
 
@@ -124,7 +122,7 @@ You'll use these patterns pretty much every time you use StateMachine, as they m
 
 This is a convenience / catch-all pattern that maps a single word to one of two options:
 
-- a namespaced event, for example `change` maps to `system.change`
+- a namespaced event, for example `change` or `pause`
 - a single state, for example `intro`
 
 Examples:
@@ -139,18 +137,18 @@ Note that namespaced event aliases take precendence over named states, so be car
 
 <h4>
 	<a name="namespaced" href="#namespaced">#</a>
-	A namespaced event: <code>namespace.type</code>
+	A namespaced event: <code>namespace.event</code>
 </h4>
 
-An namespaced reference to an event type, such as `system.change` or `state.add`.
+An namespaced reference to an event, such as `system.change` or `state.add`.
 
 Examples:
 
 ```
-state.add       // catches any states added
-action.remove   // catches any actions removed
+state.add           // catches any states added
+action.remove       // catches any actions removed
+transition.pause    // absolute path to the alias `pause`
 ```
-
 
 <h4>
 	<a name="oneState" href="#oneState">#</a>
@@ -159,7 +157,7 @@ action.remove   // catches any actions removed
 
 A single named state in (or not yet in) your system.
 
-Note that the pattern resolves to the configured `event` for all states in the system, which defaults to `:enter`, meaning that any handlers assigned to a single state will fire as the state is entered.
+Note that because of default options, single state patterns default to `state:enter` meaning that any handlers assigned using this pattern will fire as the state is entered.
 
 Examples:
 
@@ -176,7 +174,7 @@ summary
 	A single state's action: <code>state@action</code>
 </h4>
 
-A single action specific to a single state.
+An action called from a specific state.
 
 This pattern gives you allows you to specifically target a state and action, giving you fine-grained control over when to fire a handler.
  
@@ -198,7 +196,9 @@ error@back
 
 A single named action in (or not yet in) your system.
 
-Note that the pattern resolves to the configured `event` for all actions in the system, which defaults to `:start`, meaning that any handlers assigned to a single action will fire as the action is called.
+Note that because of default options, single action patterns default to `action:start`, meaning that any handlers assigned using this pattern will fire as the action starts.
+
+Also note that as an action can be used across multiple states, that you can use this to target multiple states.
 
 Examples:
 
@@ -222,12 +222,11 @@ You'll probably only need these patterns rarely, but the grammar allows them, so
 
 This pattern allows you to hook into a single state's `:enter` or `:leave` event.
 
-This might be useful if you wanted to do something like clear validation errors a form on re-entry, or remove a reminder message on leaving an intro state.
+The `:enter` type is the state event type configured by-default, so you may find this useful when you need to target an action's `leave` event.
 
 Examples:
 
 ```
-form:enter
 intro:leave
 ```
 
