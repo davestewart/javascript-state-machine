@@ -112,7 +112,7 @@ Note that apart from the `transitions` block at the start there is absolutely no
 
 The only state-related code is in the `change` handler, which loops over the `<article>` and `<button>` elements using jQuery, and shows/hides or enables/disables them according to what states / actions are available.
 
-The remaining handlers respond handle application logic such as validating forms and submitting data. 
+The remaining handlers respond handle application logic such as validating forms and submitting data, including in this case an asynchronous transition whilst data is posted to the server.
 
 Note that handlers can be placed inside or outside the state machine instance; in this case they are inside for brevity.
 
@@ -131,7 +131,7 @@ In brief:
 The following links provide further reading / experimentation:
 
 - The StateMachine [demos](http://statemachine.davestewart.io) for interactive demos on all aspects of StateMachine operation
-- More information about [helpers](http://statemachine.davestewart.io/html/setup/index.html)
-- More information about [lifecycle hooks](api/events)
+- Information about [helpers](http://statemachine.davestewart.io/html/setup/index.html) which ship with StateMachine and are designed to reduce boilerplate code for UI updates
+- More information about [events](api/events)
 - Check the sections on configuration to see more on basic setup
 

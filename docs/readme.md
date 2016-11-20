@@ -15,10 +15,8 @@ Config
 - [Handlers](config/handlers.md)
 
 API
-- [StateMachine](statemachine.md)
-- [Events](events.md)
+- [Overview](api/index)
+- [StateMachine](api/statemachine.md)
+- [Events](api/events.md)
 - [TransitionMap](transitionmap.md)
 
-Misc
-- [Architecture](misc/architecture.md)
-- [Info](misc/info.md)
