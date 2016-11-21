@@ -10,6 +10,7 @@ The demos also cover the [StateHelper](http://statemachine.davestewart.io/html/s
 Read more about basic setup and operation here:
 
 - [Intro](intro.md)
+- [Transitions](transitions.md)
 - [Basic usage](usage.md)
 
 Read about configuring StateMachine here:
