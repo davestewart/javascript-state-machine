@@ -115,5 +115,5 @@ Tests whether the transition from a single `string` state to another `string` st
 	<code>has(...path)</code>
 </h4>
 
-Direct access to the `ValieMap`'s `has()` method. Mainly used internally.
+Direct access to the `ValueMap`'s `has()` method. Mainly used internally.
 

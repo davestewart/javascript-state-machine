@@ -55,7 +55,7 @@ The specific syntax for keywords and grammars is summarised below:
 
 You can assign handlers via the constructor `options` like so:
 
-```
+```javascript
 var options = {
     handlers: {
         'change' : function (event, fsm) { ... },
@@ -67,7 +67,7 @@ var fsm = new StateMachine(options);
 
 Alternatively, you can assign them via `fsm.on()`:
 
-```
+```javascript
 var fsm = new StateMachine();
 fsm.on('change', function (event, fsm) { ... });
 ```
@@ -79,7 +79,7 @@ The method is chainable, so you can add multiple handlers this way, though bear 
 
 Any event handler callback should be of a specific format:
 
-```
+```javascript
 function (event, fsm, ...rest) { ... }
 ```
 
@@ -89,8 +89,8 @@ Inside the event handler you are free to call whatever code you like, using `thi
 
 If you need to pause, resume or cancel a transition, you can do it via the `fsm` parameter, like so:
 
-```
-function (event, fsm) 
+```javascript
+function onChange(event, fsm) 
 {
     fsm.pause();
     asynchronousCall(function onComplete() {

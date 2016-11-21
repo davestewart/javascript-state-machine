@@ -44,8 +44,8 @@ Useful to lazily wire up any UI, especially for delayed starts (where the FSM op
 
 When a transition has completed and there is a change of state. Check the event `source` to see what the state is, or even the `fsm.state`:
 
-```
-onChange function(event, fsm) {
+```javascript
+function onCHange (event, fsm) {
     event.source === fsm.state;
 }
 ```
@@ -81,7 +81,7 @@ Fired when the StateMachine has been paused or unpaused via `fsm.pause()` or `fs
 
 Hook into this state to update the UI, such as locking it, or displaying a loading icon. Check for paused state via the event's `value` property:
 
-```
+```javascript
 function onPause (event, fsm) {
     $loadingIcon.toggleClass('block', event.value);
 }
@@ -94,7 +94,7 @@ function onPause (event, fsm) {
 
 Fired when a transition has been cancelled.
 
-Because a cancelled transition doesn't change state, listen for this event to update any connected UI, for example to stop any animation, or hide loading icons.
+Because a cancelled transition doesn't change teh StateMachine's state, listen for this event to update any already-updating UI, for example to stop any animation, or hide loading icons.
 
 
 

@@ -3,7 +3,7 @@
 
 StateMachine is configured mainly via a hash of options passed to its constructor function:
 
-```
+```javascript
 var fsm = new StateMachine(options);
 ```
 
@@ -20,7 +20,7 @@ An array of transition assignments.
 
 The array should contain either `object` or `string` configurations, for example:
 
-```
+```javascript
 [
     // object
     {action:'next', from:'intro', to:'form'},
@@ -41,7 +41,7 @@ A hash of event handlers.
 
 The hash should contain a hash of `id:callback` pairs, for example:
 
-```
+```javascript
 {
     next: function (event, fsm) { ... },
     'state.add' : function (event, fsm, foo, bar) { ... }

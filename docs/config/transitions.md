@@ -17,7 +17,7 @@ Describing a transition via its 3 properties is the most obvious way to add a tr
 
 You can do it via the constructor `options` like so:
 
-```
+```javascript
 var options = {
     transitions: [
         {action: 'next', from: 'a', to: 'b'},
@@ -29,7 +29,7 @@ var fsm = new StateMachine(options);
 
 Alternatively, you can add them via `fsm.add()`:
 
-```
+```javascript
 var fsm = new StateMachine();
 fsm
     .add('next', 'a', 'b')
@@ -40,18 +40,18 @@ fsm
 
 A more expressive way of adding transitions is via "shorthand notation". This allows you to literally write out the flow of transitions as they occur. 
 
-```
+```javascript
 var options = {
     transitions: [
         'next : a > b',
-        'next : b > a',
+        'next : b > a'
     ]
 };
 var fsm = new StateMachine(options);
 ```
 Not only that, but you can reverse the `>` symbol to describe transitions that go the opposite way:
 
-```
+```javascript
 transitions: [
     'next : a > b',
     'next : b < a',
@@ -83,7 +83,7 @@ In a more complicated system you can even change the spacing of the states to ma
 
 The following describes a basic sign-up form (and can be seen in the Examples section of the demos [here](http://statemachine.davestewart.io/html/examples/systems/sign-up.html)):
 
-```
+```javascript
 transitions: [
     'next    : intro > form > finish',
     'back    : intro < form           < error',
@@ -94,7 +94,7 @@ transitions: [
 
 As with Object transition configuration, you can also assign shorthand transitions at run time:
 
-```
+```javascript
 fsm.add('next : intro > form > finish')
 ```
 
@@ -104,7 +104,7 @@ For each of the examples above, they will be converted and expanded internally t
 
 StateMachine also supports "wildcard" state assignment, where *any* state will transition to a target `to` state:
 
-```
+```javascript
 fsm.on('restart : intro < *'); // you can use any order or operator here
 ```
 

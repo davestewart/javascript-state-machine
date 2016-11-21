@@ -17,7 +17,7 @@ The second thing you'll notice is significantly less brain-ache and bugs due to 
 
 In fact the configuration is so easy, you can *literally* write it out: 
 
-```
+```javascript
 transitions: [
     'next    : intro > form > finish',
     'back    : intro < form           < error',
@@ -30,7 +30,7 @@ The above code is the transition configuration block from one of the demos for a
 
 Targeting handlers to the correct events is also made easy with an event handler-specific DSL:
 
-```
+```javascript
 handlers: {
     'form': onForm,
     'form@next': onSubmit,

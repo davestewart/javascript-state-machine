@@ -91,7 +91,7 @@ In practice, you'll likely only hook into a few events per system, so the total 
 
 See the following links for more information:
 
-- The [StateMachine API](api/statemachine) to add and remove event handlers
+- The [StateMachine API](api/statemachine.md) to add and remove event handlers
 - The [handlers](config/handlers.md) section for more information on event handler pattens 
-- The [events](config/handlers.md) section for how to write event handlers that interact with your application
+- The [events](api/events.md) section for how to write event handlers that interact with your application
 - The [demo](http://statemachine.davestewart.io/html/api) site (and [source code](../demo)) for various examples of all of the above
