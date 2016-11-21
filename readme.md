@@ -33,7 +33,7 @@ To run demo locally, see the build tasks at the bottom of this readme.
 
 View the documentation at:
 
-- [github.com/davestewart/javascript-state-machine/tree/master/docs](https://github.com/davestewart/javascript-state-machine/tree/master/docs)
+- [docs/readme.md](docs/readme.md)
 
 The docs will also be downloaded with the repository. 
 
