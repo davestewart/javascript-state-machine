@@ -74,7 +74,7 @@ StateMachine.prototype =
     // private methods
 
         /**
-         * Initialize the FSM with a config object
+         * Initialize the FSM with options
          *
          * @private
          * @param options

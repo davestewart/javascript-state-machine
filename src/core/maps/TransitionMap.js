@@ -208,7 +208,7 @@ TransitionMap.prototype =
          * @param   {string}    path
          * @return  {*}
          */
-        get:function(...path)
+        get: function(...path)
         {
             path = [...path].join('.');
             return this.map.get(path);

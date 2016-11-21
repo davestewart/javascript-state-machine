@@ -122,7 +122,7 @@ Transition.prototype =
 
     cancel: function()
     {
-        this.paused = false;;
+        this.paused = false;
         this.fsm.handlers.trigger('transition.cancel', false);
     }
 
