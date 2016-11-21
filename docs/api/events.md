@@ -6,10 +6,10 @@ StateMachine, like many other systems, uses events to communicate changes in a d
 
 There are four different event types to respond to, which correlate to the main parts of the system that is undergoing change:
 
-- [SystemEvents](#SystemEvent) - such as starting, when the configuration is changed, or reaching the final state
-- [TransitionEvents](#TransitionEvent) - when a transition is paused, resumed or cancelled
-- [StateEvents](#StateEvent) - when a state event handler is triggered
-- [ActionEvents](#ActionEvent) - when an action event handler is triggered
+- [SystemEvents](#systemevent) - such as starting, when the configuration is changed, or reaching the final state
+- [TransitionEvents](#transitionevent) - when a transition is paused, resumed or cancelled
+- [StateEvents](#stateevent) - when a state event handler is triggered
+- [ActionEvents](#actionevent) - when an action event handler is triggered
 
 To hook into an event, you need to add an event handler with an event handler shorthand, and a callback to run JavaScript code:
 

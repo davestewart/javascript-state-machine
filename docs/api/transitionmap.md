@@ -22,7 +22,7 @@ Add a new transition.
 
 Remove an existing state. If the removal causes any orphaned states or actions, these are removed as well.
 
-## Querying states amd actions
+## Querying states and actions
 
 <h4>
 	<a name="getActionsFrom" href="#getActionsFrom">#</a>

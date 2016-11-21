@@ -26,9 +26,9 @@ transitions: [
 ],
 ```
 
-The above code is the transition configuration block from one of the demos for a multi-part form.
+The above code is the [transition configuration](config/options.md) block from one of the demos for a multi-part form.
 
-Targeting handlers to the correct events is also made easy with an event handler-specific DSL:
+Targeting handlers to the correct events is also made easy with an event handler-specific [DSL](config.handlers.md):
 
 ```javascript
 handlers: {
@@ -52,25 +52,14 @@ By planning states (views), actions (buttons) and handlers (callbacks) in advanc
 - radically clean up your code by handling business logic in action or state-driven callbacks
 - trivially derive secondary state for items such as navigation and buttons from the FSM state
 
-The end result is a system where your components are fully decoupled and contain much less code; their job essentially becomes to display data, whilst the logic for navigation and business is managed by, and within, the FSM.
+The end result is a system where your components are fully decoupled and contain much less code; their job essentially becomes to display data, whilst the FSM handles the navigation and routes business logic.
+
+See the [usage](usage.md) example for a quick code overview.
 
 
-### Benefits
-
-By planning states (views), actions (buttons) and handlers (callbacks) in advance, you can:
- 
-- reason more easily about the overall flow of the system
-- clearly see where to handle things like user input, validation, or server calls
-- radically clean up your code by handling business logic in action or state-driven callbacks
-- delegate normally spaghetti-like navigation logic to the FSM
-- trivially derive secondary state for items such as navigation and buttons from the FSM state
-
-The end result is a system where your components are fully decoupled and contain much less code; their job essentially becomes to display data, whilst the properties that drive navigation (the "state") is managed by, and within, the FSM.
+### Summary
 
 With some initial thought about the steps and actions of your system, it becomes fairly easy to convert that into a simple JavaScript configuration, which the FSM can use to manage your application's state and related interactions.
 
 
 The first time you set up a state machine, it can feel difficult to mentally-map what you normally do fluidly or intuitively in code, to what feels initially like a rigid structure of states and actions, but it doesn't take too long to begin thinking in this new way, and your project's architecture will thank you.
-
-
-
