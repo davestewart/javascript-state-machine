@@ -20,7 +20,7 @@ A quick recap on before starting:
 
 The key to setting up this form is the transition configuration:
 
-```
+```javascript
 transitions: [
     'next   : intro > settings > complete',
     'back   : intro < settings            < error',
@@ -32,23 +32,25 @@ This describes to the state machine what states are available, and how to naviga
 
 The additional code is simply a bit of jQuery to wire up the UI, and some to submit the form.
 
-This might seem like a simple example that you may think wouldn't be too much code to set up, but the beauty lies where navigation and decision-making complexity increases. Rather than adding a bunch of `if/else` code or `switch` statements to your code, you handle pretty much everything with transition and handler configuration.
+This might seem like a simple example that you may think wouldn't be too much code to set up, but the beauty lies where navigation and decision-making complexity increases. Rather than adding a bunch of `if/else` code or `switch` statements to your code, you handle pretty much everything with transition and handler configuration, so even [complex systems](http://statemachine.davestewart.io) become simple.
 
 ## HTML
 
 First of all, let's put some HTML on the page: 
 
-    <section id="states">
-        <article id="intro"> ... </article>
-        <article id="settings"> ... </article>
-        <article id="summary"> ... </article>
-        <article id="error"> ... </article>
-    </section>
-    
-    <section id="controls">
-        <button name="back">Back<button>
-        <button name="next">Next<button>
-    </section>
+```html
+<section id="states">
+    <article id="intro"> ... </article>
+    <article id="settings"> ... </article>
+    <article id="summary"> ... </article>
+    <article id="error"> ... </article>
+</section>
+
+<section id="controls">
+    <button name="back">Back<button>
+    <button name="next">Next<button>
+</section>
+```
     
 There are two blocks here, `#states` and `#controls`: 
 
@@ -59,7 +61,7 @@ There are two blocks here, `#states` and `#controls`:
 
 Here's the code to update the UI:
 
-```
+```javascript
 var ui = {
 
     start: function () 
@@ -89,7 +91,7 @@ var ui = {
 
 Here's the code for the application:
 
-```
+```javascript
 var app = {
 
     submit: function (event, fsm) 

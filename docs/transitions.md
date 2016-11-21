@@ -4,7 +4,7 @@
 
 Transitions are mechanism by which the StateMachine models changes in state.
 
-A transition is described by an `action` such as "next" and a start and end `state` such as "a" and "b":
+A transition is described by an `action` such as **next** and a "from" and "to" `state` such as **a** and **b**:
 
 
 ```
@@ -15,23 +15,24 @@ A transition is described by an `action` such as "next" and a start and end `sta
 +-----------+            +-----------+    back    +-----------+ 
 ```
 
+The StateMachine configuration options allows you to describe the above transition in plain English like this:
 
 ```
 next : a > b > c
 back :     b < c
 ```
 
-The actual transit is expressed inside the `StateMachine` as events of the component parts:
+The actual transit is expressed inside the `StateMachine` in more detail as events of the component parts:
 
 - The action has a `start` and `end` event
 - The states have a `leave` and `enter` event
 
-As the transition executes, the events occur in this order:
+As the transition executes, the events fire (if registered) in this order:
  
-1) `action.start` 
-2) `state.leave` 
-3) `state.enter` 
-4) `action.end`
+1. `action.start` 
+2. `state.leave` 
+3. `state.enter` 
+4. `action.end`
 
 Illustrated like so:
 
@@ -45,23 +46,23 @@ These events give us a mechanism to hook into state changes, either at the `acti
 
     +-----------+     +-----------+
     |           |     |           |
-    |     a --------> x     b     |  not allowed to enter state b
+    |     a --------> x     b     |  not allowed to "enter" state b
     |           |     |           |
     +-----------+     +-----------+
 
-As such, the Transition class itself is a *queueing system* for event handlers, with functionality to pause, resume and cancel the queue.
+As such, the Transition class itself is merely a *queueing system* for event handlers, with functionality to pause, resume and cancel the queue.
 
 
 ## Practice
 
-Handlers are added to transitions by by the `fsm.on(pattern, fn)` method.
+Handlers are added to transitions by by the [fsm.on()](api/statemachine.md#on) method.
 
-Handlers can be attached to all states and handlers with `*` or named states and actions such as `intro`.
+Handlers can be attached to **named** states and actions such as `a` or `next`, or **all** states and handlers with `*`.
  
 Additionally, the [handler syntax](config/handlers.md) allows attaching handlers to any action or state event such as `action.start` or `state.enter`.
 
 
-This gives use the following available hooks for any transition, which by default run in this order:
+This gives use the following available opportunities to hook into any transition, which by default run in this order:
 
     action.*.start
     action.{action}.start
@@ -74,17 +75,17 @@ This gives use the following available hooks for any transition, which by defaul
     action.{action}.end
     action.*.end
 
-This might seem like a lot of function calls, but functions are *only* called if registered.
+This might seem like a lot of function calls, but hooks are *only* called if registered.
 
 Like normal event handlers, you can add as many handlers per hook as you need to; they are called in the order they are added.
 
-Note the special `state.action` entry, which conveniently allows you to attach handlers for actions directly to states:
+Note the special `from.action` entry, which conveniently allows you to attach handlers for actions directly to states:
 
 ```
 fsm.on('form@next', onSubmitForm);
 ```
 
-In practice, you'll likely only hook into a few events.
+In practice, you'll likely only hook into a few events per system, so the total number of functions called will be minimal.
 
 ## Links
 
