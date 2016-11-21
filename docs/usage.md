@@ -8,7 +8,7 @@ This basic usage example discusses how to set up a basic multi-step form, with t
 
 ![multi-step-form](https://cloud.githubusercontent.com/assets/132681/20497487/4590265e-b021-11e6-95f4-44c878615c57.png)
 
-To see a slightly expanded version of this example in action, view the [multi-step form](http://statemachine.davestewart.io/html/examples/systems/sign-up.html) demo.
+To see this example in action, view the [multi-step form](http://statemachine.davestewart.io/html/examples/systems/sign-up.html) demo.
 
 A quick recap on before starting:
 
@@ -32,11 +32,11 @@ This describes to the state machine what states are available, and how to naviga
 
 The additional code is simply a bit of jQuery to wire up the UI, and some to submit the form.
 
-This might seem like a simple example that you may think wouldn't be too much code to set up, but the beauty lies where forms  
+This might seem like a simple example that you may think wouldn't be too much code to set up, but the beauty lies where navigation and decision-making complexity increases. Rather than adding a bunch of `if/else` code or `switch` statements to your code, you handle pretty much everything with transition and handler configuration.
 
 ## HTML
 
-First of all, let's put some HTML on the page to interact with: 
+First of all, let's put some HTML on the page: 
 
     <section id="states">
         <article id="intro"> ... </article>
@@ -50,9 +50,10 @@ First of all, let's put some HTML on the page to interact with:
         <button name="next">Next<button>
     </section>
     
-There are two blocks here, `#states` and `#controls`. 
+There are two blocks here, `#states` and `#controls`: 
 
-The buttons in the `#controls` block will be wired to tell the StateMachine what to do, and the `#states` block is the one we will update when the StateMachine moves from state to state and calls our handler functions.
+- the `#states` block shows our individual form states, and will be updated by jQuery via events from StateMachine
+- the buttons in the `#controls` block will be wired up with jQuery to call actions directly on our StateMachine instance
 
 ## JavaScript
 
@@ -63,9 +64,10 @@ var ui = {
 
     start: function () 
     {
-        $('#controls button').on('click', function(i, button) {
-            fsm.do(button.name);
-        });
+        $('#controls button')
+            .on('click', function(i, button) {
+                fsm.do(button.name);
+            });
     },
     
     change: function (event, fsm) 
@@ -150,11 +152,11 @@ var fsm = new StateMachine({
     }
 });
 ```
-Note that there is absolutely no **decision-making logic** in any of this code; the transitions configuration is all you need.  
+Note that there is absolutely no **navigation logic** in any of this code; the transitions configuration is all you need.  
 
 The jQuery code is just a simple mapping of user input from the `<button>` elements to the `StateMachine` and the resulting state to the `<article>` elements.
 
-The handlers block is virtually empty, delegating all application logic such as validating forms and submitting data – including an *asynchronous transition* whilst data is posted to the (hypothetical) server.
+The handlers block is virtually empty, delegating all application logic such as validating forms and submitting (or not submitting!) data, including an *asynchronous transition* whilst we wait for a response from the (hypothetical) server.
 
 Note that this example is highly decoupled, but you could equally put the methods within the options block itself (as most of the demos do).
 
