@@ -6,7 +6,7 @@ You instantiate the StateMachine via the `new` operator and an `options` object 
 
 For code examples, see:
 
-- the [usage](../usage.md) page for a full code example
+- the [usage](../main/usage.md) page for a full code example
 - the [options](../config/options.md) page for more information on instantiation options.
 - the [demo](http://statemachine.davestewart.io/html/api) site for examples of the full StateMachine API.
 

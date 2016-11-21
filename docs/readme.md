@@ -9,9 +9,9 @@ The demos also cover the [StateHelper](http://statemachine.davestewart.io/html/s
 
 Read more about basic setup and operation here:
 
-- [Intro](intro.md)
-- [Usage](usage.md)
-- [Transitions](transitions.md)
+- [Intro](main/intro.md)
+- [Usage](main/usage.md)
+- [Transitions](main/transitions.md)
 
 Read about configuring StateMachine here:
 
@@ -21,6 +21,7 @@ Read about configuring StateMachine here:
 
 Read about the main API and supporting classes here:
 
+- [API overview](api/readme.md)
 - [StateMachine](api/statemachine.md)
 - [Events](api/events.md)
 - [TransitionMap](api/transitionmap.md)

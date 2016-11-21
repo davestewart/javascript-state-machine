@@ -167,6 +167,6 @@ Note that this example is highly decoupled, but you could equally put the method
 The following links provide further reading / experimentation:
 
 - The StateMachine [demos](http://statemachine.davestewart.io) for interactive demos on all aspects of StateMachine operation
-- More information on basic [options](config/options.md) and [transitions](config/transitions.md) configuration
-- More information on responding to changes in state via [handlers](config/handlers.md) and [events](api/events) 
+- More information on basic [options](../config/options.md) and [transitions](../config/transitions.md) configuration
+- More information on responding to changes in state via [handlers](../config/handlers.md) and [events](../api/events) 
 - Information about the [StateHelper](http://statemachine.davestewart.io/html/setup/index.html) class and how you can use it for quickly wiring up UIs

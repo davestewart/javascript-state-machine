@@ -2,7 +2,7 @@
 
 ## Main classes
 
-The state machine comprises 3 main class:
+The state machine comprises 3 main classes of note:
 
 #### `StateMachine`
  

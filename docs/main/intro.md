@@ -26,7 +26,7 @@ transitions: [
 ],
 ```
 
-The above code is the [transition configuration](config/options.md) block from one of the demos for a multi-part form.
+The above code is the [transition configuration](../config/options.md) block from one of the demos for a multi-part form.
 
 Targeting handlers to the correct events is also made easy with an event handler-specific [DSL](config.handlers.md):
 

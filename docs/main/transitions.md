@@ -55,11 +55,11 @@ As such, the Transition class itself is merely a *queueing system* for event han
 
 ## Practice
 
-Handlers are added to transitions by by the [fsm.on()](api/statemachine.md#on) method.
+Handlers are added to transitions by by the [fsm.on()](../api/statemachine.md#on) method.
 
 Handlers can be attached to **named** states and actions such as `a` or `next`, or **all** states and handlers with `*`.
  
-Additionally, the [handler syntax](config/handlers.md) allows attaching handlers to any action or state event such as `action.start` or `state.enter`.
+Additionally, the [handler syntax](../config/handlers.md) allows attaching handlers to any action or state event such as `action.start` or `state.enter`.
 
 
 This gives use the following available opportunities to hook into any transition, which by default run in this order:
@@ -91,7 +91,7 @@ In practice, you'll likely only hook into a few events per system, so the total 
 
 See the following links for more information:
 
-- The [StateMachine API](api/statemachine.md) to add and remove event handlers
-- The [handlers](config/handlers.md) section for more information on event handler pattens 
-- The [events](api/events.md) section for how to write event handlers that interact with your application
+- The [StateMachine API](../api/statemachine.md) to add and remove event handlers
+- The [handlers](../config/handlers.md) section for more information on event handler pattens 
+- The [events](../api/events.md) section for how to write event handlers that interact with your application
 - The [demo](http://statemachine.davestewart.io/html/api) site (and [source code](../demo)) for various examples of all of the above

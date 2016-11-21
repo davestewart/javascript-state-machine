@@ -89,7 +89,7 @@ transitions: [
     'back    : intro < form           < error',
     'error   :         form >           error',
     'restart : intro        < finish'
-],
+]
 ```
 
 As with Object transition configuration, you can also assign shorthand transitions at run time:
