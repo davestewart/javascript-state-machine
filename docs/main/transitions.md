@@ -22,12 +22,30 @@ next : a > b > c
 back :     b < c
 ```
 
-The actual transit is expressed inside the `StateMachine` in more detail as events of the component parts:
+It should be noted that a `from` state's actions will be *unique* (it doesn't make sense to have two "next"s for example) and generally only one action would go (directly) to one state (though in theory you could have 2 actions going to the same state):
+
+```
+                         +-----------+
+                         |           |
+                         |     b     |
++-----------+    next    |           | 
+|           |  ------->  +-----------+ 
+|     a     |             
+|           |  ------->  +-----------+ 
++-----------+    exit    |           |
+                         |     x     |
+                         |           |
+                         +-----------+
+```
+
+You can then describe the journey around a system of states in terms actions, in a linear or non-linear fashion as required.
+
+The actual *transit* of a transition is expressed inside the `StateMachine` in more detail as **events** of the component parts:
 
 - The action has a `start` and `end` event
 - The states have a `leave` and `enter` event
 
-As the transition executes, the events fire (if registered) in this order:
+As the transition executes, the events occur in this order:
  
 1. `action.start` 
 2. `state.leave` 
@@ -79,7 +97,7 @@ This might seem like a lot of function calls, but hooks are *only* called if reg
 
 Like normal event handlers, you can add as many handlers per hook as you need to; they are called in the order they are added.
 
-Note the special `from.action` entry, which conveniently allows you to attach handlers for actions directly to states:
+Note the special `{from}.{action}` entry, which conveniently allows you to attach handlers for actions directly to states:
 
 ```
 fsm.on('form@next', onSubmitForm);
