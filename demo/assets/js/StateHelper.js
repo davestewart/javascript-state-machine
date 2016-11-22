@@ -54,21 +54,28 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	module.exports = __webpack_require__(1);
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
 	
-	var _ObjectHelper = __webpack_require__(1);
+	var _ObjectHelper = __webpack_require__(2);
 	
 	var _ObjectHelper2 = _interopRequireDefault(_ObjectHelper);
 	
-	var _jQueryHelper = __webpack_require__(3);
+	var _jQueryHelper = __webpack_require__(4);
 	
 	var _jQueryHelper2 = _interopRequireDefault(_jQueryHelper);
 	
-	var _VueRouter = __webpack_require__(4);
+	var _VueRouter = __webpack_require__(5);
 	
 	var _VueRouter2 = _interopRequireDefault(_VueRouter);
 	
@@ -83,7 +90,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = StateHelper;
 
 /***/ },
-/* 1 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -93,12 +100,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.default = setup;
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
 	function ObjectHelper(fsm) {
 	    this.data = {};
 	    this.fsm = fsm;
-	    this.fsm.on('change', this.onChange.bind(this)).on('(pause resume cancel)', this.onPause.bind(this)).on('(state:add state:remove action:add action:remove)', this.onModify.bind(this));
+	    this.fsm.on('change', this.onChange.bind(this)).on('(pause resume cancel)', this.onPause.bind(this)).on('(state.add state.remove action.add action.remove)', this.onModify.bind(this));
 	    this.reset();
 	    this.update();
 	}
@@ -155,7 +162,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 2 */
+/* 3 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -218,7 +225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -251,7 +258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	
 	    // bind event handlers
-	    this.fsm.on('change', this.onChange.bind(this)).on('(pause resume cancel)', this.onPause.bind(this)).on('(state:add state:remove)', this.onModifyStates.bind(this)).on('(action:add action:remove)', this.onModifyActions.bind(this));
+	    this.fsm.on('change', this.onChange.bind(this)).on('(pause resume cancel)', this.onPause.bind(this)).on('(state.add state.remove)', this.onModifyStates.bind(this)).on('(action.add action.remove)', this.onModifyActions.bind(this));
 	
 	    // update
 	    this.update();
@@ -310,7 +317,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	'use strict';

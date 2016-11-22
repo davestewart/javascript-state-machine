@@ -54,6 +54,80 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	module.exports = __webpack_require__(6);
+
+
+/***/ },
+/* 1 */,
+/* 2 */,
+/* 3 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.isObject = isObject;
+	exports.isArray = isArray;
+	exports.isString = isString;
+	exports.isFunction = isFunction;
+	exports.isDefined = isDefined;
+	exports.isUndefined = isUndefined;
+	exports.trim = trim;
+	exports.diff = diff;
+	exports.toHash = toHash;
+	function isObject(value) {
+	    return Object.prototype.toString.call(value) === '[object Object]';
+	}
+	
+	function isArray(value) {
+	    return value instanceof Array;
+	}
+	
+	function isString(value) {
+	    return typeof value === 'string';
+	}
+	
+	function isFunction(value) {
+	    return value instanceof Function;
+	}
+	
+	function isDefined(value) {
+	    return typeof value !== 'undefined';
+	}
+	
+	function isUndefined(value) {
+	    return typeof value === 'undefined';
+	}
+	
+	function trim(value) {
+	    return String(value || '').replace(/^\s+|\s+$/g, '');
+	}
+	
+	function diff(a, b) {
+	    var da = b.filter(function (v) {
+	        return a.indexOf(v) < 0;
+	    });
+	    var db = a.filter(function (v) {
+	        return b.indexOf(v) < 0;
+	    });
+	    return db.concat(da);
+	}
+	
+	function toHash(values) {
+	    return values.reduce(function (obj, value) {
+	        obj[value] = true;
+	        return obj;
+	    }, {});
+	}
+
+/***/ },
+/* 4 */,
+/* 5 */,
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -62,23 +136,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _Config = __webpack_require__(5);
+	var _Config = __webpack_require__(7);
 	
 	var _Config2 = _interopRequireDefault(_Config);
 	
-	var _HandlerMap = __webpack_require__(6);
+	var _HandlerMap = __webpack_require__(8);
 	
 	var _HandlerMap2 = _interopRequireDefault(_HandlerMap);
 	
-	var _TransitionMap = __webpack_require__(15);
+	var _TransitionMap = __webpack_require__(17);
 	
 	var _TransitionMap2 = _interopRequireDefault(_TransitionMap);
 	
-	var _Transition = __webpack_require__(18);
+	var _Transition = __webpack_require__(20);
 	
 	var _Transition2 = _interopRequireDefault(_Transition);
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -148,7 +222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // private methods
 	
 	    /**
-	     * Initialize the FSM with a config object
+	     * Initialize the FSM with options
 	     *
 	     * @private
 	     * @param options
@@ -214,7 +288,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    start: function start() {
 	        this.state = this.config.initial;
 	        this.handlers.trigger('system.start');
-	        this.handlers.trigger('system.change', this.state);
+	        if (this.state) {
+	            this.handlers.trigger('system.change', this.state);
+	        }
 	        return this;
 	    },
 	
@@ -679,74 +755,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 1 */,
-/* 2 */
-/***/ function(module, exports) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.isObject = isObject;
-	exports.isArray = isArray;
-	exports.isString = isString;
-	exports.isFunction = isFunction;
-	exports.isDefined = isDefined;
-	exports.isUndefined = isUndefined;
-	exports.trim = trim;
-	exports.diff = diff;
-	exports.toHash = toHash;
-	function isObject(value) {
-	    return Object.prototype.toString.call(value) === '[object Object]';
-	}
-	
-	function isArray(value) {
-	    return value instanceof Array;
-	}
-	
-	function isString(value) {
-	    return typeof value === 'string';
-	}
-	
-	function isFunction(value) {
-	    return value instanceof Function;
-	}
-	
-	function isDefined(value) {
-	    return typeof value !== 'undefined';
-	}
-	
-	function isUndefined(value) {
-	    return typeof value === 'undefined';
-	}
-	
-	function trim(value) {
-	    return String(value || '').replace(/^\s+|\s+$/g, '');
-	}
-	
-	function diff(a, b) {
-	    var da = b.filter(function (v) {
-	        return a.indexOf(v) < 0;
-	    });
-	    var db = a.filter(function (v) {
-	        return b.indexOf(v) < 0;
-	    });
-	    return db.concat(da);
-	}
-	
-	function toHash(values) {
-	    return values.reduce(function (obj, value) {
-	        obj[value] = true;
-	        return obj;
-	    }, {});
-	}
-
-/***/ },
-/* 3 */,
-/* 4 */,
-/* 5 */
-/***/ function(module, exports) {
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -754,6 +764,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	exports.default = Config;
+	
+	var _StateMachine = __webpack_require__(6);
+	
+	var _StateMachine2 = _interopRequireDefault(_StateMachine);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
 	function Config(options) {
 	  var _this = this;
 	
@@ -764,7 +781,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	
 	  // order
-	  this.order = options.order || StateMachine.getDefaultOrder();
+	  this.order = options.order || _StateMachine2.default.getDefaultOrder();
 	
 	  // defaults
 	  this.defaults = Object.assign({
@@ -845,7 +862,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -856,15 +873,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _ValueMap = __webpack_require__(7);
+	var _ValueMap = __webpack_require__(9);
 	
 	var _ValueMap2 = _interopRequireDefault(_ValueMap);
 	
-	var _events = __webpack_require__(8);
+	var _events = __webpack_require__(10);
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
-	var _HandlerParser = __webpack_require__(9);
+	var _HandlerParser = __webpack_require__(11);
 	
 	var _HandlerParser2 = _interopRequireDefault(_HandlerParser);
 	
@@ -974,7 +991,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HandlerMap;
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -985,7 +1002,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.values = exports.remove = exports.indexOf = exports.has = exports.get = exports.set = undefined;
 	exports.default = ValueMap;
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
 	/**
 	 * Utility class to create, modify and delete nested hashes and values
@@ -1171,7 +1188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.values = _values;
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1250,7 +1267,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1260,17 +1277,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.default = parse;
 	
-	var _HandlerMeta = __webpack_require__(10);
+	var _HandlerMeta = __webpack_require__(12);
 	
 	var _HandlerMeta2 = _interopRequireDefault(_HandlerMeta);
 	
-	var _Lexer = __webpack_require__(11);
+	var _Lexer = __webpack_require__(13);
 	
 	var _Lexer2 = _interopRequireDefault(_Lexer);
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
-	var _errors = __webpack_require__(14);
+	var _errors = __webpack_require__(16);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -1357,7 +1374,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    alias: /^(\w+)$/,
 	
 	    // system.start state.add
-	    namespaced: /^(system|transition|state|action):(\w+)$/,
+	    namespaced: /^(system|transition|state|action)\.(\w+)$/,
 	
 	    // @next @quit
 	    oneAction: /^@(\w+)$/,
@@ -1472,7 +1489,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1504,7 +1521,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = HandlerMeta;
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1514,11 +1531,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.default = Lexer;
 	
-	var _Rule = __webpack_require__(12);
+	var _Rule = __webpack_require__(14);
 	
 	var _Rule2 = _interopRequireDefault(_Rule);
 	
-	var _Token = __webpack_require__(13);
+	var _Token = __webpack_require__(15);
 	
 	var _Token2 = _interopRequireDefault(_Token);
 	
@@ -1617,7 +1634,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	LexerError.prototype.constructor = LexerError;
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1639,7 +1656,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Rule;
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1666,7 +1683,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Token;
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1686,7 +1703,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	ParseError.prototype.constructor = ParseError;
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1697,15 +1714,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 	
-	var _ValueMap = __webpack_require__(7);
+	var _ValueMap = __webpack_require__(9);
 	
 	var _ValueMap2 = _interopRequireDefault(_ValueMap);
 	
-	var _TransitionParser = __webpack_require__(16);
+	var _TransitionParser = __webpack_require__(18);
 	
 	var _TransitionParser2 = _interopRequireDefault(_TransitionParser);
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -2004,7 +2021,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = TransitionMap;
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2019,11 +2036,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	exports.default = parse;
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
-	var _errors = __webpack_require__(14);
+	var _errors = __webpack_require__(16);
 	
-	var _TransitionMeta = __webpack_require__(17);
+	var _TransitionMeta = __webpack_require__(19);
 	
 	var _TransitionMeta2 = _interopRequireDefault(_TransitionMeta);
 	
@@ -2127,7 +2144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2144,7 +2161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = TransitionMeta;
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2155,9 +2172,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _events = __webpack_require__(8);
+	var _events = __webpack_require__(10);
 	
-	var _utils = __webpack_require__(2);
+	var _utils = __webpack_require__(3);
 	
 	/**
 	 * Transition class

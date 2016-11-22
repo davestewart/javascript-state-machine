@@ -4,36 +4,29 @@
 
 ### Overview
 
-The demo directory contains individual html files with API and usage examples.
+The demo directory contains individual html files with extensive API and usage examples.
 
-API:
+You can view the live demo here:
 
-- Flows
-- States
-- Events
-- Handlers
+- [http://statemachine.davestewart.io](http://statemachine.davestewart.io)
 
-Examples:
-
-- Sign-up forms
-- Game states
-- Animating views
-- etc.
-
-### Running the demo
+### Running the demo locally
 
 To view the demo files, run `npm run demo`. Any changes will be live-reloaded.
 
 
-### Grokking the files
+### Demo files setup 
 
-All examples first run a basic setup script `demo/assets/js/setup.js` which:
+All examples first run the same basic setup script which uses the StateHelper class to:
+ 
+ - create a state machine with the passed options
+ - wire up the UI to respond to StateMachine events
+ - assigns it to the global `fsm`variable so it can be inspected and interacted with from the console
+ 
+This is fully explained in the demos here: 
 
--   Assigns the state machine to the global `fsm`variable
--   Adds an `update` listener to the fsm to:
-    -   Update the onscreen state diagram's active state
-    -   Enable / disable buttons depending on available actions and `isPaused()` result
-- Logs the instance to the console
+- [http://statemachine.davestewart.io/html/setup/setup/overview.html](http://statemachine.davestewart.io/html/setup/setup/overview.html)
+
 
 To understand each of the examples:
 

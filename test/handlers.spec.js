@@ -30,8 +30,8 @@ let fsm = new StateMachine({
 function test (id, input)
 {
     let expected    = input.match(/\S+/g);
-    let paths       = fsm.parse(id).paths;
-    assert.deepEqual(expected, paths);
+    let paths       = fsm.parse(id).map(meta => meta.path).join(' ');
+    assert(expected, paths);
 }
 
 describe('Testing parsing of event handler ids for:', function () {

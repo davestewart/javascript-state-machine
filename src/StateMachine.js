@@ -74,7 +74,7 @@ StateMachine.prototype =
     // private methods
 
         /**
-         * Initialize the FSM with a config object
+         * Initialize the FSM with options
          *
          * @private
          * @param options
@@ -152,7 +152,10 @@ StateMachine.prototype =
         {
             this.state = this.config.initial;
             this.handlers.trigger('system.start');
-            this.handlers.trigger('system.change', this.state);
+            if(this.state)
+            {
+                this.handlers.trigger('system.change', this.state);
+            }
             return this;
         },
 

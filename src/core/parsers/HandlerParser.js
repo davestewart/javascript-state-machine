@@ -95,7 +95,7 @@ import { ParseError } from '../objects/errors';
         alias               : /^(\w+)$/,
 
         // system.start state.add
-        namespaced          : /^(system|transition|state|action):(\w+)$/,
+        namespaced          : /^(system|transition|state|action)\.(\w+)$/,
 
         // @next @quit
         oneAction           : /^@(\w+)$/,
