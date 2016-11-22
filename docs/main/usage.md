@@ -83,7 +83,7 @@ var ui = {
         // update buttons
         $('#controls button')
             .each(function (i, e) {
-                $(e).toggleAttr('disabled', fsm.can(e.name));  
+                $(e).toggleAttr('disabled', !fsm.can(e.name));  
             });
         }
 }
