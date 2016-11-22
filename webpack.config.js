@@ -20,8 +20,8 @@ if (env === 'build') {
 
 var config = {
   entry: {
-    'StateMachine': __dirname + '/src/StateMachine.js',
-    'StateHelper': __dirname + '/src/helpers/index.js'
+    'StateMachine': [__dirname + '/src/StateMachine.js'],
+    'StateHelper': [__dirname + '/src/helpers/index.js']
   },
   devtool: 'source-map',
   output: {
