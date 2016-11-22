@@ -96,6 +96,7 @@
         <section>
             <p>State Machine is a library for managing a finite set of states, and moving between them via actions and transitions.</p>
             <p>From its intuitive configuration through its powerful event-based architecture and rich API, State Machine makes it easy to describe and manage interaction with complex state-dependent systems like components, multi-step forms, purchase funnels, visualisations or games.</p>
+            <p>The demo below shows-off many of StateMachine's features. View the source code and console for more info.</p>
         </section>
 
         <section id="states">
@@ -402,7 +403,7 @@
                 handlers:
                 {
                     // when a state is added to the FSM, add a city on the map
-                    'state:add': function (event, fsm)
+                    'state.add': function (event, fsm)
                     {
                         var to = event.target;
                         console.warn('State added  : ', to);
@@ -470,7 +471,7 @@
                             }
                         }.bind(this));
                         console.groupEnd();
-                    },
+                    }
 
                 }
 

@@ -174,7 +174,7 @@
             </thead>
             <tbody>
                 <tr><td><code>alias</code></td><td>Any single word that resolves to a namespaced-type alias, action or state name</td></tr>
-                <tr><td><code>namespace:type</code></td><td>A namespaced-type, for system, transition, action or state</td></tr>
+                <tr><td><code>namespace.type</code></td><td>A namespaced-type, for system, transition, action or state</td></tr>
                 <tr><td><code>:type</code></td><td>An event type, for action or state events</td></tr>
                 <tr><td><code>@action</code></td><td>An action name</td></tr>
                 <tr><td><code>#state</code></td><td>A state name (provided in case you need to disambiguate from a namespaced alias)</td></tr>
@@ -222,7 +222,7 @@
                     $('button[name="cancel"]').attr('disabled', event.type === 'end');
                 },
 
-                '(state:add state:remove)': function (event, fsm) {
+                '(state.add state.remove)': function (event, fsm) {
                     $('button[name="add"]').attr('disabled', event.type === 'add');
                     $('button[name="remove"]').attr('disabled', event.type === 'remove');
                 }
@@ -232,7 +232,7 @@
 
         var fsm = setup(new StateMachine(config)).fsm
                     .trigger('start')
-                    .trigger('state:remove')
+                    .trigger('state.remove')
                     .trigger(':end');
 
     </script>
@@ -272,7 +272,7 @@
                     },
                     namespaced:
                     {
-                        'system:change'	    :'The FSM has been started and the system has entered the initial state',
+                        'system.change'	    :'The FSM has been started and the system has entered the initial state',
                     }
                 },
                 transition:
@@ -285,7 +285,7 @@
                     },
                     namespaced:
                     {
-                        'transition:pause'  :'The current transition was paused',
+                        'transition.pause'  :'The current transition was paused',
                     }
                 },
                 action:
@@ -303,8 +303,8 @@
                     },
                     namespaced:
                     {
-                        'action:add'		:'An action was added',
-                        'action:remove'		:'An action was removed',
+                        'action.add'		:'An action was added',
+                        'action.remove'		:'An action was removed',
                     },
                     combinations:
                     {
@@ -327,8 +327,8 @@
                     },
                     namespaced:
                     {
-                        'state:add'		    :'A state was added',
-                        'state:remove'		:'A state was removed',
+                        'state.add'		    :'A state was added',
+                        'state.remove'		:'A state was removed',
                     },
                     combinations:
                     {
