@@ -102,7 +102,7 @@ HandlerMap.prototype =
         let handlers = this.map.get(path);
         if(handlers)
         {
-            handlers.map(fn => fn(event, this.fsm) );
+            handlers.forEach(fn => fn(event, this.fsm) );
         }
     }
 

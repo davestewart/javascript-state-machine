@@ -185,7 +185,7 @@ export default
         let transition  = new Transition(fsm, action, from, to);
 
         // build handlers array
-        fsm.config.order.map( path =>
+        fsm.config.order.forEach( path =>
         {
             // replace path tokens
             path = path.replace(/{(\w+)}/g, (all, token) => vars[token]);

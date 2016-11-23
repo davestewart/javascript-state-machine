@@ -82,11 +82,11 @@ import TransitionMeta from './TransitionMeta';
                     }
                     if(Array.isArray(a))
                     {
-                        a.map( a => add(transitions, action, a, b) );
+                        a.forEach( a => add(transitions, action, a, b) );
                     }
                     else if(Array.isArray(b))
                     {
-                        b.map( b => add(transitions, action, a, b) );
+                        b.forEach( b => add(transitions, action, a, b) );
                     }
                     else
                     {

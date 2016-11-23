@@ -137,7 +137,7 @@ import { ParseError } from '../objects/errors';
             let paths   = expandGroups(id);
 
             // process paths
-            paths.map( path => this.parsePath(path) );
+            paths.forEach( path => this.parsePath(path) );
         },
 
         parsePath:function(path)
