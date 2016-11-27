@@ -173,7 +173,7 @@ export default
         // handle "to" being a function
         if(isFunction(to))
         {
-            to = to.apply(scope, params);
+            to = to.apply(scope, [fsm].concat(params));
             if(!fsm.transitions.hasState(to))
             {
                 throw new Error('Invalid "to" state "' +to+ '"');
