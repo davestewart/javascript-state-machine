@@ -25,7 +25,7 @@ var config = {
   },
   devtool: 'source-map',
   output: {
-    path: __dirname + '/lib',
+    path: __dirname + '/dist',
     //umdNamedDefine: true,
     //libraryTarget: 'var',
     libraryTarget: 'umd',
