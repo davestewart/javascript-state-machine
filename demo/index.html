@@ -10,6 +10,13 @@
     <meta property="og:description" content="State Machine is a library for managing a finite set of states, and moving between them via actions and transitions" />
     <meta property="og:image" content="https://cloud.githubusercontent.com/assets/132681/20332705/af478f0e-aba5-11e6-93ff-c930307c790a.png" />
 
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@dave_stewart">
+    <meta name="twitter:creator" content="@dave_stewart">
+    <meta name="twitter:title" content="JavaScript State Machine">
+    <meta name="twitter:description" content="State Machine is a library for managing a finite set of states, and moving between them via actions and transitions">
+    <meta name="twitter:image" content="https://cloud.githubusercontent.com/assets/132681/20332705/af478f0e-aba5-11e6-93ff-c930307c790a.png">
+
     <script src="/assets/vendor/jquery.min.js"></script>
     <script src="/assets/js/StateMachine.js"></script>
     <script src="/assets/js/StateHelper.js"></script>
@@ -462,7 +469,7 @@
 
                         // loop over connected cities and add transitions
                         console.group('Adding connected cities...');
-                        city.to.map(function(to)
+                        city.to.forEach(function(to)
                         {
                             if(!this.transitions.hasTransition(to, from, to))
                             {
@@ -513,7 +520,7 @@
                 </li>
             </ul>
 
-            <p>Source code available at <a href="https://github.com/davestewart/javascript-state-machine">GitHub</a>.</p>
+            <p>Source code and <a href="https://github.com/davestewart/javascript-state-machine/tree/master/docs">docs</a> available at <a href="https://github.com/davestewart/javascript-state-machine">GitHub</a>.</p>
 
         </section>
 

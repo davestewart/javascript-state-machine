@@ -240,13 +240,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // pre-process all transitions
 	        var transitions = [];
 	        if (Array.isArray(options.transitions)) {
-	            options.transitions.map(function (tx) {
+	            options.transitions.forEach(function (tx) {
 	                transitions = transitions.concat(_this.transitions.parse(tx));
 	            });
 	        }
 	
 	        // add transitions
-	        transitions.map(function (transition) {
+	        transitions.forEach(function (transition) {
 	            _this.transitions.add(transition.action, transition.from, transition.to);
 	        });
 	
@@ -524,7 +524,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // 1 argument: shorthand transition, i.e 'next : a > b'
 	        if (arguments.length === 1) {
 	            var transitions = this.transitions.parse(action);
-	            transitions.map(function (tx) {
+	            transitions.forEach(function (tx) {
 	                return _this2.add(tx.action, tx.from, tx.to);
 	            });
 	            return this;
@@ -688,7 +688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            rest[_key2 - 1] = arguments[_key2];
 	        }
 	
-	        this.handlers.parse(id).map(function (meta) {
+	        this.handlers.parse(id).forEach(function (meta) {
 	            return _this7.handlers.trigger.apply(_this7.handlers, [meta.path].concat(rest));
 	        });
 	        return this;
@@ -746,10 +746,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var actions = (0, _utils.diff)(actionsBefore, actionsAfter);
 	
 	    // dispatch events
-	    states.map(function (state) {
+	    states.forEach(function (state) {
 	        return fsm.handlers.trigger('system.state.' + method, state);
 	    });
-	    actions.map(function (action) {
+	    actions.forEach(function (action) {
 	        return fsm.handlers.trigger('system.action.' + method, action);
 	    });
 	}
@@ -774,7 +774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Config(options) {
 	  var _this = this;
 	
-	  'scope start initial final invalid errors'.match(/\w+/g).map(function (name) {
+	  'scope start initial final invalid errors'.match(/\w+/g).forEach(function (name) {
 	    if (options.hasOwnProperty(name)) {
 	      _this[name] = options[name];
 	    }
@@ -980,7 +980,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // dispatch
 	        var handlers = this.map.get(path);
 	        if (handlers) {
-	            handlers.map(function (fn) {
+	            handlers.forEach(function (fn) {
 	                return fn(event, _this.fsm);
 	            });
 	        }
@@ -1416,7 +1416,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var paths = expandGroups(id);
 	
 	        // process paths
-	        paths.map(function (path) {
+	        paths.forEach(function (path) {
 	            return _this.parsePath(path);
 	        });
 	    },
@@ -1552,7 +1552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.rules = [];
 	    if (rules) {
-	        Object.keys(rules).map(function (name) {
+	        Object.keys(rules).forEach(function (name) {
 	            return _this.addRule(name, rules[name]);
 	        });
 	    }
@@ -2072,13 +2072,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            tx = tx.replace(/([|=:<>])/g, ' $1 ').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
 	
 	            // ensure string is valid
-	            if (!/^\w+ [:|=] [*\w][\w ]*[<>] [*\w][\w ]*/.test(tx)) {
+	            if (!/^\w+ [:=] [*\w][\w ]*[|<>] [*\w][\w ]*/.test(tx)) {
 	                throw new _errors.ParseError(getError(tx, 'cannot determine action and states'));
 	            }
 	
 	            // initialize variables
 	            var transitions = [],
-	                matches = tx.match(/([*\w ]+|[<>])/g),
+	                matches = tx.match(/([*\w ]+|[|<>])/g),
 	                action = matches.shift().replace(/\s+/g, ''),
 	                stack = [],
 	                match = '',
@@ -2090,6 +2090,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            while (matches.length) {
 	                // get the next match
 	                match = matches.shift();
+	
+	                // reset stack if | was passed
+	                if (match === '|') {
+	                    stack = [];
+	                    match = matches.shift();
+	                }
+	
+	                // process match
 	                if (/[<>]/.test(match)) {
 	                    op = match;
 	                } else {
@@ -2114,11 +2122,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        throw new _errors.ParseError(getError(tx, 'transitioning to a wildcard doesn\'t make sense'));
 	                    }
 	                    if (Array.isArray(a)) {
-	                        a.map(function (a) {
+	                        a.forEach(function (a) {
 	                            return add(transitions, action, a, b);
 	                        });
 	                    } else if (Array.isArray(b)) {
-	                        b.map(function (b) {
+	                        b.forEach(function (b) {
 	                            return add(transitions, action, a, b);
 	                        });
 	                    } else {
@@ -2284,7 +2292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	
 	    cancel: function cancel() {
-	        this.paused = false;;
+	        this.paused = false;
 	        this.fsm.handlers.trigger('transition.cancel', false);
 	    }
 	
@@ -2328,7 +2336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // handle "to" being a function
 	        if ((0, _utils.isFunction)(to)) {
-	            to = to.apply(scope, params);
+	            to = to.apply(scope, [fsm].concat(params));
 	            if (!fsm.transitions.hasState(to)) {
 	                throw new Error('Invalid "to" state "' + to + '"');
 	            }
@@ -2339,7 +2347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var transition = new Transition(fsm, action, from, to);
 	
 	        // build handlers array
-	        fsm.config.order.map(function (path) {
+	        fsm.config.order.forEach(function (path) {
 	            // replace path tokens
 	            path = path.replace(/{(\w+)}/g, function (all, token) {
 	                return vars[token];
