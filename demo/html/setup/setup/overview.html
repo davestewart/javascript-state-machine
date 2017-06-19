@@ -83,11 +83,17 @@ StateHelper.jQuery(fsm);
 <pre>
 // config
 handlers: {
-    'change': function(event, fsm) { ... }
+    'change': function(event, fsm) {
+        // update ui
+        // do stuff
+    }
 }
 
 // manually
-fsm.on('change', function(event, fsm) { ... });
+fsm.on('change', function(event, fsm) {
+    // update ui
+    // do stuff
+});
 </pre>
     </section>
 

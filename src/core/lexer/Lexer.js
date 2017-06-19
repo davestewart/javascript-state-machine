@@ -12,7 +12,7 @@ export default function Lexer(rules)
     this.rules = [];
     if(rules)
     {
-        Object.keys(rules).map( name => this.addRule(name, rules[name]) );
+        Object.keys(rules).forEach( name => this.addRule(name, rules[name]) );
     }
 }
 

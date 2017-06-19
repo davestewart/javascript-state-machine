@@ -12,13 +12,13 @@ From its intuitive configuration through its powerful event-based architecture a
 
 State Machine has been designed from the outset to feel intuitive and fun to use:
 
-- Easily-configurable via JSON config or instance methods
+- Easily-configurable via JavaScript config or instance methods
 - DSL for shorthand transition and handler assignment
 - Add and remove states and actions on the fly
 - Pause, resume, cancel or end transitions at any point
 - Handle system, state, action and transition events
 - Rich API and system introspection
-- Object-oriented architecture; fully-inspectable in DevTools
+- Object-oriented architecture, fully-inspectable in DevTools
 
 
 ### Demo
@@ -27,36 +27,47 @@ View the live demo at:
 
 - [statemachine.davestewart.io](http://statemachine.davestewart.io)
 
-To run demo locally, see the build tasks at the bottom of this readme.
- 
+To run / tinker with the demo locally, see the Development section.
+
+### Installation
+
+Install via NPM using:
+
+```
+npm install state-machine
+```
+
+
+**Note**: If you are expecting the package [wheeyls/stateMachine](https://github.com/wheeyls/stateMachine) it has now been depreciated.
+To continue to use *that* package in your project, ensure you use the version `0.3.0` in your `package.json`.
+
+
 ### Docs
 
 View the documentation at:
 
 - [docs/readme.md](docs/readme.md)
 
-The docs will also be downloaded with the repository. 
 
 ## Development
 
 ### Installation
 
-Until available on NPM, pull from the main github repoistory:
+Clone the repo using:
 
-- https://github.com/davestewart/javascript-state-machine/
-
+```
+git clone https://github.com/davestewart/javascript-state-machine
+```
 
 ### Tasks
 
 The following NPM tasks are available, via `npm run <task>`:
 
 - `dev` - compile and watch the source to `state-machine.js`
-- `build` - compile teh source to `state-machine.min.js`
+- `build` - compile the source to `state-machine.min.js`
 - `demo` - compile, watch and copy the development build to `demo/` and serve demo files at `http://localhost:8888`
 - `test` - run all tests
 
-
-**Note that**  interim builds may not always be committed on the `develop` branch, so if tinkering with the latest / running the demo, you may need to run the `dev` task first.
 
 ### Testing
 
@@ -68,3 +79,5 @@ To run a single or set of tests, use the following syntax:
 ## Mentions
 
 Inspired by [@jakesgordon](https://github.com/jakesgordon/javascript-state-machine/)'s JavaScript State Machine.
+
+Special thanks to Michael Wheeler ([@wheeyls](https://github.com/wheeyls)) who very kindly donated the NPM package name [state-machine](https://www.npmjs.com/package/state-machine).

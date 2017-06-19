@@ -35,14 +35,14 @@ import TransitionMeta from './TransitionMeta';
                 .replace(/^\s+|\s+$/g,'');
 
             // ensure string is valid
-            if(!/^\w+ [:|=] [*\w][\w ]*[<>] [*\w][\w ]*/.test(tx))
+            if(!/^\w+ [:=] [*\w][\w ]*[|<>] [*\w][\w ]*/.test(tx))
             {
                 throw new ParseError(getError(tx, 'cannot determine action and states'));
             }
 
             // initialize variables
             let transitions = [],
-                matches = tx.match(/([*\w ]+|[<>])/g),
+                matches = tx.match(/([*\w ]+|[|<>])/g),
                 action  = matches.shift().replace(/\s+/g, ''),
                 stack   = [],
                 match   = '',
@@ -55,6 +55,15 @@ import TransitionMeta from './TransitionMeta';
             {
                 // get the next match
                 match = matches.shift();
+
+                // reset stack if | was passed
+                if(match === '|')
+                {
+                    stack = [];
+                    match = matches.shift();
+                }
+
+                // process match
                 if(/[<>]/.test(match))
                 {
                     op = match;
@@ -82,11 +91,11 @@ import TransitionMeta from './TransitionMeta';
                     }
                     if(Array.isArray(a))
                     {
-                        a.map( a => add(transitions, action, a, b) );
+                        a.forEach( a => add(transitions, action, a, b) );
                     }
                     else if(Array.isArray(b))
                     {
-                        b.map( b => add(transitions, action, a, b) );
+                        b.forEach( b => add(transitions, action, a, b) );
                     }
                     else
                     {

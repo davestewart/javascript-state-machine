@@ -1,19 +1,19 @@
 {
   "name": "state-machine",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "An expressive, feature-rich, event-driven JavaScript finite-state machine",
-  "main": "lib/state-machine.js",
   "scripts": {
     "dev": "webpack --progress --colors --watch --mode=dev",
-    "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js",
+    "prepublish": "npm run build",
     "build": "webpack --mode=build",
-    "demo": "cpx './lib/State{Machine,Helper}.js' ./demo/assets/js --watch | lite-server"
+    "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js",
+    "demo": "cpx './dist/State{Machine,Helper}.js' ./demo/assets/js --watch | lite-server"
   },
   "dependencies": {
   },
   "devDependencies": {
     "babel": "6.3.13",
-    "babel-cli": "^6.16.0",
+    "babel-cli": "^6.18.0",
     "babel-core": "6.1.18",
     "babel-eslint": "5.0.0",
     "babel-loader": "6.1.0",
@@ -30,6 +30,12 @@
     "webpack": "1.12.9",
     "yargs": "3.32.0"
   },
+  "main": "dist/index.js",
+  "files": [
+    "dist/index.js",
+    "dist/StateMachine.js",
+    "dist/StateHelper.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/davestewart/javascript-state-machine.git"

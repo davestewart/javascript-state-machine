@@ -4,7 +4,7 @@ export default function Config (options)
 {
     'scope start initial final invalid errors'
         .match(/\w+/g)
-        .map( name =>
+        .forEach( name =>
         {
             if(options.hasOwnProperty(name))
             {

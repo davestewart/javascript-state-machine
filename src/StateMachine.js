@@ -92,14 +92,14 @@ StateMachine.prototype =
             let transitions = [];
             if(Array.isArray(options.transitions))
             {
-                options.transitions.map( tx =>
+                options.transitions.forEach( tx =>
                 {
                     transitions = transitions.concat(this.transitions.parse(tx));
                 });
             }
 
             // add transitions
-            transitions.map( transition =>
+            transitions.forEach( transition =>
             {
                 this.transitions.add(transition.action, transition.from, transition.to);
             });
@@ -414,7 +414,7 @@ StateMachine.prototype =
             if(arguments.length === 1)
             {
                 var transitions = this.transitions.parse(action);
-                transitions.map( tx => this.add(tx.action, tx.from, tx.to));
+                transitions.forEach( tx => this.add(tx.action, tx.from, tx.to));
                 return this;
             }
 
@@ -569,7 +569,7 @@ StateMachine.prototype =
 
         trigger: function (id, ...rest)
         {
-            this.handlers.parse(id).map( meta => this.handlers.trigger.apply(this.handlers, [meta.path, ...rest]) );
+            this.handlers.parse(id).forEach( meta => this.handlers.trigger.apply(this.handlers, [meta.path, ...rest]) );
             return this;
         }
 
@@ -640,6 +640,6 @@ export default StateMachine;
         var actions         = diff(actionsBefore, actionsAfter);
 
         // dispatch events
-        states.map ( state  => fsm.handlers.trigger('system.state.'  + method, state) );
-        actions.map( action => fsm.handlers.trigger('system.action.' + method, action) );
+        states.forEach ( state  => fsm.handlers.trigger('system.state.'  + method, state) );
+        actions.forEach( action => fsm.handlers.trigger('system.action.' + method, action) );
     }
