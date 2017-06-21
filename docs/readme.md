@@ -16,21 +16,22 @@ To begin, familiarise yourself with some state machine concepts:
 - [Intro](main/intro.md)
 - [Transitions](main/transitions.md)
 
-Next, see how to install and set up a project:
+Next, see installation, setup and basic usage:
 
-- [Installation](main/install.md)
+- [Setup](main/setup.md)
 - [Usage](main/usage.md)
 
-Once you're up and running, you'll want to configure StateMachine:
+Once up and running, configure StateMachine:
 
 - [Options](config/options.md)
 - [Transitions](config/transitions.md)
 - [Handlers](config/handlers.md)
 
-Finally, get in depth with the API and supporting classes:
+Finally, explore the API and supporting classes:
 
 - [API overview](api/readme.md)
 - [StateMachine](api/statemachine.md)
+- [StateHelper](http://statemachine.davestewart.io/html/setup/setup/overview.html)
 - [Events](api/events.md)
 - [TransitionMap](api/transitionmap.md)
 

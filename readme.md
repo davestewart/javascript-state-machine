@@ -31,6 +31,8 @@ To run / tinker with the demo locally, see the Development section.
 
 ### Installation
 
+State Machine can be used directly in the browser, or in a Browserify, Node or ES6 project.
+
 Install via NPM using:
 
 ```
