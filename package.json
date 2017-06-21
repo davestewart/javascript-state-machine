@@ -1,6 +1,6 @@
 {
   "name": "state-machine",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An expressive, feature-rich, event-driven JavaScript finite-state machine",
   "scripts": {
     "dev": "webpack --progress --colors --watch --env=dev",
