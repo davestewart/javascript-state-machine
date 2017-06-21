@@ -1,59 +1,61 @@
+// libs
+var path = require('path');
 var webpack = require('webpack');
 var UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 
-var path = require('path');
-var env = require('yargs').argv.mode;
-
-var libraryName = 'StateMachine';
-var fileName = 'state-machine';
-var outputFile;
+// variables
+var env = require('yargs').argv.env;
+var filename;
 var plugins = [
-  //new webpack.optimize.CommonsChunkPlugin("components", "components.min.js")
+    //new webpack.optimize.CommonsChunkPlugin("components", "components.min.js")
 ];
 
+// setup
 if (env === 'build') {
-  plugins.push(new UglifyJsPlugin({ minimize: true }));
-  outputFile = '[name].min.js';
+    plugins.push(new UglifyJsPlugin({minimize: true}));
+    filename = 'state-machine.min.js';
 } else {
-  outputFile = '[name].js';
+    filename = 'state-machine.js';
 }
 
+// config
 var config = {
-  entry: {
-    'StateMachine': [__dirname + '/src/StateMachine.js'],
-    'StateHelper': [__dirname + '/src/helpers/index.js']
-  },
-  devtool: 'source-map',
-  output: {
-    path: __dirname + '/dist',
-    //umdNamedDefine: true,
-    //libraryTarget: 'var',
-    libraryTarget: 'umd',
-    filename: outputFile,
-    library: '[name]'
-  },
-  module: {
-    loaders: [
-      {
-        test: /(\.jsx|\.js)$/,
-        loader: 'babel',
-        exclude: /(node_modules|bower_components)/,
-        query: {
-          presets: ['es2015']
-        }
-      },
-      {
-        test: /(\.jsx|\.js)$/,
-        loader: "eslint-loader",
-        exclude: /node_modules/
-      }
-    ]
-  },
-  resolve: {
-    root: path.resolve('./src'),
-    extensions: ['', '.js']
-  },
-  plugins: plugins
+    entry: {
+        'main': __dirname + '/src/main.js'
+    },
+    output: {
+        path: path.join(__dirname, "dist"),
+        filename: filename,
+        libraryTarget: "umd"
+    },
+    devtool: 'source-map',
+    plugins: plugins,
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['env']
+                    }
+                }
+            },
+            {
+                test: /(\.jsx|\.js)$/,
+                loader: "eslint-loader",
+                exclude: /node_modules/
+            }
+        ]
+    },
+    resolve: {
+        modules: [
+            path.resolve('./src'),
+            "node_modules"
+        ]
+    }
 };
 
+// export
 module.exports = config;

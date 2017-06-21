@@ -1,11 +1,3 @@
-if (window.StateMachine && StateMachine.default) {
-    window.StateMachine = StateMachine.default;
-}
-
-if (window.StateHelper && StateHelper.default) {
-    window.StateHelper = StateHelper.default;
-}
-
 /**
  * Iniialisation function
  */
