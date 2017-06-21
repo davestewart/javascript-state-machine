@@ -1,34 +1,31 @@
+// libs
+var path = require('path');
 var webpack = require('webpack');
 var UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 
-var path = require('path');
-var env = require('yargs').argv.mode;
-
-var libraryName = 'StateMachine';
-var fileName = 'state-machine';
-var outputFile;
+// variables
+var env = require('yargs').argv.env;
+var filename;
 var plugins = [
     //new webpack.optimize.CommonsChunkPlugin("components", "components.min.js")
 ];
 
+// setup
 if (env === 'build') {
     plugins.push(new UglifyJsPlugin({minimize: true}));
-    outputFile = '[name].min.js';
+    filename = 'state-machine.min.js';
 } else {
-    outputFile = '[name].js';
+    filename = 'state-machine.js';
 }
 
-function src (file) {
-    return __dirname + '/src/' + file;
-}
-
+// config
 var config = {
     entry: {
-        'main': src('main.js')
+        'main': __dirname + '/src/main.js'
     },
     output: {
         path: path.join(__dirname, "dist"),
-        filename: "state-machine.js",
+        filename: filename,
         libraryTarget: "umd"
     },
     devtool: 'source-map',
@@ -60,4 +57,5 @@ var config = {
     }
 };
 
+// export
 module.exports = config;

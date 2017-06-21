@@ -26,9 +26,7 @@
   },
   "main": "dist/state-machine.js",
   "files": [
-    "dist/index.js",
-    "dist/StateMachine.js",
-    "dist/StateHelper.js"
+    "dist/state-machine.*"
   ],
   "repository": {
     "type": "git",
