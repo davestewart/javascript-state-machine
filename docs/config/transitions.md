@@ -44,7 +44,7 @@ A more expressive way of adding transitions is via "shorthand notation". This al
 var options = {
     transitions: [
         'next : a > b',
-        'next : b > a'
+        'back : b > a'
     ]
 };
 var fsm = new StateMachine(options);
@@ -54,7 +54,7 @@ Not only that, but you can reverse the `>` symbol to describe transitions that g
 ```javascript
 transitions: [
     'next : a > b',
-    'next : b < a',
+    'back : a < b',
 ]
 ```
 
@@ -114,9 +114,8 @@ See the [Options](options.md) section for more information on reporting warnings
 
 ## Miscellaneous
 
-You can use `=` or `|` in place of `:` if you prefer:
+You can use `=` in place of `:` if you prefer:
 
 ```
 'next = a > b'
-'back | a < b'
 ```
