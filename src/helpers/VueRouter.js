@@ -8,7 +8,7 @@ export default function setup (router, object)
 {
     function updateRoute()
     {
-        router.push('/' + object.fsm.state);
+        router.push({name: object.fsm.state});
     }
 
     // update route when state updates
