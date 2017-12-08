@@ -22,7 +22,6 @@
         </section>
 
         <section id="controls">
-            <button class="btn btn-sm" name="exit">Exit</button>
             <button class="btn btn-sm" name="restart">Restart</button>
             <button class="btn btn-sm" name="back">Back</button>
             <button class="btn btn-sm" name="next">Next</button>
@@ -38,7 +37,6 @@
         <ul>
             <li>Sequential states for "next" and "back"</li>
             <li>Array assignment for "restart" and "exit"</li>
-            <li>An exit to a <a href="../states/terminating.html">terminating state</a> for "x".</li>
         </ul>
     </section>
 
@@ -50,7 +48,6 @@
                 'next    : a > b > c > d',
                 'back    : a < b < c < d',
                 'restart : a < b   c   d',
-                'exit    : a   b   c   d > x'
             ]
 
         };
