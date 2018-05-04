@@ -3,6 +3,7 @@
 <head>
     <title>Wildcard notation</title>
     <script src="/assets/vendor/jquery.min.js"></script>
+    <script src="/assets/vendor/ga.js"></script>
     <link href="/assets/vendor/bootstrap.min.css" rel="stylesheet" >
     <script src="/assets/js/state-machine.js"></script>
     <script src="/assets/js/setup.js"></script>
@@ -22,7 +23,6 @@
         </section>
 
         <section id="controls">
-            <button class="btn btn-sm" name="exit">Exit</button>
             <button class="btn btn-sm" name="restart">Restart</button>
             <button class="btn btn-sm" name="back">Back</button>
             <button class="btn btn-sm" name="next">Next</button>
@@ -32,7 +32,7 @@
 
     <section id="info">
         <p>This example demonstrates the wildcard state <code>*</code>.</p>
-        <p>Wildcards give you a shorthand way to navigate from <i>other</i> states to a target state:</p>
+        <p>Wildcards give you a shorthand way to navigate from any <i>other</i> states to a target state:</p>
         <pre></pre>
         <p>Not only that, but wildcards are calculated at runtime, so states added later will be covered by earlier wildcard transitions.</p>
     </section>
@@ -44,8 +44,7 @@
             transitions: [
                 'next    : a > b > c > d',
                 'back    : a < b < c < d',
-                'restart : a             < *',
-                'exit    :                 * > x'
+                'restart : a < *'
             ]
 
         };
