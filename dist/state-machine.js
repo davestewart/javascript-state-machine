@@ -2652,6 +2652,11 @@ function setup(router, object) {
         router.push({ name: object.fsm.state });
     }
 
+    // set the current route as current state
+    object.fsm.state = router.currentRoute.name;
+    // manually update helper
+    object.update();
+
     // update route when state updates
     object.fsm.on('change', updateRoute);
 
