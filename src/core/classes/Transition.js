@@ -168,7 +168,6 @@ export default
         let scope   = fsm.config.scope;
         let from    = fsm.state;
         let to      = fsm.transitions.getStateFor(from, action);
-        let vars    = {action, to, from};
 
         // handle "to" being a function
         if(isFunction(to))
@@ -181,6 +180,7 @@ export default
         }
 
         // transition
+        let vars    = {action, to, from};
         let queue       = [];
         let transition  = new Transition(fsm, action, from, to);
 
