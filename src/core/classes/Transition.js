@@ -180,7 +180,7 @@ export default
         }
 
         // transition
-        let vars    = {action, to, from};
+        let vars        = {action, to, from};
         let queue       = [];
         let transition  = new Transition(fsm, action, from, to);
 
