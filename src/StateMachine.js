@@ -105,7 +105,7 @@ StateMachine.prototype =
             });
 
             // get initial state (must be done after state collation)
-            if( ! config.initial && this.transitions.length)
+            if( ! config.initial && this.transitions.length )
             {
                 config.initial = this.transitions.getStates()[0];
             }

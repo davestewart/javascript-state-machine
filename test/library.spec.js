@@ -1,9 +1,5 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import StateMachine from '../src/StateMachine';
-
-chai.expect();
-
-const expect = chai.expect;
 
 var fsm;
 

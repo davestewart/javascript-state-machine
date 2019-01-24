@@ -1,14 +1,5 @@
-import mocha from 'mocha';
-import chai from 'chai';
+import { assert } from 'chai';
 import StateMachine from '../src/StateMachine';
-
-//const describe = mocha.describe;
-//const it = mocha.it;
-
-chai.expect();
-
-const assert = chai.assert;
-const expect = chai.expect;
 
 // make a new state machine
 let fsm = new StateMachine({
