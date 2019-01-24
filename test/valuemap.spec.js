@@ -1,15 +1,17 @@
 import chai from 'chai';
+import StateMachine from '../src/StateMachine';
 import ValueMap from '../src/core/maps/ValueMap';
 
 chai.expect();
 
 const expect = chai.expect;
 
-var map;
+var map, fsm;
 
 describe('Given an instance of my library', function () {
 
     before(function () {
+        fsm = new StateMachine();
         map = new ValueMap({
             val:1,
             obj:{},
@@ -19,13 +21,13 @@ describe('Given an instance of my library', function () {
 
     describe('when I set a property it', function () {
         it('should return the name', () => {
-            expect(fsm.state).to.be.equal('');
+            expect(fsm.state).to.equal('');
         });
     });
 
     describe('when I need the blah', function () {
         it('should return the name', () => {
-            expect(fsm.state).to.be.equal('');
+            expect(fsm.state).to.equal('');
         });
     });
 

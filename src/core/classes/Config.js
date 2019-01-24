@@ -1,6 +1,6 @@
 import StateMachine from '../../StateMachine';
 
-export default function Config (options)
+export default function Config (options = {})
 {
     'scope start initial final invalid errors'
         .match(/\w+/g)
