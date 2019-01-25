@@ -79,7 +79,7 @@ StateMachine.prototype =
          * @private
          * @param options
          */
-        initialize:function (options)
+        initialize:function (options = {})
         {
             // state
             this.state          = '';
@@ -105,7 +105,7 @@ StateMachine.prototype =
             });
 
             // get initial state (must be done after state collation)
-            if( ! config.initial )
+            if( ! config.initial && this.transitions.length )
             {
                 config.initial = this.transitions.getStates()[0];
             }
