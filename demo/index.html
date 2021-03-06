@@ -526,5 +526,31 @@
 
     </main>
 
+    <script>
+        if (window.parent !== window || location.search === '?embed=1') {
+            const $map = $('#map')
+
+            $('body')
+                .css('margin', 0)
+                .addClass('embedded')
+                .append($map)
+
+            $(window)
+                .on('resize', function resize () {
+                    $map.css('zoom', window.innerWidth / 960)
+                })
+                .trigger('resize')
+        }
+    </script>
+
+    <style>
+        body.embedded h1,
+        body.embedded #toc,
+        body.embedded #home,
+        body.embedded .states {
+            display: none;
+        }
+    </style>
+
 </body>
 </html>
