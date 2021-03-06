@@ -529,6 +529,8 @@
     <script>
         if (window.parent !== window || location.search === '?embed=1') {
             const $map = $('#map')
+            $('html, body')
+                .css('overflow', 'hidden')
 
             $('body')
                 .css('margin', 0)
@@ -549,6 +551,9 @@
         body.embedded #home,
         body.embedded .states {
             display: none;
+        }
+        body.embedded #map {
+            border: 0;
         }
     </style>
 
