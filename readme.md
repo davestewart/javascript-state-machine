@@ -40,7 +40,7 @@ npm install state-machine
 ```
 
 
-**Note**: If you are expecting the package [wheeyls/stateMachine](https://github.com/wheeyls/stateMachine) it has now been depreciated.
+**Note**: If you are expecting the package [wheeyls/stateMachine](https://github.com/wheeyls/stateMachine) it has now been deprecated.
 To continue to use *that* package in your project, ensure you use the version `0.3.0` in your `package.json`.
 
 
