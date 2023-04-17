@@ -22,7 +22,7 @@
     "eslint": "1.7.2",
     "eslint-loader": "1.1.0",
     "lite-server": "^2.2.2",
-    "mocha": "2.3.4",
+    "mocha": "10.2.0",
     "mocha-logger": "^1.0.4",
     "webpack": "^3.0.0",
     "yargs": "3.32.0"
